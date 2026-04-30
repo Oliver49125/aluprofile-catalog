@@ -21,16 +21,7 @@ import { Input } from './components/ui/input';
 
 type Lang = 'en' | 'de';
 type RefOption = { id: number; name: string; nameDe?: string };
-type Supplier = {
-  id: number;
-  name: string;
-  nameDe?: string;
-  address?: string;
-  contactPerson?: string;
-  email?: string;
-  phone?: string;
-  website?: string;
-};
+
 type Profile = {
   id: number;
   name: string;
@@ -48,7 +39,7 @@ type Profile = {
   materialDe?: string;
   lengthMm?: number;
   status: string;
-  supplier: Supplier;
+
   applications: RefOption[];
   crossSections: RefOption[];
 };
@@ -93,7 +84,7 @@ const TXT = {
     verifyingAccount: 'Verifying account...',
     yourProfiles: 'Your Profiles',
     totalProfiles: 'Owned Profiles',
-    suppliers: 'Suppliers',
+
     categories: 'Categories',
     profileControls: 'Profile Controls',
     addProfile: 'Add Profile',
@@ -106,7 +97,7 @@ const TXT = {
     exportPdf: 'Export PDF',
     nameAsc: 'Name A-Z',
     nameDesc: 'Name Z-A',
-    supplierAsc: 'Supplier A-Z',
+
     statusAsc: 'Status',
     showing: 'Showing',
     records: 'records',
@@ -123,7 +114,7 @@ const TXT = {
     weightPerMeter: 'Weight per meter',
     lengthMm: 'Length mm',
     status: 'Status',
-    supplier: 'Supplier',
+
     applications: 'Applications',
     crossSections: 'Cross-sections',
     drawingFile: 'Drawing file',
@@ -175,7 +166,7 @@ const TXT = {
     verifyingAccount: 'Konto wird bestatigt...',
     yourProfiles: 'Ihre Profile',
     totalProfiles: 'Eigene Profile',
-    suppliers: 'Lieferanten',
+
     categories: 'Kategorien',
     profileControls: 'Profilsteuerung',
     addProfile: 'Profil hinzufugen',
@@ -188,7 +179,7 @@ const TXT = {
     exportPdf: 'PDF exportieren',
     nameAsc: 'Name A-Z',
     nameDesc: 'Name Z-A',
-    supplierAsc: 'Lieferant A-Z',
+
     statusAsc: 'Status',
     showing: 'Zeige',
     records: 'Eintrage',
@@ -205,7 +196,7 @@ const TXT = {
     weightPerMeter: 'Gewicht pro Meter',
     lengthMm: 'Lange mm',
     status: 'Status',
-    supplier: 'Lieferant',
+
     applications: 'Anwendungen',
     crossSections: 'Querschnitte',
     drawingFile: 'Zeichnungsdatei',

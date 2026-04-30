@@ -1,17 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import { SignedIn, UserButton } from '@clerk/clerk-react';
 import {
-  BadgeCheck,
+
   Boxes,
   Building2,
   ChevronLeft,
   ChevronRight,
   ExternalLink,
-  Globe,
+
   ImageIcon,
   LayoutGrid,
-  Mail,
-  Phone,
+
   Ruler,
   Search,
   SlidersHorizontal,
@@ -24,16 +23,8 @@ import { Input } from './components/ui/input';
 import './App.css';
 
 type RefOption = { id: number; name: string; profilesCount?: number };
-type Supplier = {
-  id: number;
-  name: string;
-  address?: string;
-  contactPerson?: string;
-  email?: string;
-  phone?: string;
-  website?: string;
-};
-type SortKey = 'newest' | 'nameAsc' | 'nameDesc' | 'supplier' | 'status';
+
+type SortKey = 'newest' | 'nameAsc' | 'nameDesc' | 'status';
 type Lang = 'en' | 'de';
 
 type Profile = {
@@ -49,7 +40,7 @@ type Profile = {
   material?: string;
   lengthMm?: number;
   status: string;
-  supplier: Supplier;
+
   applications: RefOption[];
   crossSections: RefOption[];
 };
@@ -72,7 +63,7 @@ const TXT = {
     nameKeyword: 'Name / keyword',
     application: 'Application',
     crossSection: 'Cross-section',
-    supplier: 'Supplier',
+
     material: 'Material',
     dimensions: 'Dimensions',
     profileCatalog: 'Profile Catalog',
@@ -92,18 +83,17 @@ const TXT = {
     length: 'Length',
     usage: 'Usage',
     status: 'Status',
-    supplierFiles: 'Supplier & Files',
-    contactPerson: 'Contact person',
+
     openDrawing: 'Open Drawing',
     openPhoto: 'Open Photo',
-    openLogo: 'Open Logo',
+
     linkedCategories: 'Linked Categories',
     catalogLabel: 'Catalog System',
     sortBy: 'Sort by',
     newest: 'Newest',
     nameAsc: 'Name A-Z',
     nameDesc: 'Name Z-A',
-    supplierSort: 'Supplier',
+
     statusSort: 'Status',
     clearFilters: 'Clear Filters',
     activeFilters: 'Active Filters',
@@ -124,12 +114,11 @@ const TXT = {
     availableStatus: 'Available',
     inDevelopmentStatus: 'In Development',
     archivedStatus: 'Archived',
-    trustedManufacturers: 'Trusted Manufacturers',
-    trustedNote: 'Reliable suppliers currently represented in the active catalog set.',
+
     loadingCatalog: 'Loading catalog data...',
     applicationSearch: 'Search application',
     crossSectionSearch: 'Search cross-section',
-    supplierSearch: 'Search supplier',
+
     noResultsTitle: 'No technical matches found',
     noResultsNote: 'Try broadening the filters or clearing the search terms to see more profiles.',
   },
@@ -147,7 +136,7 @@ const TXT = {
     nameKeyword: 'Name / Stichwort',
     application: 'Anwendung',
     crossSection: 'Querschnitt',
-    supplier: 'Lieferant',
+
     material: 'Material',
     dimensions: 'Abmessungen',
     profileCatalog: 'Profilkatalog',
@@ -167,18 +156,17 @@ const TXT = {
     length: 'Lange',
     usage: 'Anwendung',
     status: 'Status',
-    supplierFiles: 'Lieferant & Dateien',
-    contactPerson: 'Ansprechpartner',
+
     openDrawing: 'Zeichnung offnen',
     openPhoto: 'Foto offnen',
-    openLogo: 'Logo offnen',
+
     linkedCategories: 'Verknupfte Kategorien',
     catalogLabel: 'Katalogsystem',
     sortBy: 'Sortieren nach',
     newest: 'Neueste',
     nameAsc: 'Name A-Z',
     nameDesc: 'Name Z-A',
-    supplierSort: 'Lieferant',
+
     statusSort: 'Status',
     clearFilters: 'Filter zurucksetzen',
     activeFilters: 'Aktive Filter',
@@ -199,12 +187,11 @@ const TXT = {
     availableStatus: 'Verfugbar',
     inDevelopmentStatus: 'In Entwicklung',
     archivedStatus: 'Archiviert',
-    trustedManufacturers: 'Vertrauenswurdige Hersteller',
-    trustedNote: 'Zuverlassige Lieferanten aus dem aktuell geladenen Katalogbestand.',
+
     loadingCatalog: 'Katalogdaten werden geladen...',
     applicationSearch: 'Anwendung suchen',
     crossSectionSearch: 'Querschnitt suchen',
-    supplierSearch: 'Lieferant suchen',
+
     noResultsTitle: 'Keine technischen Treffer gefunden',
     noResultsNote: 'Erweitern Sie die Filter oder setzen Sie die Suchbegriffe zuruck, um mehr Profile zu sehen.',
   },
@@ -267,15 +254,15 @@ function App() {
     q: '',
     applicationId: '',
     crossSectionId: '',
-    supplierId: '',
+
     material: '',
     dimensions: '',
   });
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+
   const [filterInputs, setFilterInputs] = useState({
     application: '',
     crossSection: '',
-    supplier: '',
+
   });
   const [sortBy, setSortBy] = useState<SortKey>('newest');
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
@@ -328,11 +315,7 @@ function App() {
       const profileList = profileData as Profile[];
       setOverview(overviewData);
       setProfiles(profileList);
-      setSuppliers(
-        profileList
-          .map((p) => p.supplier)
-          .filter((v, i, arr) => arr.findIndex((x) => x.id === v.id) === i),
-      );
+
       setPage(1);
       if (profileList.length > 0) {
         const selectedStillExists = detail && profileList.some((p) => p.id === detail.id);
@@ -373,7 +356,7 @@ function App() {
     next.sort((left, right) => {
       if (sortBy === 'nameAsc') return left.name.localeCompare(right.name);
       if (sortBy === 'nameDesc') return right.name.localeCompare(left.name);
-      if (sortBy === 'supplier') return (left.supplier?.name || '').localeCompare(right.supplier?.name || '');
+
       if (sortBy === 'status') return (left.status || '').localeCompare(right.status || '');
       return right.id - left.id;
     });
@@ -390,8 +373,8 @@ function App() {
   const crossSectionOptions = overview?.crossSections ?? [];
 
   function updateSearchFilter(
-    kind: 'application' | 'crossSection' | 'supplier',
-    key: 'applicationId' | 'crossSectionId' | 'supplierId',
+    kind: 'application' | 'crossSection',
+    key: 'applicationId' | 'crossSectionId',
     value: string,
     options: Array<{ id: number; name: string }>,
   ) {
@@ -410,22 +393,18 @@ function App() {
       const item = overview?.crossSections.find((entry) => String(entry.id) === filters.crossSectionId);
       labels.push({ key: 'crossSectionId', label: item?.name || filters.crossSectionId });
     }
-    if (filters.supplierId) {
-      const item = suppliers.find((entry) => String(entry.id) === filters.supplierId);
-      labels.push({ key: 'supplierId', label: item?.name || filters.supplierId });
-    }
-    if (filters.material) labels.push({ key: 'material', label: filters.material });
+
     if (filters.dimensions) labels.push({ key: 'dimensions', label: filters.dimensions });
     return labels as Array<{ key: keyof typeof filters; label: string }>;
-  }, [filters, overview, suppliers]);
+  }, [filters, overview]);
 
   function clearFilters() {
-    setFilterInputs({ application: '', crossSection: '', supplier: '' });
+    setFilterInputs({ application: '', crossSection: '' });
     setFilters({
       q: '',
       applicationId: '',
       crossSectionId: '',
-      supplierId: '',
+
       material: '',
       dimensions: '',
     });
@@ -434,7 +413,7 @@ function App() {
   function removeFilter(key: keyof typeof filters) {
     if (key === 'applicationId') setFilterInputs((current) => ({ ...current, application: '' }));
     if (key === 'crossSectionId') setFilterInputs((current) => ({ ...current, crossSection: '' }));
-    if (key === 'supplierId') setFilterInputs((current) => ({ ...current, supplier: '' }));
+
     setFilters((current) => ({ ...current, [key]: '' }));
   }
 
@@ -529,7 +508,7 @@ function App() {
                     <option value="newest">{t.newest}</option>
                     <option value="nameAsc">{t.nameAsc}</option>
                     <option value="nameDesc">{t.nameDesc}</option>
-                    <option value="supplier">{t.supplierSort}</option>
+
                     <option value="status">{t.statusSort}</option>
                   </select>
                 </label>
@@ -632,7 +611,7 @@ function App() {
                           <p className="line-clamp-2 text-sm leading-6 text-slate-600">{p.description || '-'}</p>
                           <div className="flex flex-wrap gap-2">
                             {p.material && <span className="material-chip bg-slate-100 text-slate-700">{p.material}</span>}
-                            <span className="material-chip bg-primary/[0.08] text-primary">{p.supplier?.name || '-'}</span>
+
                           </div>
                           <div className="flex items-center gap-3 text-xs text-slate-500">
                             <div className="h-10 w-10 overflow-hidden rounded-[0.9rem] border border-slate-200 bg-slate-50">
@@ -664,7 +643,6 @@ function App() {
                       {pagedProfiles.items.map((p, index) => {
                         const drawing = safeUrl(p.drawingUrl);
                         const photo = safeUrl(p.photoUrl);
-                        const logo = safeUrl(p.logoUrl);
                         const active = detail?.id === p.id;
                         return (
                           <tr key={p.id} onClick={() => loadDetail(p.id)} className={`material-table-row cursor-pointer ${active ? 'bg-primary/[0.06]' : ''}`} style={{ animationDelay: `${index * 40}ms` }}>
@@ -696,14 +674,13 @@ function App() {
                                   {photo ? <img src={photo} alt={p.name + ' photo'} className="public-media-fit" loading="lazy" /> : <div className="flex h-full items-center justify-center text-slate-400"><ImageIcon className="h-4 w-4" /></div>}
                                 </div>
                                 <div className="h-14 w-14 overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-50">
-                                  {logo ? <img src={logo} alt={(p.supplier?.name || 'supplier') + ' logo'} className="public-media-fit" loading="lazy" /> : <div className="flex h-full items-center justify-center text-slate-400"><Building2 className="h-4 w-4" /></div>}
+                                  {p.logoUrl ? <img src={p.logoUrl} alt="logo" className="public-media-fit" loading="lazy" /> : <div className="flex h-full items-center justify-center text-slate-400"><Building2 className="h-4 w-4" /></div>}
                                 </div>
                               </div>
                             </td>
                             <td className="px-5 py-4 align-top">
                               <div className="space-y-2">
-                                <p className="font-semibold text-slate-900">{p.supplier?.name || '-'}</p>
-                                <p className="text-sm text-slate-500">{p.supplier?.phone || '-'}</p>
+
                                 <Button size="sm" onClick={(e) => {
                                   e.stopPropagation();
                                   loadDetail(p.id).catch((err) => setMessage(parseApiError(err)));
@@ -728,7 +705,7 @@ function App() {
                   {pagedProfiles.items.map((p, index) => {
                     const drawing = safeUrl(p.drawingUrl);
                     const photo = safeUrl(p.photoUrl);
-                    const logo = safeUrl(p.logoUrl);
+
                     const active = detail?.id === p.id;
                     return (
                       <button key={p.id} type="button" onClick={() => loadDetail(p.id)} className={`public-result-card text-left ${active ? 'ring-2 ring-primary/30' : ''}`} style={{ animationDelay: `${index * 70}ms` }}>
@@ -757,13 +734,7 @@ function App() {
                             <div className="h-12 w-12 overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-50">
                               {photo ? <img src={photo} alt={p.name + ' photo'} className="public-media-fit" loading="lazy" /> : <div className="flex h-full items-center justify-center text-slate-400"><ImageIcon className="h-4 w-4" /></div>}
                             </div>
-                            <div className="h-12 w-12 overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-50">
-                              {logo ? <img src={logo} alt={(p.supplier?.name || 'supplier') + ' logo'} className="public-media-fit" loading="lazy" /> : <div className="flex h-full items-center justify-center text-slate-400"><Building2 className="h-4 w-4" /></div>}
-                            </div>
-                            <div>
-                              <p className="text-sm font-semibold text-slate-900">{p.supplier?.name || '-'}</p>
-                              <p className="text-xs text-slate-500">{p.supplier?.phone || '-'}</p>
-                            </div>
+
                           </div>
                           <span className="text-sm font-medium text-primary">{t.details}</span>
                         </div>
@@ -840,23 +811,13 @@ function App() {
                   </div>
 
                   <div className="public-detail-sheet overflow-hidden">
-                    <div className="border-b border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-700">{t.supplierFiles}</div>
+                    <div className="border-b border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-700">{t.linkedCategories}</div>
                     <div className="space-y-4 p-5 text-sm">
                       <div className="grid gap-3 sm:grid-cols-2">
-                        <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
-                          <div className="mb-3 flex items-center gap-2 text-slate-900"><Building2 className="h-4 w-4 text-primary" /><span className="font-semibold">{detail.supplier?.name || '-'}</span></div>
-                          <div className="space-y-2 text-slate-600">
-                            <div className="flex items-center gap-2"><Phone className="h-4 w-4 text-primary" /><span>{detail.supplier?.phone || '-'}</span></div>
-                            <div className="flex items-center gap-2"><Mail className="h-4 w-4 text-primary" /><span>{detail.supplier?.email || '-'}</span></div>
-                            <div className="flex items-center gap-2"><Globe className="h-4 w-4 text-primary" />{detail.supplier?.website ? <a href={detail.supplier.website} target="_blank" rel="noreferrer" className="underline">{detail.supplier.website}</a> : <span>-</span>}</div>
-                          </div>
-                          <p className="mt-3 text-slate-600">{detail.supplier?.address || '-'}</p>
-                          <p className="mt-1 text-slate-600">{t.contactPerson}: {detail.supplier?.contactPerson || '-'}</p>
-                        </div>
-                        <div className="rounded-2xl border border-primary/10 bg-primary/[0.04] p-4 text-slate-700">
-                          <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-900"><BadgeCheck className="h-4 w-4 text-primary" /> {t.linkedCategories}</p>
-                          <p className="text-sm leading-6">{t.applications}: {(detail.applications ?? []).map((item) => item.name).join(', ') || '-'}</p>
-                          <p className="text-sm leading-6">{t.crossSections}: {(detail.crossSections ?? []).map((item) => item.name).join(', ') || '-'}</p>
+
+                        <div className="rounded-2xl border border-primary/10 bg-primary/[0.04] p-4 text-slate-700 sm:col-span-2">
+                          <p className="text-sm leading-6">{t.application}: {(detail.applications ?? []).map((item) => item.name).join(', ') || '-'}</p>
+                          <p className="text-sm leading-6">{t.crossSection}: {(detail.crossSections ?? []).map((item) => item.name).join(', ') || '-'}</p>
                         </div>
                       </div>
 
@@ -871,11 +832,7 @@ function App() {
                             <Button className="w-full justify-between" variant="outline">{t.openPhoto} <ExternalLink className="h-4 w-4" /></Button>
                           </a>
                         )}
-                        {safeUrl(detail.logoUrl) && (
-                          <a href={detail.logoUrl} target="_blank" rel="noreferrer">
-                            <Button className="w-full justify-between" variant="outline">{t.openLogo} <ExternalLink className="h-4 w-4" /></Button>
-                          </a>
-                        )}
+
                       </div>
                     </div>
                   </div>

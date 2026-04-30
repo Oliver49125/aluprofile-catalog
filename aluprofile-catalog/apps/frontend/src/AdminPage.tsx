@@ -20,16 +20,6 @@ import { Input } from './components/ui/input';
 import ClerkUsersPanel from './ClerkUsersPanel';
 
 type RefOption = { id: number; name: string; nameDe?: string; profilesCount?: number };
-type Supplier = {
-  id: number;
-  name: string;
-  nameDe?: string;
-  address?: string;
-  contactPerson?: string;
-  email?: string;
-  phone?: string;
-  website?: string;
-};
 type Profile = {
   id: number;
   name: string;
@@ -47,7 +37,7 @@ type Profile = {
   materialDe?: string;
   lengthMm?: number;
   status: string;
-  supplier: Supplier;
+
   applications: RefOption[];
   crossSections: RefOption[];
 };
@@ -95,7 +85,6 @@ const TXT = {
     backToCatalog: 'Back to Catalog',
     language: 'Language',
     profiles: 'Profiles',
-    suppliers: 'Suppliers',
     categories: 'Categories',
     clerkUsers: 'Users',
     managedUsers: 'Managed Users',
@@ -105,22 +94,15 @@ const TXT = {
     edit: 'Edit',
     delete: 'Delete',
     name: 'Name',
-    address: 'Address',
-    contactPerson: 'Contact person',
-    phone: 'Phone',
-    email: 'Email',
-    website: 'Website',
-    saveSupplier: 'Save Supplier',
+    saveApplication: 'Save Application',
     application: 'Application',
     appName: 'Application name',
-    saveApplication: 'Save Application',
     crossSection: 'Cross-section',
     crossSectionName: 'Cross-section name',
     saveCrossSection: 'Save Cross-section',
     saveProfile: 'Save Profile',
     drawingFile: 'Drawing file',
     photoFile: 'Photo file',
-    supplier: 'Supplier',
     clerkUserId: 'User ID (user_xxx)',
     saveUserAccess: 'Save User Access',
     backendEnforced: 'Admin role plus permissions are enforced by backend for all /admin endpoints.',
@@ -129,7 +111,6 @@ const TXT = {
     accessDeniedText: 'you do not have VIEW_ADMIN permission for this page.',
     quickActions: 'Quick Actions',
     seedDemoData: 'Seed Demo Data',
-    supplierControls: 'Supplier Controls',
     categoryControls: 'Category Controls',
     profileControls: 'Profile Controls',
     appRolePermissions: 'App Role & Permission Management',
@@ -163,7 +144,6 @@ const TXT = {
     showing: 'Showing',
     records: 'records',
     sectionTools: 'Section Tools',
-    addSupplier: 'Add Supplier',
     addApplication: 'Add Application',
     addCrossSection: 'Add Cross-section',
     addProfile: 'Add Profile',
@@ -178,12 +158,9 @@ const TXT = {
     exportPdf: 'Export PDF',
     nameAsc: 'Name A-Z',
     nameDesc: 'Name Z-A',
-    contactAsc: 'Contact A-Z',
-    supplierAsc: 'Supplier A-Z',
     statusAsc: 'Status A-Z',
     roleAsc: 'Role A-Z',
     countDesc: 'Most profiles',
-    filterSuppliers: 'Filter suppliers',
     filterApplications: 'Filter applications',
     filterCrossSections: 'Filter cross-sections',
     filterProfiles: 'Filter profiles',
@@ -195,7 +172,6 @@ const TXT = {
     backToCatalog: 'Zuruck zum Katalog',
     language: 'Sprache',
     profiles: 'Profile',
-    suppliers: 'Lieferanten',
     categories: 'Kategorien',
     clerkUsers: 'Benutzer',
     managedUsers: 'Verwaltete Benutzer',
@@ -205,22 +181,15 @@ const TXT = {
     edit: 'Bearbeiten',
     delete: 'Loschen',
     name: 'Name',
-    address: 'Adresse',
-    contactPerson: 'Ansprechpartner',
-    phone: 'Telefon',
-    email: 'E-Mail',
-    website: 'Webseite',
-    saveSupplier: 'Lieferant speichern',
+    saveApplication: 'Anwendung speichern',
     application: 'Anwendung',
     appName: 'Anwendungsname',
-    saveApplication: 'Anwendung speichern',
     crossSection: 'Querschnitt',
     crossSectionName: 'Querschnittsname',
     saveCrossSection: 'Querschnitt speichern',
     saveProfile: 'Profil speichern',
     drawingFile: 'Zeichnungsdatei',
     photoFile: 'Fotodatei',
-    supplier: 'Lieferant',
     clerkUserId: 'Benutzer-ID (user_xxx)',
     saveUserAccess: 'Benutzerzugriff speichern',
     backendEnforced: 'Admin-Rolle und Berechtigungen werden fur alle /admin-Endpunkte im Backend erzwungen.',
@@ -229,7 +198,6 @@ const TXT = {
     accessDeniedText: 'Sie haben keine VIEW_ADMIN-Berechtigung fur diese Seite.',
     quickActions: 'Schnellaktionen',
     seedDemoData: 'Demo-Daten laden',
-    supplierControls: 'Lieferantenverwaltung',
     categoryControls: 'Kategorienverwaltung',
     profileControls: 'Profilverwaltung',
     appRolePermissions: 'App-Rollen- und Berechtigungsverwaltung',
@@ -455,7 +423,7 @@ function AdminPage() {
   const [crossSectionFilter, setCrossSectionFilter] = useState('');
   const [crossSectionSort, setCrossSectionSort] = useState<'name-asc' | 'name-desc' | 'count-desc'>('name-asc');
   const [profileFilter, setProfileFilter] = useState('');
-  const [profileSort, setProfileSort] = useState<'name-asc' | 'name-desc' | 'supplier-asc' | 'status-asc'>('name-asc');
+  const [profileSort, setProfileSort] = useState<'name-asc' | 'name-desc' | 'status-asc'>('name-asc');
   const [roleFilter, setRoleFilter] = useState('');
   const [roleSort, setRoleSort] = useState<'user-asc' | 'role-asc'>('user-asc');
 
@@ -1306,23 +1274,23 @@ function AdminPage() {
                     )}
                     <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_auto_auto]">
                       <Input placeholder={t.filterProfiles} value={profileFilter} onChange={(e) => setProfileFilter(e.target.value)} />
-                      <select value={profileSort} onChange={(e) => setProfileSort(e.target.value as 'name-asc' | 'name-desc' | 'supplier-asc' | 'status-asc')}>
+                      <select value={profileSort} onChange={(e) => setProfileSort(e.target.value as 'name-asc' | 'name-desc' | 'status-asc')}>
                         <option value="name-asc">{t.nameAsc}</option>
                         <option value="name-desc">{t.nameDesc}</option>
-                        <option value="supplier-asc">{t.supplierAsc}</option>
+
                         <option value="status-asc">{t.statusAsc}</option>
                       </select>
-                      <Button variant="outline" onClick={() => exportAdminSection('excel', t.profileControls, [t.name, t.supplier, t.status, t.dimensions], filteredProfiles.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.supplier?.name || '-', item.status, item.dimensions || '-']))}>{t.exportExcel}</Button>
-                      <Button variant="outline" onClick={() => exportAdminSection('pdf', t.profileControls, [t.name, t.supplier, t.status, t.dimensions], filteredProfiles.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.supplier?.name || '-', item.status, item.dimensions || '-']))}>{t.exportPdf}</Button>
+                      <Button variant="outline" onClick={() => exportAdminSection('excel', t.profileControls, [t.name, t.status, t.dimensions], filteredProfiles.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.status, item.dimensions || '-']))}>{t.exportExcel}</Button>
+                      <Button variant="outline" onClick={() => exportAdminSection('pdf', t.profileControls, [t.name, t.status, t.dimensions], filteredProfiles.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.status, item.dimensions || '-']))}>{t.exportPdf}</Button>
                     </div>
                     <div className="admin-table-wrap">
                       <table className="w-full text-sm">
-                        <thead><tr className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-[0.18em] text-slate-500"><th className="px-4 py-3">{t.name}</th><th className="px-4 py-3">{t.supplier}</th><th className="px-4 py-3">{t.status}</th><th className="px-4 py-3">{t.dimensions}</th><th className="px-4 py-3 text-right">{t.actions}</th></tr></thead>
+                        <thead><tr className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-[0.18em] text-slate-500"><th className="px-4 py-3">{t.name}</th><th className="px-4 py-3">{t.status}</th><th className="px-4 py-3">{t.dimensions}</th><th className="px-4 py-3 text-right">{t.actions}</th></tr></thead>
                         <tbody>
                           {profileRows.items.map((item) => (
                             <tr key={item.id} className="material-table-row">
                               <td className="px-4 py-3 font-medium text-slate-900">{item.name}{item.nameDe ? ' / ' + item.nameDe : ''}</td>
-                              <td className="px-4 py-3 text-slate-600">{item.supplier?.name || '-'}</td>
+
                               <td className="px-4 py-3"><span className="material-chip bg-teal-100 text-teal-700">{item.status}</span></td>
                               <td className="px-4 py-3 text-slate-600">{item.dimensions || '-'}</td>
                               <td className="px-4 py-3"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => startEditProfile(item)}>{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteItem('/admin/profiles/' + item.id)}>{t.delete}</Button></div></td>

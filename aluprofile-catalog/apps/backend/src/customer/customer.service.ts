@@ -13,11 +13,10 @@ export class CustomerService {
 
   getReferenceData() {
     return Promise.all([
-      this.prisma.supplier.findMany({ orderBy: { name: 'asc' } }),
       this.prisma.application.findMany({ orderBy: { name: 'asc' } }),
       this.prisma.crossSection.findMany({ orderBy: { name: 'asc' } }),
-    ]).then(([suppliers, applications, crossSections]) => ({
-      suppliers,
+    ]).then(([applications, crossSections]) => ({
+      suppliers: [],
       applications,
       crossSections,
       statusOptions: Object.values(Status),
