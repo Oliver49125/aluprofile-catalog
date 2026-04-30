@@ -21,7 +21,7 @@ import { randomUUID } from 'node:crypto';
 import type { Request } from 'express';
 import { AdminGuard } from '../auth/admin.guard';
 import { AdminService, ProfileInput } from './admin.service';
-import { AppPermission, AppRole, Status } from '../../node_modules/.prisma/client';
+import { AppPermission, AppRole, Status } from '@prisma/client';
 import {
   RequirePermissions,
 } from '../auth/authz.decorators';

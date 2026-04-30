@@ -18,7 +18,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { randomUUID } from 'node:crypto';
 import { extname, join } from 'node:path';
-import { Status } from '../../node_modules/.prisma/client';
+import { AppPermission, AppRole, Status } from '@prisma/client';
 import { CustomerGuard } from '../auth/customer.guard';
 import { CustomerAuthContext } from '../auth/auth.types';
 import { ProfileInput } from '../admin/admin.service';
