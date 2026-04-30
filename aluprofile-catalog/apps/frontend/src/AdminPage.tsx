@@ -231,7 +231,7 @@ const TXT = {
     showing: 'Zeige',
     records: 'Eintrage',
     sectionTools: 'Bereichswerkzeuge',
-    addSupplier: 'Lieferant hinzufugen',
+
     addApplication: 'Anwendung hinzufugen',
     addCrossSection: 'Querschnitt hinzufugen',
     addProfile: 'Profil hinzufugen',
@@ -246,12 +246,11 @@ const TXT = {
     exportPdf: 'PDF exportieren',
     nameAsc: 'Name A-Z',
     nameDesc: 'Name Z-A',
-    contactAsc: 'Kontakt A-Z',
-    supplierAsc: 'Lieferant A-Z',
+
     statusAsc: 'Status A-Z',
     roleAsc: 'Rolle A-Z',
     countDesc: 'Meiste Profile',
-    filterSuppliers: 'Lieferanten filtern',
+
     filterApplications: 'Anwendungen filtern',
     filterCrossSections: 'Querschnitte filtern',
     filterProfiles: 'Profile filtern',

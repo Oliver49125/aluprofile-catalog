@@ -124,7 +124,7 @@ const TXT = {
   },
   de: {
     title: 'Aluprofile Suche & Katalog',
-    subtitle: 'Finden Sie das passende Aluminiumprofil mit technischen Daten, Lieferantenkontakt und produktionsreifen Referenzen.',
+    subtitle: 'Finden Sie das passende Aluminiumprofil mit technischen Daten und produktionsreifen Referenzen.',
     heroNote: 'Industrietaugliche Profilsuche mit einem klareren technischen Arbeitsablauf.',
     search: 'Suche',
     language: 'Sprache',
