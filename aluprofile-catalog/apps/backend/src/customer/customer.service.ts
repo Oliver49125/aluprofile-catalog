@@ -58,7 +58,7 @@ export class CustomerService {
         materialDe: input.materialDe,
         lengthMm: input.lengthMm,
         status: input.status ?? Status.AVAILABLE,
-        supplier: input.supplierId ? { connect: { id: input.supplierId } } : undefined,
+
         applications: {
           connect: (input.applicationIds ?? []).map((id) => ({ id })),
         },
@@ -100,7 +100,7 @@ export class CustomerService {
         materialDe: input.materialDe,
         lengthMm: input.lengthMm,
         status: input.status,
-        supplier: input.supplierId ? { connect: { id: input.supplierId } } : undefined,
+
         applications: input.applicationIds
           ? { set: input.applicationIds.map((appId) => ({ id: appId })) }
           : undefined,

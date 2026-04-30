@@ -37,15 +37,7 @@ function toNumberArray(input: unknown): number[] {
   return [];
 }
 
-function parseProfileBody(body: Record<string, unknown>, requireSupplier: boolean): ProfileInput {
-  const supplierRaw = body.supplierId;
-  const supplierId =
-    supplierRaw === undefined || supplierRaw === null || supplierRaw === ''
-      ? undefined
-      : Number(supplierRaw);
-  if (requireSupplier && (supplierId === undefined || Number.isNaN(supplierId))) {
-    throw new BadRequestException('supplierId is required');
-  }
+function parseProfileBody(body: Record<string, unknown>): ProfileInput {
   return {
     name: body.name ? String(body.name) : undefined,
     nameDe: body.nameDe ? String(body.nameDe) : undefined,
@@ -62,7 +54,6 @@ function parseProfileBody(body: Record<string, unknown>, requireSupplier: boolea
     materialDe: body.materialDe ? String(body.materialDe) : undefined,
     lengthMm: body.lengthMm ? Number(body.lengthMm) : undefined,
     status: body.status ? (String(body.status) as Status) : undefined,
-    supplierId,
     applicationIds: toNumberArray(body.applicationIds),
     crossSectionIds: toNumberArray(body.crossSectionIds),
   };
@@ -90,7 +81,7 @@ export class CustomerController {
   ) {
     return this.customerService.createProfile(
       req.customerAuth!.clerkUserId,
-      parseProfileBody(body, true),
+      parseProfileBody(body),
     );
   }
 
@@ -103,7 +94,7 @@ export class CustomerController {
     return this.customerService.updateProfile(
       req.customerAuth!.clerkUserId,
       id,
-      parseProfileBody(body, false),
+      parseProfileBody(body),
     );
   }
 
