@@ -1088,7 +1088,7 @@ function AdminPage() {
               <>
                 <aside className="admin-sidebar">
                   <p className="text-xs font-semibold uppercase tracking-[0.26em] text-slate-400">catalog system</p>
-                  <p className="mt-3 text-2xl font-black tracking-[-0.03em] text-white">{t.adminPanel}</p>
+                  <p className="mt-3 text-2xl font-black tracking-[-0.03em] text-white">{t.adminPanel} (V2)</p>
                   <p className="mt-3 text-sm leading-6 text-slate-300">{t.adminSubtitle}</p>
                   <div className="mt-6 space-y-2">
                     <button type="button" className={`admin-nav-link ${activeSection === 'overview' ? 'bg-white/14 text-white shadow-[0_16px_30px_-22px_rgba(15,23,42,0.8)]' : ''}`} onClick={() => setActiveSection('overview')}><span>{t.quickActions}</span><ChevronRight className="h-4 w-4" /></button>

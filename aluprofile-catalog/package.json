@@ -8,7 +8,7 @@
     "frontend:dev": "npm --workspace apps/frontend run dev",
     "backend:build": "npm --workspace apps/backend run build",
     "frontend:build": "npm --workspace apps/frontend run build",
-    "build": "npm run backend:build",
+    "build": "npm run frontend:build && npm run backend:build",
     "start": "npm --workspace apps/backend run start:prod"
   },
   "keywords": [],

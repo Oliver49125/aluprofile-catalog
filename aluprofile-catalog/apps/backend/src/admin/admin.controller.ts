@@ -41,16 +41,7 @@ function toNumberArray(input: unknown): number[] {
 
 function parseProfileBody(
   body: Record<string, unknown>,
-  requireSupplier: boolean,
 ): ProfileInput {
-  const supplierRaw = body.supplierId;
-  const supplierId =
-    supplierRaw === undefined || supplierRaw === null || supplierRaw === ''
-      ? undefined
-      : Number(supplierRaw);
-  if (requireSupplier && (supplierId === undefined || Number.isNaN(supplierId))) {
-    throw new BadRequestException('supplierId is required');
-  }
   return {
     name: body.name ? String(body.name) : undefined,
     nameDe: body.nameDe ? String(body.nameDe) : undefined,
@@ -69,7 +60,6 @@ function parseProfileBody(
     materialDe: body.materialDe ? String(body.materialDe) : undefined,
     lengthMm: body.lengthMm ? Number(body.lengthMm) : undefined,
     status: body.status ? (String(body.status) as Status) : undefined,
-    supplierId,
     applicationIds: toNumberArray(body.applicationIds),
     crossSectionIds: toNumberArray(body.crossSectionIds),
   };
@@ -170,52 +160,7 @@ export class AdminController {
     return this.adminService.deleteClerkUser(userId.trim());
   }
 
-  @Get('suppliers')
-  @RequirePermissions(AppPermission.SUPPLIERS_MANAGE)
-  listSuppliers() {
-    return this.adminService.listSuppliers();
-  }
 
-  @Post('suppliers')
-  @RequirePermissions(AppPermission.SUPPLIERS_MANAGE)
-  createSupplier(
-    @Body()
-    body: {
-      name: string;
-      nameDe?: string;
-      address?: string;
-      contactPerson?: string;
-      email?: string;
-      phone?: string;
-      website?: string;
-    },
-  ) {
-    return this.adminService.createSupplier(body);
-  }
-
-  @Put('suppliers/:id')
-  @RequirePermissions(AppPermission.SUPPLIERS_MANAGE)
-  updateSupplier(
-    @Param('id', ParseIntPipe) id: number,
-    @Body()
-    body: {
-      name?: string;
-      nameDe?: string;
-      address?: string;
-      contactPerson?: string;
-      email?: string;
-      phone?: string;
-      website?: string;
-    },
-  ) {
-    return this.adminService.updateSupplier(id, body);
-  }
-
-  @Delete('suppliers/:id')
-  @RequirePermissions(AppPermission.SUPPLIERS_MANAGE)
-  deleteSupplier(@Param('id', ParseIntPipe) id: number) {
-    return this.adminService.deleteSupplier(id);
-  }
 
   @Get('applications')
   @RequirePermissions(AppPermission.CATEGORIES_MANAGE)
@@ -292,7 +237,7 @@ export class AdminController {
   @Post('profiles')
   @RequirePermissions(AppPermission.PROFILES_MANAGE)
   createProfile(@Body() body: Record<string, unknown>) {
-    return this.adminService.createProfile(parseProfileBody(body, true));
+    return this.adminService.createProfile(parseProfileBody(body));
   }
 
   @Put('profiles/:id')
@@ -301,7 +246,7 @@ export class AdminController {
     @Param('id', ParseIntPipe) id: number,
     @Body() body: Record<string, unknown>,
   ) {
-    return this.adminService.updateProfile(id, parseProfileBody(body, false));
+    return this.adminService.updateProfile(id, parseProfileBody(body));
   }
 
   @Delete('profiles/:id')

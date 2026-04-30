@@ -19,7 +19,7 @@ export type ProfileInput = {
   materialDe?: string;
   lengthMm?: number;
   status?: Status;
-  supplierId?: number;
+
   applicationIds?: number[];
   crossSectionIds?: number[];
 };
@@ -186,43 +186,7 @@ export class AdminService {
     };
   }
 
-  listSuppliers() {
-    return this.prisma.supplier.findMany({
-      orderBy: { name: 'asc' },
-      include: { _count: { select: { profiles: true } } },
-    });
-  }
 
-  createSupplier(data: {
-    name: string;
-    nameDe?: string;
-    address?: string;
-    contactPerson?: string;
-    email?: string;
-    phone?: string;
-    website?: string;
-  }) {
-    return this.prisma.supplier.create({ data });
-  }
-
-  updateSupplier(
-    id: number,
-    data: Partial<{
-      name: string;
-      nameDe?: string;
-      address?: string;
-      contactPerson?: string;
-      email?: string;
-      phone?: string;
-      website?: string;
-    }>,
-  ) {
-    return this.prisma.supplier.update({ where: { id }, data });
-  }
-
-  deleteSupplier(id: number) {
-    return this.prisma.supplier.delete({ where: { id } });
-  }
 
   listApplications() {
     return this.prisma.application.findMany({
@@ -355,9 +319,7 @@ export class AdminService {
         materialDe: input.materialDe,
         lengthMm: input.lengthMm,
         status: input.status,
-        supplier: input.supplierId
-          ? { connect: { id: input.supplierId } }
-          : undefined,
+
         applications: input.applicationIds
           ? {
               set: input.applicationIds.map((appId) => ({ id: appId })),
