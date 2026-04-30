@@ -37,8 +37,8 @@ export class CustomerService {
   }
 
   async createProfile(clerkUserId: string, input: ProfileInput) {
-    if (!input.name || !input.supplierId) {
-      throw new BadRequestException('name and supplierId are required');
+    if (!input.name) {
+      throw new BadRequestException('name is required');
     }
 
     return this.prisma.profile.create({
@@ -59,7 +59,7 @@ export class CustomerService {
         materialDe: input.materialDe,
         lengthMm: input.lengthMm,
         status: input.status ?? Status.AVAILABLE,
-        supplier: { connect: { id: input.supplierId } },
+        supplier: input.supplierId ? { connect: { id: input.supplierId } } : undefined,
         applications: {
           connect: (input.applicationIds ?? []).map((id) => ({ id })),
         },

@@ -56,7 +56,7 @@ export class PublicService {
   }
 
   async getOverview(lang: Lang) {
-    const publicProfilesWhere = { ownerClerkUserId: null };
+    const publicProfilesWhere = {};
     const [applications, crossSections, newestProfiles, totalProfiles] = await Promise.all([
       this.prisma.application.findMany({
         orderBy: { name: 'asc' },
@@ -100,7 +100,7 @@ export class PublicService {
   }
 
   async getProfiles(filters: ProfileFilters, lang: Lang) {
-    const where: any = { ownerClerkUserId: null };
+    const where: any = {};
     const and: any[] = [];
 
     if (filters.q) {
@@ -154,7 +154,7 @@ export class PublicService {
 
   async getProfileById(id: number, lang: Lang) {
     const profile = await this.prisma.profile.findFirst({
-      where: { id, ownerClerkUserId: null },
+      where: { id },
       include: {
         supplier: true,
         applications: true,

@@ -923,10 +923,6 @@ function CustomerPage() {
                       <select value={profileForm.status} onChange={(e) => setProfileForm((current) => ({ ...current, status: e.target.value }))}>
                         {(referenceData?.statusOptions ?? []).map((status) => <option key={status} value={status}>{status}</option>)}
                       </select>
-                      <select value={profileForm.supplierId} onChange={(e) => setProfileForm((current) => ({ ...current, supplierId: e.target.value }))}>
-                        <option value="">{t.supplier}</option>
-                        {(referenceData?.suppliers ?? []).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-                      </select>
                       <select multiple value={profileForm.applicationIds.map(String)} onChange={(e) => setProfileForm((current) => ({ ...current, applicationIds: Array.from(e.target.selectedOptions).map((option) => Number(option.value)) }))}>
                         {(referenceData?.applications ?? []).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
                       </select>

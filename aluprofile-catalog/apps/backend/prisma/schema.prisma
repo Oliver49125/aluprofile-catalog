@@ -27,8 +27,8 @@ model Profile {
   lengthMm         Int?
   status           Status         @default(AVAILABLE)
   ownerClerkUserId String?
-  supplierId       Int
-  supplier         Supplier       @relation(fields: [supplierId], references: [id])
+  supplierId       Int?
+  supplier         Supplier?       @relation(fields: [supplierId], references: [id])
   applications     Application[]  @relation("ApplicationToProfile")
   crossSections    CrossSection[] @relation("CrossSectionToProfile")
 
