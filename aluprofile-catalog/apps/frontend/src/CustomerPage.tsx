@@ -318,7 +318,6 @@ function CustomerPage() {
   const [messageKind, setMessageKind] = useState<'error' | 'success'>('error');
   const [isSaving, setIsSaving] = useState(false);
   const [referenceData, setReferenceData] = useState<{
-    suppliers: Supplier[];
     applications: RefOption[];
     crossSections: RefOption[];
     statusOptions: string[];
@@ -328,7 +327,7 @@ function CustomerPage() {
   const [showForm, setShowForm] = useState(false);
   const [profilePage, setProfilePage] = useState(1);
   const [profileFilter, setProfileFilter] = useState('');
-  const [profileSort, setProfileSort] = useState<'name-asc' | 'name-desc' | 'supplier-asc' | 'status-asc'>('name-asc');
+  const [profileSort, setProfileSort] = useState<'name-asc' | 'name-desc' | 'status-asc'>('name-asc');
   const [profileForm, setProfileForm] = useState({
     name: '',
     nameDe: '',
@@ -345,7 +344,6 @@ function CustomerPage() {
     materialDe: '',
     lengthMm: '',
     status: 'AVAILABLE',
-    supplierId: '',
     applicationIds: [] as number[],
     crossSectionIds: [] as number[],
   });
@@ -569,7 +567,6 @@ function CustomerPage() {
       materialDe: '',
       lengthMm: '',
       status: 'AVAILABLE',
-      supplierId: '',
       applicationIds: [],
       crossSectionIds: [],
     });
@@ -594,7 +591,6 @@ function CustomerPage() {
       materialDe: profile.materialDe ?? '',
       lengthMm: profile.lengthMm ? String(profile.lengthMm) : '',
       status: profile.status ?? 'AVAILABLE',
-      supplierId: profile.supplier?.id ? String(profile.supplier.id) : '',
       applicationIds: (profile.applications ?? []).map((item) => item.id),
       crossSectionIds: (profile.crossSections ?? []).map((item) => item.id),
     });
@@ -624,7 +620,7 @@ function CustomerPage() {
     setMessage('');
     const payload = {
       ...profileForm,
-      supplierId: profileForm.supplierId ? Number(profileForm.supplierId) : '',
+
       weightPerMeter: profileForm.weightPerMeter || undefined,
       lengthMm: profileForm.lengthMm || undefined,
     };
@@ -668,10 +664,10 @@ function CustomerPage() {
   const filteredProfiles = useMemo(() => {
     const query = normalizeForSearch(profileFilter);
     return [...profiles]
-      .filter((item) => !query || [item.name, item.nameDe, item.description, item.descriptionDe, item.usage, item.usageDe, item.dimensions, item.material, item.materialDe, item.status, item.supplier?.name].some((value) => normalizeForSearch(value).includes(query)))
+      .filter((item) => !query || [item.name, item.nameDe, item.description, item.descriptionDe, item.usage, item.usageDe, item.dimensions, item.material, item.materialDe, item.status].some((value) => normalizeForSearch(value).includes(query)))
       .sort((a, b) => {
         if (profileSort === 'name-desc') return compareText(b.name, a.name);
-        if (profileSort === 'supplier-asc') return compareText(a.supplier?.name, b.supplier?.name);
+
         if (profileSort === 'status-asc') return compareText(a.status, b.status) || compareText(a.name, b.name);
         return compareText(a.name, b.name);
       });
@@ -680,13 +676,13 @@ function CustomerPage() {
   const profileRows = paginateItems(filteredProfiles, profilePage);
 
   function exportCustomerProfiles(kind: 'excel' | 'pdf') {
-    const headers = [t.drawing, t.name, t.description, t.usage, t.supplier, t.applications, t.crossSections, t.status, t.dimensions, t.material, t.weightPerMeter, t.lengthMm];
+    const headers = [t.drawing, t.name, t.description, t.usage, t.applications, t.crossSections, t.status, t.dimensions, t.material, t.weightPerMeter, t.lengthMm];
     const rows = filteredProfiles.map((item) => [
       item.drawingUrl || '-',
       item.nameDe ? item.name + ' / ' + item.nameDe : item.name,
       item.descriptionDe ? (item.description || '-') + ' / ' + item.descriptionDe : item.description || '-',
       item.usageDe ? (item.usage || '-') + ' / ' + item.usageDe : item.usage || '-',
-      item.supplier?.name || '-',
+
       (item.applications ?? []).map((entry) => entry.nameDe ? entry.name + ' / ' + entry.nameDe : entry.name).join(', ') || '-',
       (item.crossSections ?? []).map((entry) => entry.nameDe ? entry.name + ' / ' + entry.nameDe : entry.name).join(', ') || '-',
       item.status,
@@ -940,10 +936,10 @@ function CustomerPage() {
 
                 <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_auto_auto]">
                   <Input placeholder={t.filterProfiles} value={profileFilter} onChange={(e) => setProfileFilter(e.target.value)} />
-                  <select value={profileSort} onChange={(e) => setProfileSort(e.target.value as 'name-asc' | 'name-desc' | 'supplier-asc' | 'status-asc')}>
+                  <select value={profileSort} onChange={(e) => setProfileSort(e.target.value as 'name-asc' | 'name-desc' | 'status-asc')}>
                     <option value="name-asc">{t.nameAsc}</option>
                     <option value="name-desc">{t.nameDesc}</option>
-                    <option value="supplier-asc">{t.supplierAsc}</option>
+
                     <option value="status-asc">{t.statusAsc}</option>
                   </select>
                   <Button variant="outline" onClick={() => exportCustomerProfiles('excel')}>{t.exportExcel}</Button>
@@ -962,7 +958,7 @@ function CustomerPage() {
                             <th className="px-4 py-3">{t.name}</th>
                             <th className="px-4 py-3">{t.description}</th>
                             <th className="px-4 py-3">{t.usage}</th>
-                            <th className="px-4 py-3">{t.supplier}</th>
+
                             <th className="px-4 py-3">{t.applications}</th>
                             <th className="px-4 py-3">{t.crossSections}</th>
                             <th className="px-4 py-3">{t.status}</th>
@@ -995,7 +991,7 @@ function CustomerPage() {
                                 <td className="px-4 py-3 font-medium text-slate-900">{displayName}</td>
                                 <td className="px-4 py-3 text-slate-600">{descriptionText}</td>
                                 <td className="px-4 py-3 text-slate-600">{displayUsage}</td>
-                                <td className="px-4 py-3 text-slate-600">{profile.supplier?.name || '-'}</td>
+
                                 <td className="px-4 py-3 text-slate-600">{displayApplications}</td>
                                 <td className="px-4 py-3 text-slate-600">{displayCrossSections}</td>
                                 <td className="px-4 py-3"><span className="material-chip bg-teal-100 text-teal-700">{profile.status}</span></td>
