@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Status } from '../../node_modules/.prisma/client';
+import { Status } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { ProfileInput } from '../admin/admin.service';
 
