@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { createClerkClient } from '@clerk/backend';
-import { AppPermission, AppRole, Status } from '../../node_modules/.prisma/client';
+import { AppPermission, AppRole, Status } from '@prisma/client';
 
 export type ProfileInput = {
   name?: string;

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { createClerkClient } from '@clerk/backend';
 
 type Lang = 'en' | 'de';
 
@@ -95,7 +96,6 @@ export class PublicService {
     let userMap = new Map<string, string>();
     if (userIds.length > 0) {
       try {
-        const { createClerkClient } = require('@clerk/backend');
         const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
         const users = await clerk.users.getUserList({ userId: userIds });
         userMap = new Map(users.data.map((u: any) => [u.id, u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : (u.username || u.emailAddresses[0]?.emailAddress || 'Customer')]));
@@ -174,7 +174,6 @@ export class PublicService {
     let userMap = new Map<string, string>();
     if (userIds.length > 0) {
       try {
-        const { createClerkClient } = require('@clerk/backend');
         const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
         const users = await clerk.users.getUserList({ userId: userIds });
         userMap = new Map(users.data.map((u: any) => [u.id, u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : (u.username || u.emailAddresses[0]?.emailAddress || 'Customer')]));
@@ -206,7 +205,6 @@ export class PublicService {
 
     if (profile.ownerClerkUserId) {
       try {
-        const { createClerkClient } = require('@clerk/backend');
         const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
         const user = await clerk.users.getUser(profile.ownerClerkUserId);
         profile.supplier = {
