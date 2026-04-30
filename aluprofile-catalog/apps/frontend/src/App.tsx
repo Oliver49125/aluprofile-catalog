@@ -557,14 +557,7 @@ function App() {
                   ))}
                 </datalist>
               </div>
-              <div className="space-y-2">
-                <Input list="supplier-options" className="public-combobox-input" placeholder={t.supplierSearch} value={filterInputs.supplier} onChange={(e) => updateSearchFilter('supplier', 'supplierId', e.target.value, suppliers)} />
-                <datalist id="supplier-options">
-                  {suppliers.map((item) => (
-                    <option key={item.id} value={item.name} />
-                  ))}
-                </datalist>
-              </div>
+
               <Input placeholder={t.material} value={filters.material} onChange={(e) => setFilters((f) => ({ ...f, material: e.target.value }))} />
               <Input placeholder={t.dimensions} value={filters.dimensions} onChange={(e) => setFilters((f) => ({ ...f, dimensions: e.target.value }))} />
             </div>

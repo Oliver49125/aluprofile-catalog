@@ -12,7 +12,6 @@ import {
   Boxes,
   Eye,
   EyeOff,
-  LayoutGrid,
   UserRoundPlus,
   Wrench,
 } from 'lucide-react';
@@ -893,7 +892,7 @@ function CustomerPage() {
           <div className="space-y-6">
             <div className="grid gap-4 md:grid-cols-3">
               <div className="material-stat public-stat-card"><p className="public-stat-label">{t.totalProfiles}</p><p className="public-stat-value"><span className="public-stat-icon"><Boxes className="h-5 w-5" /></span>{profiles.length}</p></div>
-              <div className="material-stat public-stat-card"><p className="public-stat-label">{t.suppliers}</p><p className="public-stat-value"><span className="public-stat-icon"><LayoutGrid className="h-5 w-5" /></span>{referenceData?.suppliers.length ?? 0}</p></div>
+
               <div className="material-stat public-stat-card"><p className="public-stat-label">{t.categories}</p><p className="public-stat-value"><span className="public-stat-icon"><Wrench className="h-5 w-5" /></span>{(referenceData?.applications.length ?? 0) + (referenceData?.crossSections.length ?? 0)}</p></div>
             </div>
 

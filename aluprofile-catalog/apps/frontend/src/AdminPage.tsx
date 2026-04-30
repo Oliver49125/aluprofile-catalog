@@ -487,7 +487,7 @@ function AdminPage() {
   const canViewAdmin = permissions.includes('VIEW_ADMIN');
   const canManageUsers = permissions.includes('USERS_MANAGE');
   const canManageProfiles = permissions.includes('PROFILES_MANAGE');
-  const canManageSuppliers = permissions.includes('SUPPLIERS_MANAGE');
+  const canManageSuppliers = false;
   const canManageCategories = permissions.includes('CATEGORIES_MANAGE');
 
   useEffect(() => {
@@ -838,7 +838,6 @@ function AdminPage() {
         method,
         body: JSON.stringify({
           ...profileForm,
-          supplierId: Number(profileForm.supplierId),
         }),
       }, true);
       resetProfileForm();
@@ -1397,10 +1396,6 @@ function AdminPage() {
                         <select value={profileForm.status} onChange={(e) => setProfileForm((f) => ({ ...f, status: e.target.value }))}>
                           {adminRef?.statusOptions.map((status) => <option key={status} value={status}>{status}</option>)}
                         </select>
-                        <select value={profileForm.supplierId} onChange={(e) => setProfileForm((f) => ({ ...f, supplierId: e.target.value }))}>
-                          <option value="">{t.supplier}</option>
-                          {suppliers.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-                        </select>
                         <select multiple value={profileForm.applicationIds.map(String)} onChange={(e) => setProfileForm((f) => ({ ...f, applicationIds: Array.from(e.target.selectedOptions).map((option) => Number(option.value)) }))}>
                           {applications.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
                         </select>
@@ -1463,7 +1458,7 @@ function AdminPage() {
                             {(adminRef?.roleOptions ?? ['ADMIN', 'MANAGER', 'USER']).map((role) => <option key={role} value={role}>{role}</option>)}
                           </select>
                           <div className="md:col-span-2 grid gap-3 md:grid-cols-2">
-                            {(adminRef?.permissionOptions ?? ['VIEW_ADMIN', 'PROFILES_MANAGE', 'SUPPLIERS_MANAGE', 'CATEGORIES_MANAGE', 'USERS_MANAGE'] as AppPermission[]).map((permission) => (
+                            {(adminRef?.permissionOptions ?? ['VIEW_ADMIN', 'PROFILES_MANAGE', 'CATEGORIES_MANAGE', 'USERS_MANAGE'] as AppPermission[]).map((permission) => (
                               <label key={permission} className="flex items-center gap-2 rounded-[1rem] border border-slate-200 bg-slate-50/80 p-3">
                                 <input type="checkbox" checked={userAccessForm.permissions.includes(permission)} onChange={(e) => setUserAccessForm((f) => ({ ...f, permissions: e.target.checked ? [...new Set([...f.permissions, permission])] : f.permissions.filter((item) => item !== permission) }))} />
                                 <KeyRound className="h-4 w-4 text-teal-700" />

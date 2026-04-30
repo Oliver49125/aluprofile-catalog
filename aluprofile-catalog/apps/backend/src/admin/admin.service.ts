@@ -263,8 +263,8 @@ export class AdminService {
     return this.prisma.crossSection.delete({ where: { id } });
   }
 
-  listProfiles() {
-    return this.prisma.profile.findMany({
+  async listProfiles() {
+    const profiles = await this.prisma.profile.findMany({
       orderBy: { updatedAt: 'desc' },
       include: {
         supplier: true,
@@ -272,11 +272,30 @@ export class AdminService {
         crossSections: true,
       },
     });
+
+    const userIds = [...new Set(profiles.filter(p => p.ownerClerkUserId).map(p => p.ownerClerkUserId as string))];
+    let userMap = new Map<string, string>();
+    if (userIds.length > 0) {
+      try {
+        const users = await this.clerkClient.users.getUserList({ userId: userIds });
+        userMap = new Map(users.data.map((u: any) => [u.id, u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : (u.username || u.emailAddresses[0]?.emailAddress || 'Customer')]));
+      } catch (error) {
+        console.error('Failed to fetch clerk users for admin profiles:', error);
+      }
+    }
+
+    return profiles.map((item) => {
+      const p = { ...item };
+      if (p.ownerClerkUserId && userMap.has(p.ownerClerkUserId)) {
+        p.supplier = { id: 0, name: userMap.get(p.ownerClerkUserId) || 'Customer' } as any;
+      }
+      return p;
+    });
   }
 
   async createProfile(input: ProfileInput) {
-    if (!input.name || !input.supplierId) {
-      throw new BadRequestException('name and supplierId are required');
+    if (!input.name) {
+      throw new BadRequestException('name is required');
     }
     return this.prisma.profile.create({
       data: {
@@ -295,7 +314,6 @@ export class AdminService {
         materialDe: input.materialDe,
         lengthMm: input.lengthMm,
         status: input.status ?? Status.AVAILABLE,
-        supplier: { connect: { id: input.supplierId } },
         applications: {
           connect: (input.applicationIds ?? []).map((id) => ({ id })),
         },

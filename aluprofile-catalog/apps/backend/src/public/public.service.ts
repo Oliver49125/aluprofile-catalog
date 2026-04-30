@@ -91,11 +91,32 @@ export class PublicService {
       this.prisma.profile.count({ where: publicProfilesWhere }),
     ]);
 
+    const userIds = [...new Set(newestProfiles.filter(p => p.ownerClerkUserId).map(p => p.ownerClerkUserId as string))];
+    let userMap = new Map<string, string>();
+    if (userIds.length > 0) {
+      try {
+        const { createClerkClient } = require('@clerk/backend');
+        const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
+        const users = await clerk.users.getUserList({ userId: userIds });
+        userMap = new Map(users.data.map((u: any) => [u.id, u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : (u.username || u.emailAddresses[0]?.emailAddress || 'Customer')]));
+      } catch (error) {
+        console.error('Failed to fetch clerk users for overview:', error);
+      }
+    }
+
+    const mapProfileWithCustomer = (profile: any) => {
+      const p = { ...profile };
+      if (p.ownerClerkUserId && userMap.has(p.ownerClerkUserId)) {
+        p.supplier = { id: 0, name: userMap.get(p.ownerClerkUserId) || 'Customer' } as any;
+      }
+      return this.localizeProfile(lang, p);
+    };
+
     return {
       totals: { profiles: totalProfiles },
       applications: applications.map((item) => this.localizeOption(lang, item)),
       crossSections: crossSections.map((item) => this.localizeOption(lang, item)),
-      newestProfiles: newestProfiles.map((item) => this.localizeProfile(lang, item)),
+      newestProfiles: newestProfiles.map((item) => mapProfileWithCustomer(item)),
     };
   }
 
@@ -149,7 +170,26 @@ export class PublicService {
       },
     });
 
-    return profiles.map((item) => this.localizeProfile(lang, item));
+    const userIds = [...new Set(profiles.filter(p => p.ownerClerkUserId).map(p => p.ownerClerkUserId as string))];
+    let userMap = new Map<string, string>();
+    if (userIds.length > 0) {
+      try {
+        const { createClerkClient } = require('@clerk/backend');
+        const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
+        const users = await clerk.users.getUserList({ userId: userIds });
+        userMap = new Map(users.data.map((u: any) => [u.id, u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : (u.username || u.emailAddresses[0]?.emailAddress || 'Customer')]));
+      } catch (error) {
+        console.error('Failed to fetch clerk users for profiles:', error);
+      }
+    }
+
+    return profiles.map((item) => {
+      const p = { ...item };
+      if (p.ownerClerkUserId && userMap.has(p.ownerClerkUserId)) {
+        p.supplier = { id: 0, name: userMap.get(p.ownerClerkUserId) || 'Customer' } as any;
+      }
+      return this.localizeProfile(lang, p);
+    });
   }
 
   async getProfileById(id: number, lang: Lang) {
@@ -163,6 +203,21 @@ export class PublicService {
     });
 
     if (!profile) return null;
+
+    if (profile.ownerClerkUserId) {
+      try {
+        const { createClerkClient } = require('@clerk/backend');
+        const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
+        const user = await clerk.users.getUser(profile.ownerClerkUserId);
+        profile.supplier = {
+          id: 0,
+          name: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : (user.username || user.emailAddresses[0]?.emailAddress || 'Customer')
+        } as any;
+      } catch (error) {
+        console.error('Failed to fetch clerk user for profile by id:', error);
+      }
+    }
+
     return this.localizeProfile(lang, profile);
   }
 }
