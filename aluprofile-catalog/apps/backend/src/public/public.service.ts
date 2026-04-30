@@ -59,7 +59,6 @@ export class PublicService {
     const publicProfilesWhere = { ownerClerkUserId: null };
     const [applications, crossSections, newestProfiles, totalProfiles] = await Promise.all([
       this.prisma.application.findMany({
-        where: { profiles: { some: publicProfilesWhere } },
         orderBy: { name: 'asc' },
         include: {
           _count: {
@@ -72,7 +71,6 @@ export class PublicService {
         },
       }),
       this.prisma.crossSection.findMany({
-        where: { profiles: { some: publicProfilesWhere } },
         orderBy: { name: 'asc' },
         include: {
           _count: {
