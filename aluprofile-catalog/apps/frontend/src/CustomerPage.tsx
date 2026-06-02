@@ -993,8 +993,8 @@ function CustomerPage() {
                       <select multiple value={profileForm.crossSectionIds.map(String)} onChange={(e) => setProfileForm((current) => ({ ...current, crossSectionIds: Array.from(e.target.selectedOptions).map((option) => Number(option.value)) }))}>
                         {(referenceData?.crossSections ?? []).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
                       </select>
-                      <label className="admin-upload-field">{t.drawingFile}<input className="mt-1 block w-full" type="file" accept="image/*,.pdf" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; const data = await uploadFile(file); setProfileForm((current) => ({ ...current, drawingUrl: data.url })); }} /></label>
-                      <label className="admin-upload-field">{t.photoFile}<input className="mt-1 block w-full" type="file" accept="image/*,.pdf" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; const data = await uploadFile(file); setProfileForm((current) => ({ ...current, photoUrl: data.url })); }} /></label>
+                      <label className="admin-upload-field">{t.drawingFile}<input className="mt-1 block w-full" type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; const data = await uploadFile(file); setProfileForm((current) => ({ ...current, drawingUrl: data.url })); }} /></label>
+                      <label className="admin-upload-field">{t.photoFile}<input className="mt-1 block w-full" type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; const data = await uploadFile(file); setProfileForm((current) => ({ ...current, photoUrl: data.url })); }} /></label>
                       <div className="admin-editor-actions md:col-span-3">
                         <Button onClick={saveProfile} disabled={isSaving}>{isSaving ? '...' : t.saveProfile}</Button>
                         <Button variant="outline" onClick={resetProfileForm}>{t.cancel}</Button>

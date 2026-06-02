@@ -1421,8 +1421,8 @@ function AdminPage() {
                         <select multiple value={profileForm.crossSectionIds.map(String)} onChange={(e) => setProfileForm((f) => ({ ...f, crossSectionIds: Array.from(e.target.selectedOptions).map((option) => Number(option.value)) }))}>
                           {crossSections.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
                         </select>
-                        <label className="admin-upload-field">{t.drawingFile}<input className="mt-1 block w-full" type="file" accept="image/*,.pdf" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; const data = await uploadFile(file); setProfileForm((f) => ({ ...f, drawingUrl: data.url })); }} /></label>
-                        <label className="admin-upload-field">{t.photoFile}<input className="mt-1 block w-full" type="file" accept="image/*,.pdf" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; const data = await uploadFile(file); setProfileForm((f) => ({ ...f, photoUrl: data.url })); }} /></label>
+                        <label className="admin-upload-field">{t.drawingFile}<input className="mt-1 block w-full" type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; const data = await uploadFile(file); setProfileForm((f) => ({ ...f, drawingUrl: data.url })); }} /></label>
+                        <label className="admin-upload-field">{t.photoFile}<input className="mt-1 block w-full" type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; const data = await uploadFile(file); setProfileForm((f) => ({ ...f, photoUrl: data.url })); }} /></label>
                         <div className="admin-editor-actions md:col-span-3">
                           <Button onClick={saveProfile}>{t.saveProfile}</Button>
                           <Button variant="outline" onClick={resetProfileForm}>{t.cancel}</Button>

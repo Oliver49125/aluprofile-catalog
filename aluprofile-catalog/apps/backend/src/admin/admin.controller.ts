@@ -309,7 +309,14 @@ export class AdminController {
         },
       }),
       fileFilter: (_req, file, callback) => {
-        const allowed = /image\/|application\/pdf/.test(file.mimetype);
+        const allowedMimeTypes = [
+          'application/pdf',
+          'application/msword', // .doc
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+          'application/vnd.ms-excel', // .xls
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' // .xlsx
+        ];
+        const allowed = file.mimetype.startsWith('image/') || allowedMimeTypes.includes(file.mimetype);
         callback(null, allowed);
       },
       limits: {

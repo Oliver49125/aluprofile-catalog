@@ -22,6 +22,10 @@ import {
   Sparkles,
   UserRoundPlus,
   X,
+  FileText,
+  FileSpreadsheet,
+  FileIcon,
+  Download,
 } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
@@ -261,6 +265,21 @@ function statusLabel(status: string | undefined, t: (typeof TXT)[keyof typeof TX
 
 function safeUrl(value?: string) {
   return value && value.trim().length > 0 ? value : undefined;
+}
+
+const isImage = (url: string) => /\.(jpeg|jpg|gif|png|webp|svg|avif)$/i.test(url) || url.startsWith('blob:');
+const isPdf = (url: string) => /\.pdf$/i.test(url);
+const isWord = (url: string) => /\.(doc|docx)$/i.test(url);
+const isExcel = (url: string) => /\.(xls|xlsx)$/i.test(url);
+
+function MediaThumbnail({ url, alt, className }: { url: string; alt: string; className?: string }) {
+  if (isImage(url)) return <img src={url} alt={alt} className={className} />;
+  
+  if (isPdf(url)) return <div className="flex h-full w-full flex-col items-center justify-center text-red-500 bg-red-50"><FileText className="h-8 w-8 mb-1" /><span className="text-[10px] font-bold">PDF</span></div>;
+  if (isWord(url)) return <div className="flex h-full w-full flex-col items-center justify-center text-blue-500 bg-blue-50"><FileText className="h-8 w-8 mb-1" /><span className="text-[10px] font-bold">DOC</span></div>;
+  if (isExcel(url)) return <div className="flex h-full w-full flex-col items-center justify-center text-green-500 bg-green-50"><FileSpreadsheet className="h-8 w-8 mb-1" /><span className="text-[10px] font-bold">XLS</span></div>;
+  
+  return <div className="flex h-full w-full flex-col items-center justify-center text-slate-500 bg-slate-50"><FileIcon className="h-8 w-8 mb-1" /><span className="text-[10px] font-bold">FILE</span></div>;
 }
 
 function paginateItems<T>(items: T[], page: number, pageSize = PAGE_SIZE) {
@@ -672,11 +691,12 @@ function App() {
                   const drawing = safeUrl(p.drawingUrl);
                   const photo = safeUrl(p.photoUrl);
                   const active = detail?.id === p.id;
+                  const bestVisual = (drawing && isImage(drawing)) ? drawing : (photo && isImage(photo)) ? photo : (drawing || photo);
                   return (
                     <div key={p.id} role="button" tabIndex={0} onClick={() => loadDetail(p.id)} className={`public-mobile-card cursor-pointer text-left ${active ? 'ring-2 ring-primary/30' : ''}`} style={{ animationDelay: `${index * 70}ms` }}>
                       <div className="flex items-start gap-4">
                         <div className="h-24 w-24 shrink-0 overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-50">
-                          {drawing ? <img src={drawing} alt={p.name + ' drawing'} className="public-media-fit" /> : <div className="flex h-full items-center justify-center text-slate-400"><ImageIcon className="h-5 w-5" /></div>}
+                          {bestVisual ? <MediaThumbnail url={bestVisual} alt={p.name + ' visual'} className="public-media-fit" /> : <div className="flex h-full items-center justify-center text-slate-400"><ImageIcon className="h-5 w-5" /></div>}
                         </div>
                         <div className="min-w-0 flex-1 space-y-2">
                           <div className="flex flex-wrap items-start justify-between gap-2">
@@ -693,7 +713,7 @@ function App() {
                           </div>
                           <div className="flex items-center gap-3 text-xs text-slate-500">
                             <div className="h-10 w-10 overflow-hidden rounded-[0.9rem] border border-slate-200 bg-slate-50">
-                              {photo ? <img src={photo} alt={p.name + ' photo'} className="public-media-fit" loading="lazy" /> : <div className="flex h-full items-center justify-center text-slate-400"><ImageIcon className="h-4 w-4" /></div>}
+                              {photo ? <MediaThumbnail url={photo} alt={p.name + ' photo'} className="public-media-fit" /> : <div className="flex h-full items-center justify-center text-slate-400"><ImageIcon className="h-4 w-4" /></div>}
                             </div>
                             <span className="line-clamp-1">{(p.applications ?? []).map((a) => a.name).join(', ') || '-'}</span>
                           </div>
@@ -746,11 +766,12 @@ function App() {
                         const drawing = safeUrl(p.drawingUrl);
                         const photo = safeUrl(p.photoUrl);
                         const active = detail?.id === p.id;
+                        const bestVisual = (drawing && isImage(drawing)) ? drawing : (photo && isImage(photo)) ? photo : (drawing || photo);
                         return (
                           <tr key={p.id} onClick={() => loadDetail(p.id)} className={`material-table-row cursor-pointer ${active ? 'bg-primary/[0.06]' : ''}`} style={{ animationDelay: `${index * 40}ms` }}>
                             <td className="px-5 py-4">
-                              <div className="h-24 w-28 overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
-                                {drawing ? <img src={drawing} alt={p.name + ' drawing'} className="public-media-fit" /> : <div className="flex h-full items-center justify-center text-slate-400"><ImageIcon className="h-5 w-5" /></div>}
+                              <div className="relative aspect-square w-28 overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+                                {bestVisual ? <MediaThumbnail url={bestVisual} alt={p.name + ' visual'} className="public-media-fit" /> : <div className="flex h-full items-center justify-center text-slate-400"><ImageIcon className="h-5 w-5" /></div>}
                               </div>
                             </td>
                             <td className="px-5 py-4 align-top">
@@ -773,7 +794,7 @@ function App() {
                             <td className="px-5 py-4 align-top">
                               <div className="flex items-start gap-3">
                                 <div className="h-14 w-14 overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-50">
-                                  {photo ? <img src={photo} alt={p.name + ' photo'} className="public-media-fit" loading="lazy" /> : <div className="flex h-full items-center justify-center text-slate-400"><ImageIcon className="h-4 w-4" /></div>}
+                                  {photo ? <MediaThumbnail url={photo} alt={p.name + ' photo'} className="public-media-fit" /> : <div className="flex h-full items-center justify-center text-slate-400"><ImageIcon className="h-4 w-4" /></div>}
                                 </div>
                                 <div className="h-14 w-14 overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-50">
                                   {p.logoUrl ? <img src={p.logoUrl} alt="logo" className="public-media-fit" loading="lazy" /> : <div className="flex h-full items-center justify-center text-slate-400"><Building2 className="h-4 w-4" /></div>}
@@ -813,8 +834,9 @@ function App() {
                 <div className="hidden grid-cols-1 gap-4 p-5 md:grid lg:grid-cols-2">
                   {pagedProfiles.items.map((p, index) => {
                     const drawing = safeUrl(p.drawingUrl);
-
+                    const photo = safeUrl(p.photoUrl);
                     const active = detail?.id === p.id;
+                    const bestVisual = (drawing && isImage(drawing)) ? drawing : (photo && isImage(photo)) ? photo : (drawing || photo);
                     return (
                       <div key={p.id} role="button" tabIndex={0} onClick={() => loadDetail(p.id)} className={`public-result-card cursor-pointer text-left ${active ? 'ring-2 ring-primary/30' : ''}`} style={{ animationDelay: `${index * 70}ms` }}>
                         <div className="flex items-start justify-between gap-4">
@@ -826,7 +848,7 @@ function App() {
                         </div>
                         <div className="mt-4 grid gap-4 sm:grid-cols-[140px_1fr]">
                           <div className="aspect-[4/3] overflow-hidden rounded-[1.1rem] border border-slate-200 bg-slate-50">
-                            {drawing ? <img src={drawing} alt={p.name + ' drawing'} className="public-media-fit" loading="lazy" /> : <div className="flex h-full items-center justify-center text-slate-400"><ImageIcon className="h-6 w-6" /></div>}
+                            {bestVisual ? <MediaThumbnail url={bestVisual} alt={p.name + ' visual'} className="public-media-fit" /> : <div className="flex h-full items-center justify-center text-slate-400"><ImageIcon className="h-6 w-6" /></div>}
                           </div>
                           <div className="space-y-3">
                             <p className="line-clamp-3 text-sm leading-6 text-slate-600">{p.description || '-'}</p>
@@ -903,11 +925,23 @@ function App() {
                   <div className="public-detail-sheet overflow-hidden">
                     <div className="border-b border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-700">{t.technicalView}</div>
                     <div className="grid gap-5 p-5 lg:grid-cols-[220px_1fr]">
-                      <div className="h-[220px] overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-50">
+                      <div className="h-[220px] overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-50 relative">
                         {safeUrl(detail.drawingUrl) ? (
-                          <img src={detail.drawingUrl} alt={`${detail.name} drawing`} className="public-media-fit cursor-pointer transition-transform hover:scale-105" onClick={() => handleImageClick(detail.drawingUrl)} />
+                          isImage(detail.drawingUrl!) ? (
+                            <img src={detail.drawingUrl!} alt={`${detail.name} drawing`} className="public-media-fit cursor-pointer transition-transform hover:scale-105" onClick={() => handleImageClick(detail.drawingUrl!)} />
+                          ) : (
+                            <div className="flex h-full flex-col items-center justify-center bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors group" onClick={() => window.open(detail.drawingUrl!, '_blank')}>
+                              <MediaThumbnail url={detail.drawingUrl!} alt={`${detail.name} drawing`} />
+                              <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Download className="h-8 w-8 text-primary mb-2" />
+                                <span className="text-sm font-semibold text-primary">{t.openDrawing}</span>
+                              </div>
+                            </div>
+                          )
                         ) : (
-                          <div className="flex h-full items-center justify-center text-slate-400"><ImageIcon className="h-8 w-8" /></div>
+                          <div className="flex h-full items-center justify-center text-slate-400">
+                            <ImageIcon className="h-8 w-8 opacity-50" />
+                          </div>
                         )}
                       </div>
                       <table className="public-detail-table w-full text-sm">
@@ -955,10 +989,16 @@ function App() {
 
                       <div className="grid gap-2">
                         {safeUrl(detail.drawingUrl) && (
-                          <Button className="w-full justify-between" variant="outline" onClick={() => handleImageClick(detail.drawingUrl)}>{t.openDrawing} <ExternalLink className="h-4 w-4" /></Button>
+                          <Button className="w-full justify-between" variant="outline" onClick={() => {
+                            if (isImage(detail.drawingUrl!)) handleImageClick(detail.drawingUrl!);
+                            else window.open(detail.drawingUrl!, '_blank');
+                          }}>{t.openDrawing} <ExternalLink className="h-4 w-4" /></Button>
                         )}
                         {safeUrl(detail.photoUrl) && (
-                          <Button className="w-full justify-between" variant="outline" onClick={() => handleImageClick(detail.photoUrl)}>{t.openPhoto} <ExternalLink className="h-4 w-4" /></Button>
+                          <Button className="w-full justify-between" variant="outline" onClick={() => {
+                            if (isImage(detail.photoUrl!)) handleImageClick(detail.photoUrl!);
+                            else window.open(detail.photoUrl!, '_blank');
+                          }}>{t.openPhoto} <ExternalLink className="h-4 w-4" /></Button>
                         )}
 
                       </div>
