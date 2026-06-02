@@ -356,18 +356,10 @@ function CustomerPage() {
 
   
   const [supplierToast, setSupplierToast] = useState<{text: string, kind: 'success' | 'error'} | null>(null);
-  const [profileToast, setProfileToast] = useState<{text: string, kind: 'success' | 'error'} | null>(null);
-
   function showSupplierToast(text: string, kind: 'error' | 'success' = 'error') {
     setSupplierToast({ text, kind });
     setTimeout(() => setSupplierToast(null), 4500);
   }
-
-  function showProfileToast(text: string, kind: 'error' | 'success' = 'error') {
-    setProfileToast({ text, kind });
-    setTimeout(() => setProfileToast(null), 4500);
-  }
-
   function showMessage(text: string, kind: 'error' | 'success' = 'error') {
     setMessageKind(kind);
     setMessage(text);
@@ -977,7 +969,6 @@ function CustomerPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-5 pt-6">
-                {profileToast && <div className={`app-feedback ${profileToast.kind === 'error' ? 'app-feedback-error' : 'app-feedback-success'}`}>{profileToast.text}</div>}
                 {showForm && (
                   <>
                     <div className="mb-2 text-sm text-slate-500">{t.signedInAs}: {user?.primaryEmailAddress?.emailAddress || user?.username || user?.id}</div>

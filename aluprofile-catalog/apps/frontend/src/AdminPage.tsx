@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { parseApiError } from './utils/apiError';
 import { SignedIn, SignedOut, UserButton, useAuth, useSignIn, useUser } from '@clerk/clerk-react';
 import {
   BadgeCheck,
@@ -416,7 +417,7 @@ function AdminPage() {
   const [applicationNameDe, setApplicationNameDe] = useState('');
   const [crossSectionName, setCrossSectionName] = useState('');
   const [crossSectionNameDe, setCrossSectionNameDe] = useState('');
-  const [editType, setEditType] = useState<'application' | 'cross' | 'profile' | ''>('');
+  const [editType, setEditType] = useState<'application' | 'cross' | 'profile' | 'supplier' | ''>('');
   const [editId, setEditId] = useState<number | null>(null);
   const [profileForm, setProfileForm] = useState({
     name: '',
@@ -465,7 +466,6 @@ function AdminPage() {
   const [roleSort, setRoleSort] = useState<'user-asc' | 'role-asc'>('user-asc');
 
   const [supplierFilter, setSupplierFilter] = useState('');
-  const [supplierSort, setSupplierSort] = useState<'name-asc' | 'name-desc'>('name-asc');
   const [supplierPage, setSupplierPage] = useState(1);
   const [showSupplierForm, setShowSupplierForm] = useState(false);
   const [supplierForm, setSupplierForm] = useState({
@@ -650,8 +650,9 @@ function AdminPage() {
       materialDe: '',
       lengthMm: '',
       status: 'AVAILABLE',
-      applicationIds: [],
-      crossSectionIds: [],
+      supplierId: '' as string | number,
+      applicationIds: [] as number[],
+      crossSectionIds: [] as number[],
     });
     setEditType('');
     setEditId(null);

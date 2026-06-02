@@ -332,7 +332,6 @@ function App() {
   const [inquiryForm, setInquiryForm] = useState({ firstName: '', lastName: '', company: '', email: '', phone: '', message: '', requestPurchase: false });
   const [inquiryLoading, setInquiryLoading] = useState(false);
   const [inquirySuccess, setInquirySuccess] = useState(false);
-  const [metrics, setMetrics] = useState({ visitors: 0 });
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   function handleImageClick(url?: string) {
@@ -349,7 +348,6 @@ function App() {
   useEffect(() => {
     const saved = window.localStorage.getItem('aluprofile_lang');
     if (saved === 'en' || saved === 'de') setLang(saved);
-    api('/public/visits', { method: 'POST' }).then(m => setMetrics({ visitors: m.value })).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -815,7 +813,6 @@ function App() {
                 <div className="hidden grid-cols-1 gap-4 p-5 md:grid lg:grid-cols-2">
                   {pagedProfiles.items.map((p, index) => {
                     const drawing = safeUrl(p.drawingUrl);
-                    const photo = safeUrl(p.photoUrl);
 
                     const active = detail?.id === p.id;
                     return (
