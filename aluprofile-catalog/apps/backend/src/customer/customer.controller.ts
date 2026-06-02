@@ -18,7 +18,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { randomUUID } from 'node:crypto';
 import { extname, join } from 'node:path';
-import { AppPermission, AppRole, Status } from '@prisma/client';
+import { Status } from '@prisma/client';
 import { CustomerGuard } from '../auth/customer.guard';
 import { CustomerAuthContext } from '../auth/auth.types';
 import { ProfileInput } from '../admin/admin.service';
@@ -67,6 +67,23 @@ export class CustomerController {
   @Get('reference-data')
   getReferenceData() {
     return this.customerService.getReferenceData();
+  }
+
+
+  @Get('supplier')
+  getSupplierProfile(@Req() req: Request & { customerAuth?: CustomerAuthContext }) {
+    return this.customerService.getSupplierProfile(req.customerAuth!.clerkUserId);
+  }
+
+  @Put('supplier')
+  updateSupplierProfile(
+    @Req() req: Request & { customerAuth?: CustomerAuthContext },
+    @Body() body: Record<string, unknown>,
+  ) {
+    return this.customerService.updateSupplierProfile(
+      req.customerAuth!.clerkUserId,
+      body,
+    );
   }
 
   @Get('profiles')

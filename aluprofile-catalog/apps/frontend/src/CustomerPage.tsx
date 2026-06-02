@@ -18,6 +18,7 @@ import {
 import { Button } from './components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { Input } from './components/ui/input';
+import { parseApiError } from './utils/apiError';
 
 type Lang = 'en' | 'de';
 type RefOption = { id: number; name: string; nameDe?: string };
@@ -125,6 +126,11 @@ const TXT = {
     profileWorkspace: 'Profile Workspace',
     profileWorkspaceNote: 'Manage only the profile records owned by this customer account.',
     actions: 'Actions',
+    companyProfile: 'Company Profile',
+    companyAddress: 'Company Address',
+    contactPerson: 'Contact Person',
+    phone: 'Phone',
+    website: 'Website',
     uploadReady: 'Upload complete',
     delete: 'Delete',
     edit: 'Edit',
@@ -207,16 +213,16 @@ const TXT = {
     profileWorkspace: 'Profil-Arbeitsbereich',
     profileWorkspaceNote: 'Verwalten Sie nur die Profil-Datensatze dieses Kundenkontos.',
     actions: 'Aktionen',
+    companyProfile: 'Firmenprofil',
+    companyAddress: 'Firmenadresse',
+    contactPerson: 'Ansprechpartner',
+    phone: 'Telefon',
+    website: 'Webseite',
     uploadReady: 'Upload abgeschlossen',
     delete: 'Loschen',
     edit: 'Bearbeiten',
   },
 } as const;
-
-function parseApiError(error: unknown) {
-  if (error instanceof Error) return error.message;
-  return typeof error === 'string' ? error : 'Request failed';
-}
 
 const PAGE_SIZE = 5;
 
@@ -313,7 +319,14 @@ function CustomerPage() {
     crossSections: RefOption[];
     statusOptions: string[];
   } | null>(null);
+
+  const [supplierForm, setSupplierForm] = useState({
+    name: '', nameDe: '', address: '', contactPerson: '', email: '', phone: '', website: ''
+  });
+  const [isSavingSupplier, setIsSavingSupplier] = useState(false);
+
   const [profiles, setProfiles] = useState<Profile[]>([]);
+
   const [editId, setEditId] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [profilePage, setProfilePage] = useState(1);
@@ -340,6 +353,20 @@ function CustomerPage() {
   });
 
   const t = useMemo(() => TXT[lang], [lang]);
+
+  
+  const [supplierToast, setSupplierToast] = useState<{text: string, kind: 'success' | 'error'} | null>(null);
+  const [profileToast, setProfileToast] = useState<{text: string, kind: 'success' | 'error'} | null>(null);
+
+  function showSupplierToast(text: string, kind: 'error' | 'success' = 'error') {
+    setSupplierToast({ text, kind });
+    setTimeout(() => setSupplierToast(null), 4500);
+  }
+
+  function showProfileToast(text: string, kind: 'error' | 'success' = 'error') {
+    setProfileToast({ text, kind });
+    setTimeout(() => setProfileToast(null), 4500);
+  }
 
   function showMessage(text: string, kind: 'error' | 'success' = 'error') {
     setMessageKind(kind);
@@ -523,12 +550,25 @@ function CustomerPage() {
 
   async function loadCustomerData() {
     try {
-      const [refs, ownProfiles] = await Promise.all([
+      const [refs, ownProfiles, supData] = await Promise.all([
         authedApi('/customer/reference-data'),
         authedApi('/customer/profiles'),
+        authedApi('/customer/supplier').catch(() => null), // Catch error in case it fails initially
       ]);
       setReferenceData(refs);
       setProfiles(ownProfiles);
+
+      if (supData) {
+        setSupplierForm({
+          name: supData.name || '',
+          nameDe: supData.nameDe || '',
+          address: supData.address || '',
+          contactPerson: supData.contactPerson || '',
+          email: supData.email || '',
+          phone: supData.phone || '',
+          website: supData.website || '',
+        });
+      }
     } catch (error) {
       showMessage(parseApiError(error), 'error');
     }
@@ -606,7 +646,32 @@ function CustomerPage() {
     return data;
   }
 
+  async function saveSupplier() {
+    if (!supplierForm.name) { showSupplierToast('Supplier name is required', 'error'); return; }
+    try {
+      setIsSavingSupplier(true);
+      const token = await getToken();
+      const res = await fetch(`${API_BASE}/customer/supplier`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(supplierForm),
+      });
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error("Backend Error:", res.status, errText);
+        throw new Error(errText || 'Failed to save');
+      }
+      showSupplierToast('Supplier saved successfully', 'success');
+    } catch (e: any) {
+      console.error(e);
+      showSupplierToast('Failed to save supplier profile: ' + parseApiError(e), 'error');
+    } finally {
+      setIsSavingSupplier(false);
+    }
+  }
+
   async function saveProfile() {
+    if (!profileForm.name) { showMessage('Profile name is required', 'error'); return; }
     setIsSaving(true);
     setMessage('');
     const payload = {
@@ -694,32 +759,32 @@ function CustomerPage() {
     <div className="min-h-screen">
       <div className="material-shell">
         <SignedIn>
-        <header className="material-hero mb-6 p-6 md:p-8">
-          <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
-            <div className="max-w-3xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/10 bg-primary/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-primary">
-                <UserRoundPlus className="h-3.5 w-3.5" /> Customer Portal
-              </div>
-              <h1 className="mt-5 text-4xl font-black tracking-[-0.045em] text-slate-950 md:text-6xl">{t.title}</h1>
-              <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 md:text-lg">{t.subtitle}</p>
-            </div>
-            <div className="flex flex-wrap items-center justify-end gap-3">
-              <a href="/"><Button className="h-12 rounded-full px-6" variant="secondary">{t.backToCatalog}</Button></a>
-              <label className="public-language-pill">
-                <span>{t.language}</span>
-                <select value={lang} onChange={(e) => setLang(e.target.value as Lang)} className="public-language-select">
-                  <option value="en">EN</option>
-                  <option value="de">DE</option>
-                </select>
-              </label>
-              <SignedIn>
-                <div className="rounded-full border border-white/70 bg-white/90 p-1.5 shadow-[0_16px_36px_-28px_rgba(15,23,42,0.4)]">
-                  <UserButton />
+          <header className="material-hero mb-6 p-6 md:p-8">
+            <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
+              <div className="max-w-3xl">
+                <div className="inline-flex items-center gap-2 rounded-full border border-primary/10 bg-primary/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-primary">
+                  <UserRoundPlus className="h-3.5 w-3.5" /> Customer Portal
                 </div>
-              </SignedIn>
+                <h1 className="mt-5 text-4xl font-black tracking-[-0.045em] text-slate-950 md:text-6xl">{t.title}</h1>
+                <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 md:text-lg">{t.subtitle}</p>
+              </div>
+              <div className="flex flex-wrap items-center justify-end gap-3">
+                <a href="/"><Button className="h-12 rounded-full px-6" variant="secondary">{t.backToCatalog}</Button></a>
+                <label className="public-language-pill">
+                  <span>{t.language}</span>
+                  <select value={lang} onChange={(e) => setLang(e.target.value as Lang)} className="public-language-select">
+                    <option value="en">EN</option>
+                    <option value="de">DE</option>
+                  </select>
+                </label>
+                <SignedIn>
+                  <div className="rounded-full border border-white/70 bg-white/90 p-1.5 shadow-[0_16px_36px_-28px_rgba(15,23,42,0.4)]">
+                    <UserButton />
+                  </div>
+                </SignedIn>
+              </div>
             </div>
-          </div>
-        </header>
+          </header>
         </SignedIn>
 
         {message && <div className={`app-feedback ${messageKind === 'error' ? 'app-feedback-error' : 'app-feedback-success'}`}>{message}</div>}
@@ -885,12 +950,34 @@ function CustomerPage() {
 
             <Card className="material-panel">
               <CardHeader className="border-b border-slate-200/80">
+                <CardTitle className="flex items-center gap-3"><UserRoundPlus className="h-5 w-5 text-teal-700" /> {t.companyProfile}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-5 pt-6">
+                {supplierToast && <div className={`app-feedback ${supplierToast.kind === 'error' ? 'app-feedback-error' : 'app-feedback-success'}`}>{supplierToast.text}</div>}
+                <div className="admin-editor-grid">
+                  <Input placeholder={t.name + ' (EN)'} value={supplierForm.name} onChange={(e) => setSupplierForm({ ...supplierForm, name: e.target.value })} />
+                  <Input placeholder={t.name + ' (DE)'} value={supplierForm.nameDe} onChange={(e) => setSupplierForm({ ...supplierForm, nameDe: e.target.value })} />
+                  <Input placeholder={t.companyAddress} value={supplierForm.address} onChange={(e) => setSupplierForm({ ...supplierForm, address: e.target.value })} />
+                  <Input placeholder={t.contactPerson} value={supplierForm.contactPerson} onChange={(e) => setSupplierForm({ ...supplierForm, contactPerson: e.target.value })} />
+                  <Input placeholder={t.emailAddress} value={supplierForm.email} onChange={(e) => setSupplierForm({ ...supplierForm, email: e.target.value })} />
+                  <Input placeholder={t.phone} value={supplierForm.phone} onChange={(e) => setSupplierForm({ ...supplierForm, phone: e.target.value })} />
+                  <Input placeholder={t.website} value={supplierForm.website} onChange={(e) => setSupplierForm({ ...supplierForm, website: e.target.value })} />
+                  <div className="md:col-span-2 flex justify-end">
+                    <Button onClick={saveSupplier} disabled={isSavingSupplier}>{isSavingSupplier ? '...' : t.saveProfile.replace('Profile', '')}</Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="material-panel">
+              <CardHeader className="border-b border-slate-200/80">
                 <div className="admin-section-toolbar">
                   <CardTitle className="flex items-center gap-3"><Boxes className="h-5 w-5 text-teal-700" /> {t.profileControls}</CardTitle>
                   <Button variant={showForm ? 'secondary' : 'default'} onClick={() => showForm ? resetProfileForm() : setShowForm(true)}>{showForm ? t.closeEditor : t.addProfile}</Button>
                 </div>
               </CardHeader>
               <CardContent className="space-y-5 pt-6">
+                {profileToast && <div className={`app-feedback ${profileToast.kind === 'error' ? 'app-feedback-error' : 'app-feedback-success'}`}>{profileToast.text}</div>}
                 {showForm && (
                   <>
                     <div className="mb-2 text-sm text-slate-500">{t.signedInAs}: {user?.primaryEmailAddress?.emailAddress || user?.username || user?.id}</div>

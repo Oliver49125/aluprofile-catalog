@@ -20,6 +20,17 @@ import { Input } from './components/ui/input';
 import ClerkUsersPanel from './ClerkUsersPanel';
 
 type RefOption = { id: number; name: string; nameDe?: string; profilesCount?: number };
+type SupplierOption = {
+  id: number;
+  name: string;
+  nameDe?: string;
+  address?: string;
+  contactPerson?: string;
+  email?: string;
+  phone?: string;
+  website?: string;
+  _count?: { profiles: number };
+};
 type Profile = {
   id: number;
   name: string;
@@ -37,7 +48,7 @@ type Profile = {
   materialDe?: string;
   lengthMm?: number;
   status: string;
-
+  supplier?: SupplierOption;
   applications: RefOption[];
   crossSections: RefOption[];
 };
@@ -45,6 +56,7 @@ type AppRole = 'ADMIN' | 'MANAGER' | 'USER';
 type AppPermission =
   | 'VIEW_ADMIN'
   | 'PROFILES_MANAGE'
+  | 'SUPPLIERS_MANAGE'
   | 'CATEGORIES_MANAGE'
   | 'USERS_MANAGE';
 type AuthContext = {
@@ -86,6 +98,7 @@ const TXT = {
     language: 'Language',
     profiles: 'Profiles',
     categories: 'Categories',
+    suppliers: 'Suppliers',
     clerkUsers: 'Users',
     managedUsers: 'Managed Users',
     signedInAs: 'Signed in as',
@@ -112,6 +125,17 @@ const TXT = {
     quickActions: 'Quick Actions',
     seedDemoData: 'Seed Demo Data',
     categoryControls: 'Category Controls',
+    supplierControls: 'Supplier Controls',
+    addSupplier: 'Add Supplier',
+    saveSupplier: 'Save Supplier',
+    address: 'Address',
+    contactPerson: 'Contact Person',
+    email: 'Email',
+    phone: 'Phone',
+    website: 'Website',
+    filterSuppliers: 'Filter suppliers',
+    supplier: 'Supplier',
+    selectSupplier: 'Select Supplier...',
     profileControls: 'Profile Controls',
     appRolePermissions: 'App Role & Permission Management',
     usernameOrEmail: 'Username or email',
@@ -173,6 +197,7 @@ const TXT = {
     language: 'Sprache',
     profiles: 'Profile',
     categories: 'Kategorien',
+    suppliers: 'Lieferanten',
     clerkUsers: 'Benutzer',
     managedUsers: 'Verwaltete Benutzer',
     signedInAs: 'Angemeldet als',
@@ -199,6 +224,17 @@ const TXT = {
     quickActions: 'Schnellaktionen',
     seedDemoData: 'Demo-Daten laden',
     categoryControls: 'Kategorienverwaltung',
+    supplierControls: 'Lieferantenverwaltung',
+    addSupplier: 'Lieferant hinzufügen',
+    saveSupplier: 'Lieferant speichern',
+    address: 'Adresse',
+    contactPerson: 'Ansprechpartner',
+    email: 'E-Mail',
+    phone: 'Telefon',
+    website: 'Webseite',
+    filterSuppliers: 'Lieferanten filtern',
+    supplier: 'Lieferant',
+    selectSupplier: 'Lieferant auswählen...',
     profileControls: 'Profilverwaltung',
     appRolePermissions: 'App-Rollen- und Berechtigungsverwaltung',
     usernameOrEmail: 'Benutzername oder E-Mail',
@@ -364,8 +400,9 @@ function AdminPage() {
   const [resetCode, setResetCode] = useState('');
   const [resetPassword, setResetPassword] = useState('');
   const [showResetPassword, setShowResetPassword] = useState(false);
-  const [activeSection, setActiveSection] = useState<'overview' | 'profiles' | 'categories' | 'users' | 'roles'>('overview');
+  const [activeSection, setActiveSection] = useState<'overview' | 'profiles' | 'categories' | 'suppliers' | 'users' | 'roles'>('overview');
   const [adminRef, setAdminRef] = useState<{
+    suppliers: SupplierOption[];
     applications: RefOption[];
     crossSections: RefOption[];
     statusOptions: string[];
@@ -397,6 +434,7 @@ function AdminPage() {
     materialDe: '',
     lengthMm: '',
     status: 'AVAILABLE',
+    supplierId: '' as string | number,
     applicationIds: [] as number[],
     crossSectionIds: [] as number[],
   });
@@ -426,6 +464,13 @@ function AdminPage() {
   const [roleFilter, setRoleFilter] = useState('');
   const [roleSort, setRoleSort] = useState<'user-asc' | 'role-asc'>('user-asc');
 
+  const [supplierFilter, setSupplierFilter] = useState('');
+  const [supplierSort, setSupplierSort] = useState<'name-asc' | 'name-desc'>('name-asc');
+  const [supplierPage, setSupplierPage] = useState(1);
+  const [showSupplierForm, setShowSupplierForm] = useState(false);
+  const [supplierForm, setSupplierForm] = useState({
+    name: '', nameDe: '', address: '', contactPerson: '', email: '', phone: '', website: ''
+  });
   const t = TXT[lang];
 
   function showMessage(text: string, kind: 'error' | 'success' = 'error') {
@@ -445,22 +490,22 @@ function AdminPage() {
   const permissions = authContext?.appPermissions ?? [];
   const canViewAdmin = permissions.includes('VIEW_ADMIN');
   const canManageUsers = permissions.includes('USERS_MANAGE');
-  const canManageProfiles = permissions.includes('PROFILES_MANAGE');
-
+    const canManageProfiles = permissions.includes('PROFILES_MANAGE');
+  const canManageSuppliers = permissions.includes('SUPPLIERS_MANAGE');
   const canManageCategories = permissions.includes('CATEGORIES_MANAGE');
 
   useEffect(() => {
     const nextSection =
-      canManageProfiles ? 'profiles' : canManageCategories ? 'categories' : canManageUsers ? 'users' : 'overview';
+      canManageProfiles ? 'profiles' : canManageSuppliers ? 'suppliers' : canManageCategories ? 'categories' : canManageUsers ? 'users' : 'overview';
 
     if (activeSection === 'overview') return;
     if (activeSection === 'profiles' && canManageProfiles) return;
-
+    if (activeSection === 'suppliers' && canManageSuppliers) return;
     if (activeSection === 'categories' && canManageCategories) return;
     if ((activeSection === 'users' || activeSection === 'roles') && canManageUsers) return;
 
     setActiveSection(nextSection);
-  }, [activeSection, canManageCategories, canManageProfiles, canManageUsers]);
+  }, [activeSection, canManageCategories, canManageProfiles, canManageUsers, canManageSuppliers]);
 
   function parseAuthError(error: unknown) {
     if (typeof error === 'string') return error;
@@ -534,6 +579,43 @@ function AdminPage() {
   }
 
 
+
+  function resetSupplierForm() {
+    setSupplierForm({ name: '', nameDe: '', address: '', contactPerson: '', email: '', phone: '', website: '' });
+    setEditType('');
+    setEditId(null);
+    setShowSupplierForm(false);
+  }
+
+  function startEditSupplier(supplier: SupplierOption) {
+    setEditType('supplier');
+    setEditId(supplier.id);
+    setSupplierForm({
+      name: supplier.name,
+      nameDe: supplier.nameDe ?? '',
+      address: supplier.address ?? '',
+      contactPerson: supplier.contactPerson ?? '',
+      email: supplier.email ?? '',
+      phone: supplier.phone ?? '',
+      website: supplier.website ?? '',
+    });
+    setShowSupplierForm(true);
+  }
+
+  async function saveSupplier() {
+    if (!supplierForm.name) { showMessage('Supplier name is required', 'error'); return; }
+    try {
+      const method = editType === 'supplier' && editId ? 'PUT' : 'POST';
+      const path = method === 'PUT' ? '/admin/suppliers/' + editId : '/admin/suppliers';
+      await api(path, { method, body: JSON.stringify(supplierForm) }, true);
+      resetSupplierForm();
+      setSupplierPage(1);
+      await adminLoad();
+      showMessage('Supplier saved successfully', 'success');
+    } catch (error) {
+      showMessage(parseApiError(error), 'error');
+    }
+  }
 
   function resetApplicationForm() {
     setApplicationName('');
@@ -622,6 +704,7 @@ function AdminPage() {
       materialDe: profile.materialDe ?? '',
       lengthMm: String(profile.lengthMm ?? ''),
       status: profile.status ?? 'AVAILABLE',
+      supplierId: profile.supplier?.id || '',
       applicationIds: profile.applications.map((item) => item.id),
       crossSectionIds: profile.crossSections.map((item) => item.id),
     });
@@ -735,7 +818,7 @@ function AdminPage() {
 
 
   async function saveApplication() {
-    if (!applicationName) return;
+    if (!applicationName) { showMessage('Application name is required', 'error'); return; }
     try {
       const method = editType === 'application' && editId ? 'PUT' : 'POST';
       const path = method === 'PUT' ? '/admin/applications/' + editId : '/admin/applications';
@@ -745,12 +828,12 @@ function AdminPage() {
       await adminLoad();
       showMessage('Application saved successfully', 'success');
     } catch (error) {
-      showMessage(String(error), 'error');
+      showMessage(parseApiError(error), 'error');
     }
   }
 
   async function saveCrossSection() {
-    if (!crossSectionName) return;
+    if (!crossSectionName) { showMessage('Cross-section name is required', 'error'); return; }
     try {
       const method = editType === 'cross' && editId ? 'PUT' : 'POST';
       const path = method === 'PUT' ? '/admin/cross-sections/' + editId : '/admin/cross-sections';
@@ -760,11 +843,12 @@ function AdminPage() {
       await adminLoad();
       showMessage('Cross-section saved successfully', 'success');
     } catch (error) {
-      showMessage(String(error), 'error');
+      showMessage(parseApiError(error), 'error');
     }
   }
 
   async function saveProfile() {
+    if (!profileForm.name) { showMessage('Profile name is required', 'error'); return; }
     try {
       const method = editType === 'profile' && editId ? 'PUT' : 'POST';
       const path = method === 'PUT' ? '/admin/profiles/' + editId : '/admin/profiles';
@@ -779,7 +863,7 @@ function AdminPage() {
       await adminLoad();
       showMessage('Profile saved successfully', 'success');
     } catch (error) {
-      showMessage(String(error), 'error');
+      showMessage(parseApiError(error), 'error');
     }
   }
 
@@ -789,12 +873,12 @@ function AdminPage() {
       await adminLoad();
       showMessage('Item deleted successfully', 'success');
     } catch (error) {
-      showMessage(String(error), 'error');
+      showMessage(parseApiError(error), 'error');
     }
   };
 
   async function saveUserAccess() {
-    if (!userAccessForm.clerkUserId.trim()) return;
+    if (!userAccessForm.clerkUserId.trim()) { showMessage('Clerk User ID is required', 'error'); return; }
     try {
       await api('/admin/user-access', {
         method: 'POST',
@@ -809,7 +893,7 @@ function AdminPage() {
       await loadUserAccess();
       showMessage('Access rule saved successfully', 'success');
     } catch (error) {
-      showMessage(String(error), 'error');
+      showMessage(parseApiError(error), 'error');
     }
   }
 
@@ -819,7 +903,7 @@ function AdminPage() {
       await loadUserAccess();
       showMessage('Access rule deleted successfully', 'success');
     } catch (error) {
-      showMessage(String(error), 'error');
+      showMessage(parseApiError(error), 'error');
     }
   }
 
@@ -1136,7 +1220,80 @@ function AdminPage() {
 
 
 
-                {activeSection === 'categories' && canManageCategories && (
+                {activeSection === 'suppliers' && canManageSuppliers && (
+              <div className="space-y-6">
+                <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+                  <h2 className="text-xl font-bold text-slate-900">{t.supplierControls}</h2>
+                  <Button onClick={() => { resetSupplierForm(); setShowSupplierForm(true); }} className="gap-2">
+                    <span className="text-lg leading-none">+</span> {t.addSupplier}
+                  </Button>
+                </div>
+
+                <Card className="border-slate-200 bg-white/50 backdrop-blur-sm">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center">
+                      <Input
+                        placeholder={t.filterSuppliers}
+                        value={supplierFilter}
+                        onChange={(e) => { setSupplierFilter(e.target.value); setSupplierPage(1); }}
+                        className="max-w-xs"
+                      />
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-sm">
+                        <thead className="bg-slate-50 text-slate-600">
+                          <tr>
+                            <th className="p-4 font-semibold">{t.name}</th>
+                            <th className="p-4 font-semibold">{t.contactPerson}</th>
+                            <th className="p-4 font-semibold">{t.email}</th>
+                            <th className="p-4 font-semibold text-right">{t.actions}</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {(adminRef?.suppliers || []).filter(s => normalizeForSearch(s.name).includes(normalizeForSearch(supplierFilter))).slice((supplierPage - 1) * PAGE_SIZE, supplierPage * PAGE_SIZE).map((item) => (
+                            <tr key={item.id} className="transition-colors hover:bg-slate-50/50">
+                              <td className="p-4 font-medium text-slate-900">{item.name}</td>
+                              <td className="p-4 text-slate-600">{item.contactPerson || '-'}</td>
+                              <td className="p-4 text-slate-600">{item.email || '-'}</td>
+                              <td className="p-4 text-right">
+                                <Button variant="ghost" size="sm" onClick={() => startEditSupplier(item)} className="text-primary hover:bg-primary/10 hover:text-primary">
+                                  {t.edit}
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => deleteItem('/admin/suppliers/' + item.id)} className="text-red-600 hover:bg-red-50 hover:text-red-700">
+                                  {t.delete}
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {showSupplierForm && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+                    <div className="w-full max-w-md rounded-2xl bg-white shadow-xl">
+                      <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+                        <h3 className="text-lg font-semibold text-slate-900">{editType === 'supplier' ? t.edit : t.addSupplier}</h3>
+                        <button onClick={resetSupplierForm} className="text-slate-400 hover:text-slate-600">×</button>
+                      </div>
+                      <div className="space-y-4 p-6">
+                        <div><label className="mb-1 block text-sm font-medium text-slate-700">{t.name} *</label><Input value={supplierForm.name} onChange={e => setSupplierForm(f => ({ ...f, name: e.target.value }))} /></div>
+                        <div><label className="mb-1 block text-sm font-medium text-slate-700">{t.name} (DE)</label><Input value={supplierForm.nameDe} onChange={e => setSupplierForm(f => ({ ...f, nameDe: e.target.value }))} /></div>
+                        <div><label className="mb-1 block text-sm font-medium text-slate-700">{t.contactPerson}</label><Input value={supplierForm.contactPerson} onChange={e => setSupplierForm(f => ({ ...f, contactPerson: e.target.value }))} /></div>
+                        <div><label className="mb-1 block text-sm font-medium text-slate-700">{t.email}</label><Input value={supplierForm.email} onChange={e => setSupplierForm(f => ({ ...f, email: e.target.value }))} /></div>
+                        <div><label className="mb-1 block text-sm font-medium text-slate-700">{t.phone}</label><Input value={supplierForm.phone} onChange={e => setSupplierForm(f => ({ ...f, phone: e.target.value }))} /></div>
+                        <div><label className="mb-1 block text-sm font-medium text-slate-700">{t.website}</label><Input value={supplierForm.website} onChange={e => setSupplierForm(f => ({ ...f, website: e.target.value }))} /></div>
+                        <div><label className="mb-1 block text-sm font-medium text-slate-700">{t.address}</label><Input value={supplierForm.address} onChange={e => setSupplierForm(f => ({ ...f, address: e.target.value }))} /></div>
+                        <Button onClick={saveSupplier} className="w-full" disabled={!supplierForm.name}>{t.saveSupplier}</Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            {activeSection === 'categories' && canManageCategories && (
                 <div id="admin-categories" className="space-y-6">
                   <Card className="material-panel">
                     <CardHeader className="border-b border-slate-200/80">

@@ -31,13 +31,15 @@ model Profile {
   supplier         Supplier?       @relation(fields: [supplierId], references: [id])
   applications     Application[]  @relation("ApplicationToProfile")
   crossSections    CrossSection[] @relation("CrossSectionToProfile")
+  inquiries        Inquiry[]
 
   @@index([ownerClerkUserId])
 }
 
 model Supplier {
   id            Int       @id @default(autoincrement())
-  name          String    @unique
+  clerkUserId   String?   @unique
+  name          String
   nameDe        String?
   address       String?
   contactPerson String?
@@ -88,4 +90,26 @@ enum AppPermission {
   SUPPLIERS_MANAGE
   CATEGORIES_MANAGE
   USERS_MANAGE
+}
+
+model Inquiry {
+  id             Int      @id @default(autoincrement())
+  profileId      Int
+  firstName      String
+  lastName       String
+  company        String?
+  email          String
+  phone          String?
+  message        String
+  requestPurchase Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  profile        Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model SiteMetric {
+  id          Int      @id @default(autoincrement())
+  key         String   @unique
+  value       Int      @default(0)
+  updatedAt   DateTime @updatedAt
 }

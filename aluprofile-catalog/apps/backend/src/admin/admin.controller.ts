@@ -161,6 +161,48 @@ export class AdminController {
   }
 
 
+  @Get('suppliers')
+  @RequirePermissions(AppPermission.SUPPLIERS_MANAGE)
+  listSuppliers() {
+    return this.adminService.listSuppliers();
+  }
+
+  @Post('suppliers')
+  @RequirePermissions(AppPermission.SUPPLIERS_MANAGE)
+  createSupplier(@Body() body: { name: string; nameDe?: string; address?: string; contactPerson?: string; email?: string; phone?: string; website?: string; }) {
+    return this.adminService.createSupplier({
+      name: body.name,
+      nameDe: body.nameDe,
+      address: body.address,
+      contactPerson: body.contactPerson,
+      email: body.email,
+      phone: body.phone,
+      website: body.website,
+    });
+  }
+
+  @Put('suppliers/:id')
+  @RequirePermissions(AppPermission.SUPPLIERS_MANAGE)
+  updateSupplier(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { name: string; nameDe?: string; address?: string; contactPerson?: string; email?: string; phone?: string; website?: string; },
+  ) {
+    return this.adminService.updateSupplier(id, {
+      name: body.name,
+      nameDe: body.nameDe,
+      address: body.address,
+      contactPerson: body.contactPerson,
+      email: body.email,
+      phone: body.phone,
+      website: body.website,
+    });
+  }
+
+  @Delete('suppliers/:id')
+  @RequirePermissions(AppPermission.SUPPLIERS_MANAGE)
+  deleteSupplier(@Param('id', ParseIntPipe) id: number) {
+    return this.adminService.deleteSupplier(id);
+  }
 
   @Get('applications')
   @RequirePermissions(AppPermission.CATEGORIES_MANAGE)

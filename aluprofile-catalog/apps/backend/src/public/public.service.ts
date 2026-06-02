@@ -58,7 +58,7 @@ export class PublicService {
 
   async getOverview(lang: Lang) {
     const publicProfilesWhere = {};
-    const [applications, crossSections, newestProfiles, totalProfiles] = await Promise.all([
+    const [applications, crossSections, newestProfiles, totalProfiles, visitsMetric] = await Promise.all([
       this.prisma.application.findMany({
         orderBy: { name: 'asc' },
         include: {
@@ -90,33 +90,14 @@ export class PublicService {
         include: { supplier: true, applications: true, crossSections: true },
       }),
       this.prisma.profile.count({ where: publicProfilesWhere }),
+      this.prisma.siteMetric.findUnique({ where: { key: 'visits' } }),
     ]);
 
-    const userIds = [...new Set(newestProfiles.filter(p => p.ownerClerkUserId).map(p => p.ownerClerkUserId as string))];
-    let userMap = new Map<string, string>();
-    if (userIds.length > 0) {
-      try {
-        const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
-        const users = await clerk.users.getUserList({ userId: userIds });
-        userMap = new Map(users.data.map((u: any) => [u.id, u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : (u.username || u.emailAddresses[0]?.emailAddress || 'Customer')]));
-      } catch (error) {
-        console.error('Failed to fetch clerk users for overview:', error);
-      }
-    }
-
-    const mapProfileWithCustomer = (profile: any) => {
-      const p = { ...profile };
-      if (p.ownerClerkUserId && userMap.has(p.ownerClerkUserId)) {
-        p.supplier = { id: 0, name: userMap.get(p.ownerClerkUserId) || 'Customer' } as any;
-      }
-      return this.localizeProfile(lang, p);
-    };
-
     return {
-      totals: { profiles: totalProfiles },
+      totals: { profiles: totalProfiles, visits: visitsMetric?.value || 0 },
       applications: applications.map((item) => this.localizeOption(lang, item)),
       crossSections: crossSections.map((item) => this.localizeOption(lang, item)),
-      newestProfiles: newestProfiles.map((item) => mapProfileWithCustomer(item)),
+      newestProfiles: newestProfiles.map((item) => this.localizeProfile(lang, item)),
     };
   }
 
@@ -170,25 +151,7 @@ export class PublicService {
       },
     });
 
-    const userIds = [...new Set(profiles.filter(p => p.ownerClerkUserId).map(p => p.ownerClerkUserId as string))];
-    let userMap = new Map<string, string>();
-    if (userIds.length > 0) {
-      try {
-        const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
-        const users = await clerk.users.getUserList({ userId: userIds });
-        userMap = new Map(users.data.map((u: any) => [u.id, u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : (u.username || u.emailAddresses[0]?.emailAddress || 'Customer')]));
-      } catch (error) {
-        console.error('Failed to fetch clerk users for profiles:', error);
-      }
-    }
-
-    return profiles.map((item) => {
-      const p = { ...item };
-      if (p.ownerClerkUserId && userMap.has(p.ownerClerkUserId)) {
-        p.supplier = { id: 0, name: userMap.get(p.ownerClerkUserId) || 'Customer' } as any;
-      }
-      return this.localizeProfile(lang, p);
-    });
+    return profiles.map((item) => this.localizeProfile(lang, item));
   }
 
   async getProfileById(id: number, lang: Lang) {
@@ -202,20 +165,38 @@ export class PublicService {
     });
 
     if (!profile) return null;
-
-    if (profile.ownerClerkUserId) {
-      try {
-        const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
-        const user = await clerk.users.getUser(profile.ownerClerkUserId);
-        profile.supplier = {
-          id: 0,
-          name: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : (user.username || user.emailAddresses[0]?.emailAddress || 'Customer')
-        } as any;
-      } catch (error) {
-        console.error('Failed to fetch clerk user for profile by id:', error);
-      }
-    }
-
     return this.localizeProfile(lang, profile);
+  }
+
+  async createInquiry(data: {
+    profileId: number;
+    firstName: string;
+    lastName: string;
+    company?: string;
+    email: string;
+    phone?: string;
+    message: string;
+    requestPurchase?: boolean;
+  }) {
+    return this.prisma.inquiry.create({
+      data: {
+        profileId: data.profileId,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        company: data.company,
+        email: data.email,
+        phone: data.phone,
+        message: data.message,
+        requestPurchase: data.requestPurchase ?? false,
+      },
+    });
+  }
+
+  async incrementVisit() {
+    return this.prisma.siteMetric.upsert({
+      where: { key: 'visits' },
+      update: { value: { increment: 1 } },
+      create: { key: 'visits', value: 1 },
+    });
   }
 }

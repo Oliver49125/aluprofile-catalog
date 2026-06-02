@@ -1,3 +1,4 @@
+import { parseApiError } from './utils/apiError';
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { Mail, Search, ShieldCheck, Users } from 'lucide-react';
@@ -96,29 +97,6 @@ const TXT = {
   },
 } as const;
 
-function parseApiError(error: unknown) {
-  const fallback = 'Request failed';
-  const raw =
-    error instanceof Error
-      ? error.message.replace(/^Error:\s*/, '')
-      : typeof error === 'string'
-        ? error
-        : fallback;
-
-  try {
-    const parsed = JSON.parse(raw) as { message?: string | string[] };
-    if (Array.isArray(parsed.message)) {
-      return parsed.message.join(', ');
-    }
-    if (typeof parsed.message === 'string' && parsed.message.trim()) {
-      return parsed.message;
-    }
-  } catch {
-    // ignore
-  }
-
-  return raw || fallback;
-}
 
 function compareText(a: unknown, b: unknown) {
   return String(a ?? '').localeCompare(String(b ?? ''), undefined, { sensitivity: 'base' });

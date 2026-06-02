@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { mkdirSync } from 'node:fs';
 import { AppModule } from './app.module';
 import * as Sentry from '@sentry/node';
+import { PrismaExceptionFilter } from './prisma-exception.filter';
 
 async function bootstrap() {
   if (process.env.SENTRY_DSN) {
@@ -23,6 +24,7 @@ async function bootstrap() {
     credentials: true,
   });
   app.setGlobalPrefix('api');
+  app.useGlobalFilters(new PrismaExceptionFilter());
   app.useStaticAssets(uploadsDir, { prefix: '/uploads/' });
 
   await app.listen(process.env.PORT ?? 3000);

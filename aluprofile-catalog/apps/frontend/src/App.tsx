@@ -1,3 +1,4 @@
+import { parseApiError } from './utils/apiError';
 import { useEffect, useMemo, useState } from 'react';
 import { SignedIn, UserButton } from '@clerk/clerk-react';
 import {
@@ -7,6 +8,10 @@ import {
   ChevronLeft,
   ChevronRight,
   ExternalLink,
+  Phone,
+  Mail,
+  Globe,
+  User,
 
   ImageIcon,
   LayoutGrid,
@@ -15,6 +20,7 @@ import {
   Search,
   SlidersHorizontal,
   Sparkles,
+  UserRoundPlus,
   X,
 } from 'lucide-react';
 import { Button } from './components/ui/button';
@@ -40,7 +46,15 @@ type Profile = {
   material?: string;
   lengthMm?: number;
   status: string;
-
+  supplier?: {
+    id: number;
+    name: string;
+    nameDe?: string;
+    contactPerson?: string;
+    email?: string;
+    phone?: string;
+    website?: string;
+  };
   applications: RefOption[];
   crossSections: RefOption[];
 };
@@ -121,6 +135,24 @@ const TXT = {
 
     noResultsTitle: 'No technical matches found',
     noResultsNote: 'Try broadening the filters or clearing the search terms to see more profiles.',
+
+    inquiry: 'Inquiry',
+    contactSeller: 'Contact Seller',
+    firstName: 'First Name',
+    lastName: 'Last Name',
+    company: 'Company',
+    email: 'Email',
+    phone: 'Phone',
+    message: 'Message',
+    defaultMessage: 'I am interested in this profile, please contact me.',
+    receiveOffer: 'Receive a purchase offer',
+    sendInquiry: 'Send Inquiry',
+    inquirySent: 'Inquiry sent successfully!',
+    sending: 'Sending...',
+    visitorCount: 'Website Visits',
+    supplierAndFiles: 'Supplier & Files',
+    contactPerson: 'Contact Person',
+    website: 'Website',
   },
   de: {
     title: 'Aluprofile Suche & Katalog',
@@ -157,8 +189,8 @@ const TXT = {
     usage: 'Anwendung',
     status: 'Status',
 
-    openDrawing: 'Zeichnung offnen',
-    openPhoto: 'Foto offnen',
+    openDrawing: 'Zeichnung öffnen',
+    openPhoto: 'Foto öffnen',
 
     linkedCategories: 'Verknupfte Kategorien',
     catalogLabel: 'Katalogsystem',
@@ -194,6 +226,24 @@ const TXT = {
 
     noResultsTitle: 'Keine technischen Treffer gefunden',
     noResultsNote: 'Erweitern Sie die Filter oder setzen Sie die Suchbegriffe zuruck, um mehr Profile zu sehen.',
+
+    inquiry: 'Anfrage',
+    contactSeller: 'Verkäufer kontaktieren',
+    firstName: 'Vorname',
+    lastName: 'Nachname',
+    company: 'Firma',
+    email: 'E-Mail',
+    phone: 'Telefon',
+    message: 'Nachricht',
+    defaultMessage: 'Ich interessiere mich für dieses Profil, bitte kontaktieren Sie mich.',
+    receiveOffer: 'Kaufangebot erhalten',
+    sendInquiry: 'Anfrage senden',
+    inquirySent: 'Anfrage erfolgreich gesendet!',
+    sending: 'Senden...',
+    visitorCount: 'Website-Besuche',
+    supplierAndFiles: 'Lieferant & Dateien',
+    contactPerson: 'Ansprechpartner',
+    website: 'Webseite',
   },
 } as const;
 
@@ -211,11 +261,6 @@ function statusLabel(status: string | undefined, t: (typeof TXT)[keyof typeof TX
 
 function safeUrl(value?: string) {
   return value && value.trim().length > 0 ? value : undefined;
-}
-
-function parseApiError(error: unknown) {
-  if (error instanceof Error) return error.message;
-  return typeof error === 'string' ? error : 'Request failed';
 }
 
 function paginateItems<T>(items: T[], page: number, pageSize = PAGE_SIZE) {
@@ -267,15 +312,44 @@ function App() {
   const [sortBy, setSortBy] = useState<SortKey>('newest');
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const [page, setPage] = useState(1);
+
+  const [websiteVisits, setWebsiteVisits] = useState<number | null>(null);
+  useEffect(() => {
+    api('/public/visits', { method: 'POST' })
+      .then(data => {
+        if (data && typeof data.value === 'number') {
+          setWebsiteVisits(data.value);
+        }
+      })
+      .catch(err => console.error('Failed to increment visits', err));
+  }, []);
+
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
+
+  const [showInquiryModal, setShowInquiryModal] = useState<Profile | null>(null);
+  const [inquiryForm, setInquiryForm] = useState({ firstName: '', lastName: '', company: '', email: '', phone: '', message: '', requestPurchase: false });
+  const [inquiryLoading, setInquiryLoading] = useState(false);
+  const [inquirySuccess, setInquirySuccess] = useState(false);
+  const [metrics, setMetrics] = useState({ visitors: 0 });
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  function handleImageClick(url?: string) {
+    if (!url || !safeUrl(url)) return;
+    if (url.toLowerCase().endsWith('.pdf')) {
+      window.open(url, '_blank');
+    } else {
+      setSelectedImage(url);
+    }
+  }
 
   const t = useMemo(() => TXT[lang], [lang]);
 
   useEffect(() => {
     const saved = window.localStorage.getItem('aluprofile_lang');
     if (saved === 'en' || saved === 'de') setLang(saved);
+    api('/public/visits', { method: 'POST' }).then(m => setMetrics({ visitors: m.value })).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -434,6 +508,12 @@ function App() {
                   <SlidersHorizontal className="h-4 w-4 text-primary" />
                   {t.heroNote}
                 </span>
+                {websiteVisits !== null && (
+                  <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.35)]">
+                    <UserRoundPlus className="h-4 w-4 text-primary" />
+                    {websiteVisits} Visits
+                  </span>
+                )}
               </div>
             </div>
 
@@ -595,7 +675,7 @@ function App() {
                   const photo = safeUrl(p.photoUrl);
                   const active = detail?.id === p.id;
                   return (
-                    <button key={p.id} type="button" onClick={() => loadDetail(p.id)} className={`public-mobile-card text-left ${active ? 'ring-2 ring-primary/30' : ''}`} style={{ animationDelay: `${index * 70}ms` }}>
+                    <div key={p.id} role="button" tabIndex={0} onClick={() => loadDetail(p.id)} className={`public-mobile-card cursor-pointer text-left ${active ? 'ring-2 ring-primary/30' : ''}`} style={{ animationDelay: `${index * 70}ms` }}>
                       <div className="flex items-start gap-4">
                         <div className="h-24 w-24 shrink-0 overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-50">
                           {drawing ? <img src={drawing} alt={p.name + ' drawing'} className="public-media-fit" /> : <div className="flex h-full items-center justify-center text-slate-400"><ImageIcon className="h-5 w-5" /></div>}
@@ -619,9 +699,33 @@ function App() {
                             </div>
                             <span className="line-clamp-1">{(p.applications ?? []).map((a) => a.name).join(', ') || '-'}</span>
                           </div>
-                        </div>
-                      </div>
-                    </button>
+                        
+                                                  <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
+
+                                                    <div className="text-left">
+
+                                                      <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">Preis</p>
+
+                                                      <p className="font-semibold text-slate-900">auf Anfrage</p>
+
+                                                    </div>
+
+                                                    <Button size="sm" onClick={(e) => { e.stopPropagation(); setShowInquiryModal(p); }}>
+
+                                                      {t.inquiry}
+
+                                                    </Button>
+
+                                                  </div>
+
+                                                </div>
+
+                                              </div>
+
+                                            </div>
+
+                        
+
                   );
                 })}
                 {pagedProfiles.items.length === 0 && <div className="rounded-[1.25rem] border border-dashed border-slate-200 px-6 py-12 text-center text-sm text-slate-500">{t.noProfiles}</div>}
@@ -679,9 +783,16 @@ function App() {
                               </div>
                             </td>
                             <td className="px-5 py-4 align-top">
+                              
                               <div className="space-y-2">
-
-                                <Button size="sm" onClick={(e) => {
+                                <div className="mb-2">
+                                  <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">Preis</p>
+                                  <p className="font-semibold text-slate-900">auf Anfrage</p>
+                                </div>
+                                <Button size="sm" onClick={(e) => { e.stopPropagation(); setShowInquiryModal(p); }} className="w-full">
+                                  {t.inquiry}
+                                </Button>
+                                <Button size="sm" className="w-full" variant="outline" onClick={(e) => {
                                   e.stopPropagation();
                                   loadDetail(p.id).catch((err) => setMessage(parseApiError(err)));
                                 }}>
@@ -708,7 +819,7 @@ function App() {
 
                     const active = detail?.id === p.id;
                     return (
-                      <button key={p.id} type="button" onClick={() => loadDetail(p.id)} className={`public-result-card text-left ${active ? 'ring-2 ring-primary/30' : ''}`} style={{ animationDelay: `${index * 70}ms` }}>
+                      <div key={p.id} role="button" tabIndex={0} onClick={() => loadDetail(p.id)} className={`public-result-card cursor-pointer text-left ${active ? 'ring-2 ring-primary/30' : ''}`} style={{ animationDelay: `${index * 70}ms` }}>
                         <div className="flex items-start justify-between gap-4">
                           <div className="space-y-2">
                             <p className="text-lg font-semibold tracking-[-0.025em] text-slate-950">{p.name}</p>
@@ -729,16 +840,21 @@ function App() {
                             </div>
                           </div>
                         </div>
-                        <div className="mt-4 flex items-center justify-between gap-4 border-t border-slate-200 pt-4">
+                        <div className="mt-4 flex flex-col gap-3 rounded-[1rem] bg-slate-50 px-4 py-3 border border-slate-100 sm:flex-row sm:items-center sm:justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="h-12 w-12 overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-50">
-                              {photo ? <img src={photo} alt={p.name + ' photo'} className="public-media-fit" loading="lazy" /> : <div className="flex h-full items-center justify-center text-slate-400"><ImageIcon className="h-4 w-4" /></div>}
+                            <div className="text-left">
+                              <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">Preis</p>
+                              <p className="text-sm font-bold text-slate-900">auf Anfrage</p>
                             </div>
-
                           </div>
-                          <span className="text-sm font-medium text-primary">{t.details}</span>
+                          <div className="flex items-center gap-3">
+                            <Button variant="secondary" size="sm" onClick={() => loadDetail(p.id)}>{t.details}</Button>
+                            <Button size="sm" onClick={(e) => { e.stopPropagation(); setShowInquiryModal(p); }}>
+                              {t.inquiry}
+                            </Button>
+                          </div>
                         </div>
-                      </button>
+                      </div>
                     );
                   })}
                   {pagedProfiles.items.length === 0 && <div className="lg:col-span-2 rounded-[1.25rem] border border-dashed border-slate-200 px-6 py-12 text-center text-sm text-slate-500">{t.noProfiles}</div>}
@@ -785,13 +901,14 @@ function App() {
               ) : null}
               {!isDetailLoading && !detail && <p className="text-sm text-slate-500">{t.selectProfile}</p>}
               {!isDetailLoading && detail && (
-                <div className="space-y-5">
+                <div className="grid gap-6 lg:grid-cols-[1fr_350px] items-start">
+                  <div className="space-y-5">
                   <div className="public-detail-sheet overflow-hidden">
                     <div className="border-b border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-700">{t.technicalView}</div>
                     <div className="grid gap-5 p-5 lg:grid-cols-[220px_1fr]">
                       <div className="h-[220px] overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-50">
                         {safeUrl(detail.drawingUrl) ? (
-                          <img src={detail.drawingUrl} alt={`${detail.name} drawing`} className="public-media-fit" />
+                          <img src={detail.drawingUrl} alt={`${detail.name} drawing`} className="public-media-fit cursor-pointer transition-transform hover:scale-105" onClick={() => handleImageClick(detail.drawingUrl)} />
                         ) : (
                           <div className="flex h-full items-center justify-center text-slate-400"><ImageIcon className="h-8 w-8" /></div>
                         )}
@@ -810,6 +927,24 @@ function App() {
                     </div>
                   </div>
 
+                  
+                  <div className="public-detail-sheet overflow-hidden">
+                    <div className="border-b border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-700">{t.supplierAndFiles}</div>
+                    <div className="space-y-4 p-5 text-sm">
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {detail.supplier && (
+                          <div className="rounded-2xl border border-primary/10 bg-primary/[0.04] p-4 text-slate-700 sm:col-span-2 space-y-2">
+                            <p className="text-base font-medium text-slate-900">{detail.supplier.name}</p>
+                            {detail.supplier.contactPerson && <p className="flex items-center gap-2"><User className="h-4 w-4 text-slate-400" /> {detail.supplier.contactPerson}</p>}
+                            {detail.supplier.phone && <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-slate-400" /> {detail.supplier.phone}</p>}
+                            {detail.supplier.email && <p className="flex items-center gap-2"><Mail className="h-4 w-4 text-slate-400" /> <a href={`mailto:${detail.supplier.email}`} className="text-primary hover:underline">{detail.supplier.email}</a></p>}
+                            {detail.supplier.website && <p className="flex items-center gap-2"><Globe className="h-4 w-4 text-slate-400" /> <a href={detail.supplier.website} target="_blank" rel="noreferrer" className="text-primary hover:underline">{detail.supplier.website}</a></p>}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="public-detail-sheet overflow-hidden">
                     <div className="border-b border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-700">{t.linkedCategories}</div>
                     <div className="space-y-4 p-5 text-sm">
@@ -823,17 +958,81 @@ function App() {
 
                       <div className="grid gap-2">
                         {safeUrl(detail.drawingUrl) && (
-                          <a href={detail.drawingUrl} target="_blank" rel="noreferrer">
-                            <Button className="w-full justify-between" variant="outline">{t.openDrawing} <ExternalLink className="h-4 w-4" /></Button>
-                          </a>
+                          <Button className="w-full justify-between" variant="outline" onClick={() => handleImageClick(detail.drawingUrl)}>{t.openDrawing} <ExternalLink className="h-4 w-4" /></Button>
                         )}
                         {safeUrl(detail.photoUrl) && (
-                          <a href={detail.photoUrl} target="_blank" rel="noreferrer">
-                            <Button className="w-full justify-between" variant="outline">{t.openPhoto} <ExternalLink className="h-4 w-4" /></Button>
-                          </a>
+                          <Button className="w-full justify-between" variant="outline" onClick={() => handleImageClick(detail.photoUrl)}>{t.openPhoto} <ExternalLink className="h-4 w-4" /></Button>
                         )}
 
                       </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="rounded-[1.25rem] border border-slate-200 bg-white shadow-sm overflow-hidden sticky top-6">
+                    <div className="border-b border-slate-100 bg-slate-50/80 px-5 py-4">
+                      <h3 className="text-base font-semibold text-slate-900">{t.contactSeller}</h3>
+                    </div>
+                    <div className="p-5">
+                      {inquirySuccess ? (
+                        <div className="text-center py-6">
+                          <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                            <Sparkles className="h-5 w-5" />
+                          </div>
+                          <h4 className="text-sm font-medium text-slate-900">{t.inquirySent}</h4>
+                        </div>
+                      ) : (
+                        <form className="space-y-4" onSubmit={async (e) => {
+                          e.preventDefault();
+                          setInquiryLoading(true);
+                          try {
+                            await api('/public/inquiries', {
+                              method: 'POST',
+                              body: JSON.stringify({ profileId: detail.id, ...inquiryForm })
+                            });
+                            setInquirySuccess(true);
+                          } catch (err) {
+                            setMessage(parseApiError(err));
+                          } finally {
+                            setInquiryLoading(false);
+                          }
+                        }}>
+                          <div className="grid grid-cols-2 gap-3">
+                            <label className="block text-[13px] font-medium text-slate-700">
+                              {t.firstName} *
+                              <Input required className="mt-1.5 h-9 text-sm" value={inquiryForm.firstName} onChange={e => setInquiryForm(f => ({ ...f, firstName: e.target.value }))} />
+                            </label>
+                            <label className="block text-[13px] font-medium text-slate-700">
+                              {t.lastName} *
+                              <Input required className="mt-1.5 h-9 text-sm" value={inquiryForm.lastName} onChange={e => setInquiryForm(f => ({ ...f, lastName: e.target.value }))} />
+                            </label>
+                          </div>
+                          <label className="block text-[13px] font-medium text-slate-700">
+                            {t.company}
+                            <Input className="mt-1.5 h-9 text-sm" value={inquiryForm.company} onChange={e => setInquiryForm(f => ({ ...f, company: e.target.value }))} />
+                          </label>
+                          <label className="block text-[13px] font-medium text-slate-700">
+                            {t.email} *
+                            <Input required type="email" className="mt-1.5 h-9 text-sm" value={inquiryForm.email} onChange={e => setInquiryForm(f => ({ ...f, email: e.target.value }))} />
+                          </label>
+                          <label className="block text-[13px] font-medium text-slate-700">
+                            {t.phone}
+                            <Input className="mt-1.5 h-9 text-sm" type="tel" value={inquiryForm.phone} onChange={e => setInquiryForm(f => ({ ...f, phone: e.target.value }))} />
+                          </label>
+                          <label className="block text-[13px] font-medium text-slate-700">
+                            {t.message} *
+                            <textarea required className="mt-1.5 block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.04)] focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" rows={3} value={inquiryForm.message} onChange={e => setInquiryForm(f => ({ ...f, message: e.target.value }))} />
+                          </label>
+                          <label className="flex items-center gap-2.5 text-[13px] text-slate-700">
+                            <input type="checkbox" className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary" checked={inquiryForm.requestPurchase} onChange={e => setInquiryForm(f => ({ ...f, requestPurchase: e.target.checked }))} />
+                            {t.receiveOffer}
+                          </label>
+                          <div className="pt-2">
+                            <Button type="submit" className="w-full" disabled={inquiryLoading}>
+                              {inquiryLoading ? t.sending : t.contactSeller}
+                            </Button>
+                          </div>
+                        </form>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -842,6 +1041,100 @@ function App() {
           </Card>
         </div>
       </div>
+
+      {selectedImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/90 p-4 backdrop-blur-md" onClick={() => setSelectedImage(null)}>
+          <button className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20 transition-colors" onClick={() => setSelectedImage(null)}>
+            <X className="h-6 w-6" />
+          </button>
+          <img src={selectedImage} alt="Fullscreen view" className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain shadow-2xl" onClick={e => e.stopPropagation()} />
+        </div>
+      )}
+
+              {showInquiryModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={() => setShowInquiryModal(null)}>
+          <div className="w-full max-w-lg rounded-[1.5rem] bg-white shadow-2xl overflow-hidden flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-6 py-4">
+              <h3 className="text-lg font-semibold text-slate-900">{t.contactSeller}</h3>
+              <button className="text-slate-400 hover:text-slate-600" onClick={() => setShowInquiryModal(null)}>
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto">
+              {inquirySuccess ? (
+                <div className="text-center py-8">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                    <Sparkles className="h-6 w-6" />
+                  </div>
+                  <h4 className="text-lg font-medium text-slate-900">{t.inquirySent}</h4>
+                  <Button className="mt-6" onClick={() => setShowInquiryModal(null)}>OK</Button>
+                </div>
+              ) : (
+                <form className="space-y-4" onSubmit={async (e) => {
+                  e.preventDefault();
+                  setInquiryLoading(true);
+                  try {
+                    await api('/public/inquiries', {
+                      method: 'POST',
+                      body: JSON.stringify({ profileId: showInquiryModal.id, ...inquiryForm })
+                    });
+                    setInquirySuccess(true);
+                  } catch (err) {
+                    setMessage(parseApiError(err));
+                  } finally {
+                    setInquiryLoading(false);
+                  }
+                }}>
+                  <div className="grid grid-cols-2 gap-4">
+                    <label className="block text-sm font-medium text-slate-700">
+                      {t.firstName} *
+                      <Input required className="mt-1" value={inquiryForm.firstName} onChange={e => setInquiryForm(f => ({ ...f, firstName: e.target.value }))} />
+                    </label>
+                    <label className="block text-sm font-medium text-slate-700">
+                      {t.lastName} *
+                      <Input required className="mt-1" value={inquiryForm.lastName} onChange={e => setInquiryForm(f => ({ ...f, lastName: e.target.value }))} />
+                    </label>
+                  </div>
+                  <label className="block text-sm font-medium text-slate-700">
+                    {t.company}
+                    <Input className="mt-1" value={inquiryForm.company} onChange={e => setInquiryForm(f => ({ ...f, company: e.target.value }))} />
+                  </label>
+                  <label className="block text-sm font-medium text-slate-700">
+                    {t.email} *
+                    <Input required type="email" className="mt-1" value={inquiryForm.email} onChange={e => setInquiryForm(f => ({ ...f, email: e.target.value }))} />
+                  </label>
+                  <label className="block text-sm font-medium text-slate-700">
+                    {t.phone}
+                    <Input className="mt-1" type="tel" value={inquiryForm.phone} onChange={e => setInquiryForm(f => ({ ...f, phone: e.target.value }))} />
+                  </label>
+                  <label className="block text-sm font-medium text-slate-700">
+                    {t.message} *
+                    <textarea required className="mt-1 block w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.04)] focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" rows={4} value={inquiryForm.message} onChange={e => setInquiryForm(f => ({ ...f, message: e.target.value }))} />
+                  </label>
+                  <label className="flex items-center gap-3 text-sm text-slate-700">
+                    <input type="checkbox" className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary" checked={inquiryForm.requestPurchase} onChange={e => setInquiryForm(f => ({ ...f, requestPurchase: e.target.checked }))} />
+                    {t.receiveOffer}
+                  </label>
+                  <div className="pt-2">
+                    <Button type="submit" className="w-full" disabled={inquiryLoading}>
+                      {inquiryLoading ? t.sending : t.sendInquiry}
+                    </Button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/90 p-4 backdrop-blur-md" onClick={() => setSelectedImage(null)}>
+          <button className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20 transition-colors" onClick={() => setSelectedImage(null)}>
+            <X className="h-6 w-6" />
+          </button>
+          <img src={selectedImage} alt="Fullscreen view" className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain shadow-2xl" onClick={e => e.stopPropagation()} />
+        </div>
+      )}
     </div>
   );
 }

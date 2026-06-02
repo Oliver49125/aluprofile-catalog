@@ -1,6 +1,8 @@
 import {
   Controller,
   Get,
+  Post,
+  Body,
   NotFoundException,
   Param,
   ParseIntPipe,
@@ -56,5 +58,26 @@ export class PublicController {
       throw new NotFoundException('Profile not found');
     }
     return profile;
+  }
+
+  @Post('inquiries')
+  async createInquiry(
+    @Body() body: {
+      profileId: number;
+      firstName: string;
+      lastName: string;
+      company?: string;
+      email: string;
+      phone?: string;
+      message: string;
+      requestPurchase?: boolean;
+    }
+  ) {
+    return this.publicService.createInquiry(body);
+  }
+
+  @Post('visits')
+  async incrementVisit() {
+    return this.publicService.incrementVisit();
   }
 }

@@ -22,6 +22,7 @@ export type ProfileInput = {
 
   applicationIds?: number[];
   crossSectionIds?: number[];
+  supplierId?: number;
 };
 
 @Injectable()
@@ -68,8 +69,9 @@ export class AdminService {
     return Promise.all([
       this.prisma.application.findMany({ orderBy: { name: 'asc' } }),
       this.prisma.crossSection.findMany({ orderBy: { name: 'asc' } }),
-    ]).then(([applications, crossSections]) => ({
-      suppliers: [],
+      this.prisma.supplier.findMany({ orderBy: { name: 'asc' } }),
+    ]).then(([applications, crossSections, suppliers]) => ({
+      suppliers,
       applications,
       crossSections,
       statusOptions: Object.values(Status),
@@ -188,6 +190,41 @@ export class AdminService {
 
 
 
+  listSuppliers() {
+    return this.prisma.supplier.findMany({
+      orderBy: { name: 'asc' },
+      include: { _count: { select: { profiles: true } } },
+    });
+  }
+
+  createSupplier(input: {
+    name: string;
+    nameDe?: string;
+    address?: string;
+    contactPerson?: string;
+    email?: string;
+    phone?: string;
+    website?: string;
+  }) {
+    return this.prisma.supplier.create({ data: input });
+  }
+
+  updateSupplier(id: number, input: {
+    name?: string;
+    nameDe?: string;
+    address?: string;
+    contactPerson?: string;
+    email?: string;
+    phone?: string;
+    website?: string;
+  }) {
+    return this.prisma.supplier.update({ where: { id }, data: input });
+  }
+
+  deleteSupplier(id: number) {
+    return this.prisma.supplier.delete({ where: { id } });
+  }
+
   listApplications() {
     return this.prisma.application.findMany({
       orderBy: { name: 'asc' },
@@ -277,6 +314,7 @@ export class AdminService {
         materialDe: input.materialDe,
         lengthMm: input.lengthMm,
         status: input.status ?? Status.AVAILABLE,
+        supplier: input.supplierId ? { connect: { id: input.supplierId } } : undefined,
         applications: {
           connect: (input.applicationIds ?? []).map((id) => ({ id })),
         },
@@ -319,6 +357,9 @@ export class AdminService {
         materialDe: input.materialDe,
         lengthMm: input.lengthMm,
         status: input.status,
+        supplier: input.supplierId !== undefined
+          ? (input.supplierId ? { connect: { id: input.supplierId } } : { disconnect: true })
+          : undefined,
 
         applications: input.applicationIds
           ? {
@@ -344,58 +385,37 @@ export class AdminService {
   }
 
   async seedDemoData() {
+    const seedSupplier = async (data: any) => {
+      const existing = await this.prisma.supplier.findFirst({ where: { name: data.name } });
+      if (existing) {
+        return this.prisma.supplier.update({ where: { id: existing.id }, data });
+      }
+      return this.prisma.supplier.create({ data });
+    };
+
     const suppliers = await Promise.all([
-      this.prisma.supplier.upsert({
-        where: { name: 'Aluzone GmbH' },
-        update: {
-          nameDe: 'Aluzone GmbH',
-          address: 'Grosse Stadtgutgasse 29/12, A-1020 Wien',
-          contactPerson: 'Oliver Kascha',
-          phone: '+43 699 122 35 850',
-          email: 'office@aluzone.example',
-          website: 'https://aluprofile.biz',
-        },
-        create: {
-          name: 'Aluzone GmbH',
-          nameDe: 'Aluzone GmbH',
-          address: 'Grosse Stadtgutgasse 29/12, A-1020 Wien',
-          contactPerson: 'Oliver Kascha',
-          phone: '+43 699 122 35 850',
-          email: 'office@aluzone.example',
-          website: 'https://aluprofile.biz',
-        },
+      seedSupplier({
+        name: 'Aluzone GmbH',
+        nameDe: 'Aluzone GmbH',
+        address: 'Grosse Stadtgutgasse 29/12, A-1020 Wien',
+        contactPerson: 'Oliver Kascha',
+        phone: '+43 699 122 35 850',
+        email: 'office@aluzone.example',
+        website: 'https://aluprofile.biz',
       }),
-      this.prisma.supplier.upsert({
-        where: { name: 'Tepro Tec' },
-        update: {
-          nameDe: 'Tepro Tec',
-          contactPerson: 'Sales Team',
-          phone: '+43 676 123 4567',
-          website: 'https://tepro.example',
-        },
-        create: {
-          name: 'Tepro Tec',
-          nameDe: 'Tepro Tec',
-          contactPerson: 'Sales Team',
-          phone: '+43 676 123 4567',
-          website: 'https://tepro.example',
-        },
+      seedSupplier({
+        name: 'Tepro Tec',
+        nameDe: 'Tepro Tec',
+        contactPerson: 'Sales Team',
+        phone: '+43 676 123 4567',
+        website: 'https://tepro.example',
       }),
-      this.prisma.supplier.upsert({
-        where: { name: 'DasaTech' },
-        update: {
-          nameDe: 'DasaTech',
-          contactPerson: 'Operations Desk',
-          phone: '+43 678 590 9989',
-          website: 'https://dasatech.example',
-        },
-        create: {
-          name: 'DasaTech',
-          nameDe: 'DasaTech',
-          contactPerson: 'Operations Desk',
-          phone: '+43 678 590 9989',
-          website: 'https://dasatech.example',
-        },
+      seedSupplier({
+        name: 'DasaTech',
+        nameDe: 'DasaTech',
+        contactPerson: 'Operations Desk',
+        phone: '+43 678 590 9989',
+        website: 'https://dasatech.example',
       }),
     ]);
 
