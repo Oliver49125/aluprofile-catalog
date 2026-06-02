@@ -23,6 +23,8 @@ export class PrismaExceptionFilter implements ExceptionFilter {
       statusCode: status,
       message,
       error: status === HttpStatus.BAD_REQUEST ? 'Bad Request' : 'Not Found',
+      prismaCode: exception.code,
+      prismaMessage: exception.message,
     });
   }
 }
