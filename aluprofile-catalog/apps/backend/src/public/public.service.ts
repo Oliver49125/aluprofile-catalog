@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { createClerkClient } from '@clerk/backend';
+import * as nodemailer from 'nodemailer';
 
 type Lang = 'en' | 'de';
 
@@ -178,7 +179,8 @@ export class PublicService {
     message: string;
     requestPurchase?: boolean;
   }) {
-    return this.prisma.inquiry.create({
+    // 1. Create the inquiry in the database
+    const inquiry = await this.prisma.inquiry.create({
       data: {
         profileId: data.profileId,
         firstName: data.firstName,
@@ -189,7 +191,66 @@ export class PublicService {
         message: data.message,
         requestPurchase: data.requestPurchase ?? false,
       },
+      include: {
+        profile: {
+          include: {
+            supplier: true,
+          }
+        }
+      }
     });
+
+    // 2. Send the email using Nodemailer
+    if (process.env.SMTP_HOST) {
+      try {
+        const transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST,
+          port: Number(process.env.SMTP_PORT) || 587,
+          secure: Number(process.env.SMTP_PORT) === 465,
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
+          },
+        });
+
+        const profileName = inquiry.profile?.name || `Profile #${data.profileId}`;
+        const supplierEmail = inquiry.profile?.supplier?.email;
+        
+        const toEmails = ['info@aluprofile.biz'];
+        if (supplierEmail && supplierEmail.trim() !== '') {
+          toEmails.push(supplierEmail.trim());
+        }
+
+        const mailOptions = {
+          from: `"Aluprofile Catalog" <${process.env.SMTP_USER}>`,
+          to: toEmails.join(', '),
+          replyTo: data.email,
+          subject: `New Inquiry for ${profileName}`,
+          text: `
+You have received a new inquiry from the Aluprofile Catalog.
+
+Profile: ${profileName}
+Name: ${data.firstName} ${data.lastName}
+Company: ${data.company || '-'}
+Email: ${data.email}
+Phone: ${data.phone || '-'}
+Request to Purchase: ${data.requestPurchase ? 'Yes' : 'No'}
+
+Message:
+${data.message}
+          `.trim(),
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log(`Inquiry email sent successfully to ${mailOptions.to}`);
+      } catch (error) {
+        console.error('Failed to send inquiry email:', error);
+      }
+    } else {
+      console.warn('Email was not sent because SMTP settings are missing in environment variables.');
+    }
+
+    return inquiry;
   }
 
   async incrementVisit() {

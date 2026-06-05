@@ -1089,11 +1089,11 @@ function App() {
       )}
 
               {showInquiryModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={() => setShowInquiryModal(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={() => { setShowInquiryModal(null); setInquirySuccess(false); setInquiryForm({ firstName: '', lastName: '', company: '', email: '', phone: '', message: '', requestPurchase: false }); }}>
           <div className="w-full max-w-lg rounded-[1.5rem] bg-white shadow-2xl overflow-hidden flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-6 py-4">
               <h3 className="text-lg font-semibold text-slate-900">{t.contactSeller}</h3>
-              <button className="text-slate-400 hover:text-slate-600" onClick={() => setShowInquiryModal(null)}>
+              <button className="text-slate-400 hover:text-slate-600" onClick={() => { setShowInquiryModal(null); setInquirySuccess(false); setInquiryForm({ firstName: '', lastName: '', company: '', email: '', phone: '', message: '', requestPurchase: false }); }}>
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -1104,7 +1104,7 @@ function App() {
                     <Sparkles className="h-6 w-6" />
                   </div>
                   <h4 className="text-lg font-medium text-slate-900">{t.inquirySent}</h4>
-                  <Button className="mt-6" onClick={() => setShowInquiryModal(null)}>OK</Button>
+                  <Button className="mt-6" onClick={() => { setShowInquiryModal(null); setInquirySuccess(false); setInquiryForm({ firstName: '', lastName: '', company: '', email: '', phone: '', message: '', requestPurchase: false }); }}>OK</Button>
                 </div>
               ) : (
                 <form className="space-y-4" onSubmit={async (e) => {

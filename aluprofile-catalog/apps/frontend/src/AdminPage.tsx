@@ -11,6 +11,7 @@ import {
   KeyRound,
   Layers,
   Shield,
+  ShieldAlert,
   UserCog,
   Users,
   Wrench,
@@ -107,6 +108,7 @@ const TXT = {
     save: 'Save',
     edit: 'Edit',
     delete: 'Delete',
+    confirmDelete: 'Are you sure you want to delete this item? This action cannot be undone.',
     name: 'Name',
     saveApplication: 'Save Application',
     application: 'Application',
@@ -206,6 +208,7 @@ const TXT = {
     save: 'Speichern',
     edit: 'Bearbeiten',
     delete: 'Loschen',
+    confirmDelete: 'Sind Sie sicher, dass Sie dieses Element löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
     name: 'Name',
     saveApplication: 'Anwendung speichern',
     application: 'Anwendung',
@@ -471,11 +474,14 @@ function AdminPage() {
   const [supplierForm, setSupplierForm] = useState({
     name: '', nameDe: '', address: '', contactPerson: '', email: '', phone: '', website: ''
   });
+  const [confirmAction, setConfirmAction] = useState<{ message: string; onConfirm: () => void } | null>(null);
   const t = TXT[lang];
 
-  function showMessage(text: string, kind: 'error' | 'success' = 'error') {
-    setMessageKind(kind);
-    setMessage(text);
+  const [sectionMessage, setSectionMessage] = useState<{ section: 'global' | 'profile' | 'application' | 'cross-section' | 'supplier' | 'user'; text: string; type: 'success' | 'error' } | null>(null);
+
+  function showMessage(text: string, type: 'error' | 'success' = 'error', section: 'global' | 'profile' | 'application' | 'cross-section' | 'supplier' | 'user' = 'global') {
+    setSectionMessage({ section, text, type });
+    setTimeout(() => setSectionMessage(null), 5000);
   }
 
   useEffect(() => {
@@ -603,7 +609,7 @@ function AdminPage() {
   }
 
   async function saveSupplier() {
-    if (!supplierForm.name) { showMessage('Supplier name is required', 'error'); return; }
+    if (!supplierForm.name) { showMessage('Supplier name is required', 'error', 'supplier'); return; }
     try {
       const method = editType === 'supplier' && editId ? 'PUT' : 'POST';
       const path = method === 'PUT' ? '/admin/suppliers/' + editId : '/admin/suppliers';
@@ -611,9 +617,9 @@ function AdminPage() {
       resetSupplierForm();
       setSupplierPage(1);
       await adminLoad();
-      showMessage('Supplier saved successfully', 'success');
+      showMessage('Supplier saved successfully', 'success', 'supplier');
     } catch (error) {
-      showMessage(parseApiError(error), 'error');
+      showMessage(parseApiError(error), 'error', 'supplier');
     }
   }
 
@@ -819,7 +825,7 @@ function AdminPage() {
 
 
   async function saveApplication() {
-    if (!applicationName) { showMessage('Application name is required', 'error'); return; }
+    if (!applicationName) { showMessage('Application name is required', 'error', 'application'); return; }
     try {
       const method = editType === 'application' && editId ? 'PUT' : 'POST';
       const path = method === 'PUT' ? '/admin/applications/' + editId : '/admin/applications';
@@ -827,14 +833,14 @@ function AdminPage() {
       resetApplicationForm();
       setApplicationPage(1);
       await adminLoad();
-      showMessage('Application saved successfully', 'success');
+      showMessage('Application saved successfully', 'success', 'application');
     } catch (error) {
-      showMessage(parseApiError(error), 'error');
+      showMessage(parseApiError(error), 'error', 'application');
     }
   }
 
   async function saveCrossSection() {
-    if (!crossSectionName) { showMessage('Cross-section name is required', 'error'); return; }
+    if (!crossSectionName) { showMessage('Cross-section name is required', 'error', 'cross-section'); return; }
     try {
       const method = editType === 'cross' && editId ? 'PUT' : 'POST';
       const path = method === 'PUT' ? '/admin/cross-sections/' + editId : '/admin/cross-sections';
@@ -842,14 +848,14 @@ function AdminPage() {
       resetCrossSectionForm();
       setCrossSectionPage(1);
       await adminLoad();
-      showMessage('Cross-section saved successfully', 'success');
+      showMessage('Cross-section saved successfully', 'success', 'cross-section');
     } catch (error) {
-      showMessage(parseApiError(error), 'error');
+      showMessage(parseApiError(error), 'error', 'cross-section');
     }
   }
 
   async function saveProfile() {
-    if (!profileForm.name) { showMessage('Profile name is required', 'error'); return; }
+    if (!profileForm.name) { showMessage('Profile name is required', 'error', 'profile'); return; }
     try {
       const method = editType === 'profile' && editId ? 'PUT' : 'POST';
       const path = method === 'PUT' ? '/admin/profiles/' + editId : '/admin/profiles';
@@ -862,24 +868,30 @@ function AdminPage() {
       resetProfileForm();
       setProfilePage(1);
       await adminLoad();
-      showMessage('Profile saved successfully', 'success');
+      showMessage('Profile saved successfully', 'success', 'profile');
     } catch (error) {
-      showMessage(parseApiError(error), 'error');
+      showMessage(parseApiError(error), 'error', 'profile');
     }
   }
 
-  const deleteItem = async (path: string) => {
-    try {
-      await api(path, { method: 'DELETE' }, true);
-      await adminLoad();
-      showMessage('Item deleted successfully', 'success');
-    } catch (error) {
-      showMessage(parseApiError(error), 'error');
-    }
+  const deleteItem = async (path: string, section: 'profile' | 'application' | 'cross-section' | 'supplier') => {
+    setConfirmAction({
+      message: t.confirmDelete,
+      onConfirm: async () => {
+        setConfirmAction(null);
+        try {
+          await api(path, { method: 'DELETE' }, true);
+          await adminLoad();
+          showMessage('Item deleted successfully', 'success', section);
+        } catch (err) {
+          showMessage(parseApiError(err), 'error', section);
+        }
+      }
+    });
   };
 
   async function saveUserAccess() {
-    if (!userAccessForm.clerkUserId.trim()) { showMessage('Clerk User ID is required', 'error'); return; }
+    if (!userAccessForm.clerkUserId.trim()) { showMessage('Clerk User ID is required', 'error', 'user'); return; }
     try {
       await api('/admin/user-access', {
         method: 'POST',
@@ -892,20 +904,26 @@ function AdminPage() {
       resetRoleForm();
       setRolePage(1);
       await loadUserAccess();
-      showMessage('Access rule saved successfully', 'success');
+      showMessage('Access rule saved successfully', 'success', 'user');
     } catch (error) {
-      showMessage(parseApiError(error), 'error');
+      showMessage(parseApiError(error), 'error', 'user');
     }
   }
 
   async function deleteUserAccess(clerkUserId: string) {
-    try {
-      await api('/admin/user-access/' + encodeURIComponent(clerkUserId), { method: 'DELETE' }, true);
-      await loadUserAccess();
-      showMessage('Access rule deleted successfully', 'success');
-    } catch (error) {
-      showMessage(parseApiError(error), 'error');
-    }
+    setConfirmAction({
+      message: t.confirmDelete,
+      onConfirm: async () => {
+        setConfirmAction(null);
+        try {
+          await api('/admin/user-access/' + encodeURIComponent(clerkUserId), { method: 'DELETE' }, true);
+          await loadUserAccess();
+          showMessage('Access rule deleted successfully', 'success', 'user');
+        } catch (err) {
+          showMessage(parseApiError(err), 'error', 'user');
+        }
+      }
+    });
   }
 
   async function seedDemoData() {
@@ -1031,7 +1049,23 @@ function AdminPage() {
         </header>
         )}
 
-        {message && <div className={`app-feedback ${messageKind === 'error' ? 'app-feedback-error' : 'app-feedback-success'}`}>{message}</div>}
+        {sectionMessage?.section === 'global' && <div className={`app-feedback ${sectionMessage.type === 'error' ? 'app-feedback-error' : 'app-feedback-success'}`}>{sectionMessage.text}</div>}
+
+        {confirmAction && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={() => setConfirmAction(null)}>
+            <div className="w-full max-w-sm rounded-[1.5rem] bg-white shadow-2xl p-6 text-center" onClick={e => e.stopPropagation()}>
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600">
+                <ShieldAlert className="h-6 w-6" />
+              </div>
+              <h3 className="mb-2 text-lg font-semibold text-slate-900">{t.delete}</h3>
+              <p className="mb-6 text-sm text-slate-500">{confirmAction.message}</p>
+              <div className="flex gap-3 justify-center">
+                <Button variant="outline" onClick={() => setConfirmAction(null)}>{lang === 'de' ? 'Abbrechen' : 'Cancel'}</Button>
+                <Button variant="destructive" onClick={confirmAction.onConfirm}>{t.delete}</Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <main className="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
           <SignedOut>
@@ -1260,7 +1294,7 @@ function AdminPage() {
                                 <Button variant="ghost" size="sm" onClick={() => startEditSupplier(item)} className="text-primary hover:bg-primary/10 hover:text-primary">
                                   {t.edit}
                                 </Button>
-                                <Button variant="ghost" size="sm" onClick={() => deleteItem('/admin/suppliers/' + item.id)} className="text-red-600 hover:bg-red-50 hover:text-red-700">
+                                <Button variant="ghost" size="sm" onClick={() => deleteItem('/admin/suppliers/' + item.id, 'supplier')} className="text-red-600 hover:bg-red-50 hover:text-red-700">
                                   {t.delete}
                                 </Button>
                               </td>
@@ -1304,6 +1338,7 @@ function AdminPage() {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-5 pt-6">
+                      {sectionMessage?.section === 'application' && <div className={`app-feedback ${sectionMessage.type === 'error' ? 'app-feedback-error' : 'app-feedback-success'}`}>{sectionMessage.text}</div>}
                       {showApplicationForm && (
                         <div className="admin-editor-grid">
                           <Input placeholder={t.appName + ' (EN)'} value={applicationName} onChange={(e) => setApplicationName(e.target.value)} />
@@ -1332,7 +1367,7 @@ function AdminPage() {
                               <tr key={item.id} className="material-table-row">
                                 <td className="px-4 py-3 font-medium text-slate-900">{item.name}{item.nameDe ? ' / ' + item.nameDe : ''}</td>
                                 <td className="px-4 py-3 text-slate-600">{item.profilesCount ?? 0}</td>
-                                <td className="px-4 py-3"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => startEditApplication(item)}>{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteItem('/admin/applications/' + item.id)}>{t.delete}</Button></div></td>
+                                <td className="px-4 py-3"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => startEditApplication(item)}>{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteItem('/admin/applications/' + item.id, 'application')}>{t.delete}</Button></div></td>
                               </tr>
                             ))}
                           </tbody>
@@ -1350,6 +1385,7 @@ function AdminPage() {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-5 pt-6">
+                      {sectionMessage?.section === 'cross-section' && <div className={`app-feedback ${sectionMessage.type === 'error' ? 'app-feedback-error' : 'app-feedback-success'}`}>{sectionMessage.text}</div>}
                       {showCrossSectionForm && (
                         <div className="admin-editor-grid">
                           <Input placeholder={t.crossSectionName + ' (EN)'} value={crossSectionName} onChange={(e) => setCrossSectionName(e.target.value)} />
@@ -1378,7 +1414,7 @@ function AdminPage() {
                               <tr key={item.id} className="material-table-row">
                                 <td className="px-4 py-3 font-medium text-slate-900">{item.name}{item.nameDe ? ' / ' + item.nameDe : ''}</td>
                                 <td className="px-4 py-3 text-slate-600">{item.profilesCount ?? 0}</td>
-                                <td className="px-4 py-3"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => startEditCrossSection(item)}>{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteItem('/admin/cross-sections/' + item.id)}>{t.delete}</Button></div></td>
+                                <td className="px-4 py-3"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => startEditCrossSection(item)}>{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteItem('/admin/cross-sections/' + item.id, 'cross-section')}>{t.delete}</Button></div></td>
                               </tr>
                             ))}
                           </tbody>
@@ -1399,6 +1435,7 @@ function AdminPage() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-5 pt-6">
+                    {sectionMessage?.section === 'profile' && <div className={`app-feedback ${sectionMessage.type === 'error' ? 'app-feedback-error' : 'app-feedback-success'}`}>{sectionMessage.text}</div>}
                     {showProfileForm && (
                       <div className="admin-editor-grid admin-editor-grid-wide">
                         <Input placeholder={t.name + ' (EN)'} value={profileForm.name} onChange={(e) => setProfileForm((f) => ({ ...f, name: e.target.value }))} />
@@ -1421,8 +1458,50 @@ function AdminPage() {
                         <select multiple value={profileForm.crossSectionIds.map(String)} onChange={(e) => setProfileForm((f) => ({ ...f, crossSectionIds: Array.from(e.target.selectedOptions).map((option) => Number(option.value)) }))}>
                           {crossSections.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
                         </select>
-                        <label className="admin-upload-field">{t.drawingFile}<input className="mt-1 block w-full" type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; const data = await uploadFile(file); setProfileForm((f) => ({ ...f, drawingUrl: data.url })); }} /></label>
-                        <label className="admin-upload-field">{t.photoFile}<input className="mt-1 block w-full" type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; const data = await uploadFile(file); setProfileForm((f) => ({ ...f, photoUrl: data.url })); }} /></label>
+                      <div className="admin-upload-field">
+                        <div className="mb-1 text-sm font-medium text-slate-700">{t.drawingFile}</div>
+                        {profileForm.drawingUrl ? (
+                          <div className="flex flex-col gap-2 rounded-lg border bg-slate-50 p-2 mt-1">
+                            <div className="flex items-center justify-between">
+                              <a href={profileForm.drawingUrl} target="_blank" rel="noreferrer" className="truncate text-sm text-blue-600 hover:underline font-medium" title={profileForm.drawingUrl.split('/').pop()}>{profileForm.drawingUrl.split('/').pop()}</a>
+                              <Button size="sm" variant="destructive" type="button" onClick={() => setProfileForm((f) => ({ ...f, drawingUrl: '' }))}>{t.delete}</Button>
+                            </div>
+                            <div className="relative h-48 w-full overflow-hidden rounded-md border bg-white flex items-center justify-center">
+                              {/\.(jpeg|jpg|gif|png|svg|bmp)$/i.test(profileForm.drawingUrl) ? (
+                                <img src={profileForm.drawingUrl} alt="Preview" className="h-full w-full object-contain" />
+                              ) : /\.(pdf)$/i.test(profileForm.drawingUrl) ? (
+                                <iframe src={profileForm.drawingUrl} title="Preview" className="h-full w-full border-0" />
+                              ) : (
+                                <div className="text-slate-400 text-sm">Preview not available</div>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <input className="mt-1 block w-full text-sm" type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; const data = await uploadFile(file); setProfileForm((f) => ({ ...f, drawingUrl: data.url })); }} />
+                        )}
+                      </div>
+                      <div className="admin-upload-field">
+                        <div className="mb-1 text-sm font-medium text-slate-700">{t.photoFile}</div>
+                        {profileForm.photoUrl ? (
+                          <div className="flex flex-col gap-2 rounded-lg border bg-slate-50 p-2 mt-1">
+                            <div className="flex items-center justify-between">
+                              <a href={profileForm.photoUrl} target="_blank" rel="noreferrer" className="truncate text-sm text-blue-600 hover:underline font-medium" title={profileForm.photoUrl.split('/').pop()}>{profileForm.photoUrl.split('/').pop()}</a>
+                              <Button size="sm" variant="destructive" type="button" onClick={() => setProfileForm((f) => ({ ...f, photoUrl: '' }))}>{t.delete}</Button>
+                            </div>
+                            <div className="relative h-48 w-full overflow-hidden rounded-md border bg-white flex items-center justify-center">
+                              {/\.(jpeg|jpg|gif|png|svg|bmp)$/i.test(profileForm.photoUrl) ? (
+                                <img src={profileForm.photoUrl} alt="Preview" className="h-full w-full object-contain" />
+                              ) : /\.(pdf)$/i.test(profileForm.photoUrl) ? (
+                                <iframe src={profileForm.photoUrl} title="Preview" className="h-full w-full border-0" />
+                              ) : (
+                                <div className="text-slate-400 text-sm">Preview not available</div>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <input className="mt-1 block w-full text-sm" type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; const data = await uploadFile(file); setProfileForm((f) => ({ ...f, photoUrl: data.url })); }} />
+                        )}
+                      </div>
                         <div className="admin-editor-actions md:col-span-3">
                           <Button onClick={saveProfile}>{t.saveProfile}</Button>
                           <Button variant="outline" onClick={resetProfileForm}>{t.cancel}</Button>
@@ -1450,7 +1529,7 @@ function AdminPage() {
 
                               <td className="px-4 py-3"><span className="material-chip bg-teal-100 text-teal-700">{item.status}</span></td>
                               <td className="px-4 py-3 text-slate-600">{item.dimensions || '-'}</td>
-                              <td className="px-4 py-3"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => startEditProfile(item)}>{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteItem('/admin/profiles/' + item.id)}>{t.delete}</Button></div></td>
+                              <td className="px-4 py-3"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => startEditProfile(item)}>{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteItem('/admin/profiles/' + item.id, 'profile')}>{t.delete}</Button></div></td>
                             </tr>
                           ))}
                         </tbody>

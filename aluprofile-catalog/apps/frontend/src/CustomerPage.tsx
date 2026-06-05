@@ -14,6 +14,7 @@ import {
   EyeOff,
   UserRoundPlus,
   Wrench,
+  ShieldAlert,
 } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
@@ -133,6 +134,7 @@ const TXT = {
     website: 'Website',
     uploadReady: 'Upload complete',
     delete: 'Delete',
+    confirmDelete: 'Are you sure you want to delete this item? This action cannot be undone.',
     edit: 'Edit',
   },
   de: {
@@ -220,6 +222,7 @@ const TXT = {
     website: 'Webseite',
     uploadReady: 'Upload abgeschlossen',
     delete: 'Loschen',
+    confirmDelete: 'Sind Sie sicher, dass Sie dieses Element löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
     edit: 'Bearbeiten',
   },
 } as const;
@@ -329,6 +332,7 @@ function CustomerPage() {
 
   const [editId, setEditId] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<{ message: string; onConfirm: () => void } | null>(null);
   const [profilePage, setProfilePage] = useState(1);
   const [profileFilter, setProfileFilter] = useState('');
   const [profileSort, setProfileSort] = useState<'name-asc' | 'name-desc' | 'status-asc'>('name-asc');
@@ -354,15 +358,11 @@ function CustomerPage() {
 
   const t = useMemo(() => TXT[lang], [lang]);
 
-  
-  const [supplierToast, setSupplierToast] = useState<{text: string, kind: 'success' | 'error'} | null>(null);
-  function showSupplierToast(text: string, kind: 'error' | 'success' = 'error') {
-    setSupplierToast({ text, kind });
-    setTimeout(() => setSupplierToast(null), 4500);
-  }
-  function showMessage(text: string, kind: 'error' | 'success' = 'error') {
-    setMessageKind(kind);
-    setMessage(text);
+  const [sectionMessage, setSectionMessage] = useState<{ section: 'global' | 'profile' | 'supplier'; text: string; type: 'success' | 'error' } | null>(null);
+
+  function showMessage(text: string, type: 'error' | 'success' = 'error', section: 'global' | 'profile' | 'supplier' = 'global') {
+    setSectionMessage({ section, text, type });
+    setTimeout(() => setSectionMessage(null), 5000);
   }
 
   useEffect(() => {
@@ -639,7 +639,7 @@ function CustomerPage() {
   }
 
   async function saveSupplier() {
-    if (!supplierForm.name) { showSupplierToast('Supplier name is required', 'error'); return; }
+    if (!supplierForm.name) { showMessage('Supplier name is required', 'error', 'supplier'); return; }
     try {
       setIsSavingSupplier(true);
       const token = await getToken();
@@ -653,10 +653,11 @@ function CustomerPage() {
         console.error("Backend Error:", res.status, errText);
         throw new Error(errText || 'Failed to save');
       }
-      showSupplierToast('Supplier saved successfully', 'success');
+      await loadCustomerData();
+      showMessage('Supplier saved successfully', 'success', 'supplier');
     } catch (e: any) {
       console.error(e);
-      showSupplierToast('Failed to save supplier profile: ' + parseApiError(e), 'error');
+      showMessage('Failed to save supplier profile: ' + parseApiError(e), 'error', 'supplier');
     } finally {
       setIsSavingSupplier(false);
     }
@@ -686,23 +687,28 @@ function CustomerPage() {
       }
       await loadCustomerData();
       resetProfileForm();
-      showMessage('Profile saved successfully', 'success');
+      showMessage('Profile saved successfully', 'success', 'profile');
     } catch (error) {
-      showMessage(parseApiError(error), 'error');
+      showMessage(parseApiError(error), 'error', 'profile');
     } finally {
       setIsSaving(false);
     }
   }
 
   async function deleteProfile(id: number) {
-    try {
-      await authedApi(`/customer/profiles/${id}`, { method: 'DELETE' });
-      await loadCustomerData();
-      if (editId === id) resetProfileForm();
-      showMessage('Profile deleted successfully', 'success');
-    } catch (error) {
-      showMessage(parseApiError(error), 'error');
-    }
+    setConfirmAction({
+      message: t.confirmDelete,
+      onConfirm: async () => {
+        setConfirmAction(null);
+        try {
+          await authedApi(`/customer/profiles/${id}`, { method: 'DELETE' });
+          await loadCustomerData();
+          showMessage('Profile deleted successfully', 'success', 'profile');
+        } catch (error) {
+          showMessage(parseApiError(error), 'error', 'profile');
+        }
+      }
+    });
   }
 
   useEffect(() => {
@@ -779,7 +785,23 @@ function CustomerPage() {
           </header>
         </SignedIn>
 
-        {message && <div className={`app-feedback ${messageKind === 'error' ? 'app-feedback-error' : 'app-feedback-success'}`}>{message}</div>}
+        {sectionMessage?.section === 'global' && <div className={`app-feedback ${sectionMessage.type === 'error' ? 'app-feedback-error' : 'app-feedback-success'}`}>{sectionMessage.text}</div>}
+
+        {confirmAction && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={() => setConfirmAction(null)}>
+            <div className="w-full max-w-sm rounded-[1.5rem] bg-white shadow-2xl p-6 text-center" onClick={e => e.stopPropagation()}>
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600">
+                <ShieldAlert className="h-6 w-6" />
+              </div>
+              <h3 className="mb-2 text-lg font-semibold text-slate-900">{t.delete}</h3>
+              <p className="mb-6 text-sm text-slate-500">{confirmAction.message}</p>
+              <div className="flex gap-3 justify-center">
+                <Button variant="outline" onClick={() => setConfirmAction(null)}>{lang === 'de' ? 'Abbrechen' : 'Cancel'}</Button>
+                <Button variant="destructive" onClick={confirmAction.onConfirm}>{t.delete}</Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <SignedOut>
           <Card className="material-panel lg:col-span-3">
@@ -945,7 +967,7 @@ function CustomerPage() {
                 <CardTitle className="flex items-center gap-3"><UserRoundPlus className="h-5 w-5 text-teal-700" /> {t.companyProfile}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-5 pt-6">
-                {supplierToast && <div className={`app-feedback ${supplierToast.kind === 'error' ? 'app-feedback-error' : 'app-feedback-success'}`}>{supplierToast.text}</div>}
+                {sectionMessage?.section === 'supplier' && <div className={`app-feedback ${sectionMessage.type === 'error' ? 'app-feedback-error' : 'app-feedback-success'}`}>{sectionMessage.text}</div>}
                 <div className="admin-editor-grid">
                   <Input placeholder={t.name + ' (EN)'} value={supplierForm.name} onChange={(e) => setSupplierForm({ ...supplierForm, name: e.target.value })} />
                   <Input placeholder={t.name + ' (DE)'} value={supplierForm.nameDe} onChange={(e) => setSupplierForm({ ...supplierForm, nameDe: e.target.value })} />
@@ -969,6 +991,7 @@ function CustomerPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-5 pt-6">
+                {sectionMessage?.section === 'profile' && <div className={`app-feedback ${sectionMessage.type === 'error' ? 'app-feedback-error' : 'app-feedback-success'}`}>{sectionMessage.text}</div>}
                 {showForm && (
                   <>
                     <div className="mb-2 text-sm text-slate-500">{t.signedInAs}: {user?.primaryEmailAddress?.emailAddress || user?.username || user?.id}</div>
@@ -993,8 +1016,50 @@ function CustomerPage() {
                       <select multiple value={profileForm.crossSectionIds.map(String)} onChange={(e) => setProfileForm((current) => ({ ...current, crossSectionIds: Array.from(e.target.selectedOptions).map((option) => Number(option.value)) }))}>
                         {(referenceData?.crossSections ?? []).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
                       </select>
-                      <label className="admin-upload-field">{t.drawingFile}<input className="mt-1 block w-full" type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; const data = await uploadFile(file); setProfileForm((current) => ({ ...current, drawingUrl: data.url })); }} /></label>
-                      <label className="admin-upload-field">{t.photoFile}<input className="mt-1 block w-full" type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; const data = await uploadFile(file); setProfileForm((current) => ({ ...current, photoUrl: data.url })); }} /></label>
+                      <div className="admin-upload-field">
+                        <div className="mb-1 text-sm font-medium text-slate-700">{t.drawingFile}</div>
+                        {profileForm.drawingUrl ? (
+                          <div className="flex flex-col gap-2 rounded-lg border bg-slate-50 p-2 mt-1">
+                            <div className="flex items-center justify-between">
+                              <a href={profileForm.drawingUrl} target="_blank" rel="noreferrer" className="truncate text-sm text-blue-600 hover:underline font-medium" title={profileForm.drawingUrl.split('/').pop()}>{profileForm.drawingUrl.split('/').pop()}</a>
+                              <Button size="sm" variant="destructive" type="button" onClick={() => setProfileForm((current) => ({ ...current, drawingUrl: '' }))}>{t.delete}</Button>
+                            </div>
+                            <div className="relative h-48 w-full overflow-hidden rounded-md border bg-white flex items-center justify-center">
+                              {/\.(jpeg|jpg|gif|png|svg|bmp)$/i.test(profileForm.drawingUrl) ? (
+                                <img src={profileForm.drawingUrl} alt="Preview" className="h-full w-full object-contain" />
+                              ) : /\.(pdf)$/i.test(profileForm.drawingUrl) ? (
+                                <iframe src={profileForm.drawingUrl} title="Preview" className="h-full w-full border-0" />
+                              ) : (
+                                <div className="text-slate-400 text-sm">Preview not available</div>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <input className="mt-1 block w-full text-sm" type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; const data = await uploadFile(file); setProfileForm((current) => ({ ...current, drawingUrl: data.url })); }} />
+                        )}
+                      </div>
+                      <div className="admin-upload-field">
+                        <div className="mb-1 text-sm font-medium text-slate-700">{t.photoFile}</div>
+                        {profileForm.photoUrl ? (
+                          <div className="flex flex-col gap-2 rounded-lg border bg-slate-50 p-2 mt-1">
+                            <div className="flex items-center justify-between">
+                              <a href={profileForm.photoUrl} target="_blank" rel="noreferrer" className="truncate text-sm text-blue-600 hover:underline font-medium" title={profileForm.photoUrl.split('/').pop()}>{profileForm.photoUrl.split('/').pop()}</a>
+                              <Button size="sm" variant="destructive" type="button" onClick={() => setProfileForm((current) => ({ ...current, photoUrl: '' }))}>{t.delete}</Button>
+                            </div>
+                            <div className="relative h-48 w-full overflow-hidden rounded-md border bg-white flex items-center justify-center">
+                              {/\.(jpeg|jpg|gif|png|svg|bmp)$/i.test(profileForm.photoUrl) ? (
+                                <img src={profileForm.photoUrl} alt="Preview" className="h-full w-full object-contain" />
+                              ) : /\.(pdf)$/i.test(profileForm.photoUrl) ? (
+                                <iframe src={profileForm.photoUrl} title="Preview" className="h-full w-full border-0" />
+                              ) : (
+                                <div className="text-slate-400 text-sm">Preview not available</div>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <input className="mt-1 block w-full text-sm" type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; const data = await uploadFile(file); setProfileForm((current) => ({ ...current, photoUrl: data.url })); }} />
+                        )}
+                      </div>
                       <div className="admin-editor-actions md:col-span-3">
                         <Button onClick={saveProfile} disabled={isSaving}>{isSaving ? '...' : t.saveProfile}</Button>
                         <Button variant="outline" onClick={resetProfileForm}>{t.cancel}</Button>

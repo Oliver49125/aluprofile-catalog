@@ -1,7 +1,7 @@
 import { parseApiError } from './utils/apiError';
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@clerk/clerk-react';
-import { Mail, Search, ShieldCheck, Users } from 'lucide-react';
+import { Mail, Search, ShieldCheck, Users, ShieldAlert } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { Input } from './components/ui/input';
@@ -45,6 +45,7 @@ const TXT = {
     create: 'Create User',
     edit: 'Edit',
     delete: 'Delete',
+    confirmDelete: 'Are you sure you want to delete this user? This action cannot be undone.',
     saved: 'User saved.',
     deleted: 'User deleted.',
     directory: 'User Directory',
@@ -77,6 +78,7 @@ const TXT = {
     create: 'Benutzer erstellen',
     edit: 'Bearbeiten',
     delete: 'Loschen',
+    confirmDelete: 'Sind Sie sicher, dass Sie diesen Benutzer löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
     saved: 'Benutzer gespeichert.',
     deleted: 'Benutzer geloscht.',
     directory: 'Benutzerverzeichnis',
@@ -203,6 +205,7 @@ export default function ClerkUsersPanel({ canManageUsers, lang }: Props) {
   const [query, setQuery] = useState('');
   const [sortBy, setSortBy] = useState<'name-asc' | 'email-asc' | 'username-asc'>('name-asc');
   const [page, setPage] = useState(1);
+  const [confirmAction, setConfirmAction] = useState<{ message: string; onConfirm: () => void } | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
   const [form, setForm] = useState({
     userId: '',
@@ -215,8 +218,8 @@ export default function ClerkUsersPanel({ canManageUsers, lang }: Props) {
 
   const t = TXT[lang];
 
-  function showToast(text: string, kind: 'success' | 'error') {
-    setToast({ text, kind });
+  function showToast(msg: string, type: 'success' | 'error') {
+    setToast({ msg, type });
     setTimeout(() => setToast(null), 4500);
   }
 
@@ -322,13 +325,19 @@ export default function ClerkUsersPanel({ canManageUsers, lang }: Props) {
 
   async function deleteUser(userId: string) {
     if (!canManageUsers) return;
-    try {
-      await api(`/admin/clerk-users/${encodeURIComponent(userId)}`, { method: 'DELETE' });
-      showToast(t.deleted, 'success');
-      await loadUsers();
-    } catch (err) {
-      showToast(parseApiError(err), 'error');
-    }
+    setConfirmAction({
+      message: t.confirmDelete,
+      onConfirm: async () => {
+        setConfirmAction(null);
+        try {
+          await api(`/admin/clerk-users/${encodeURIComponent(userId)}`, { method: 'DELETE' });
+          showToast(t.deleted, 'success');
+          await loadUsers();
+        } catch (err) {
+          showToast(parseApiError(err), 'error');
+        }
+      }
+    });
   }
 
   function editUser(item: ClerkUser) {
@@ -369,7 +378,25 @@ export default function ClerkUsersPanel({ canManageUsers, lang }: Props) {
       </CardHeader>
       <CardContent className="space-y-5 pt-6">
         {toast && (
-          <div className={`app-feedback ${toast.kind === 'error' ? 'app-feedback-error' : 'app-feedback-success'}`}>{toast.text}</div>
+          <div className={`app-feedback ${toast.type === 'error' ? 'app-feedback-error' : 'app-feedback-success'}`}>
+            {toast.msg}
+          </div>
+        )}
+
+        {confirmAction && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={() => setConfirmAction(null)}>
+            <div className="w-full max-w-sm rounded-[1.5rem] bg-white shadow-2xl p-6 text-center" onClick={e => e.stopPropagation()}>
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600">
+                <ShieldAlert className="h-6 w-6" />
+              </div>
+              <h3 className="mb-2 text-lg font-semibold text-slate-900">{t.delete}</h3>
+              <p className="mb-6 text-sm text-slate-500">{confirmAction.message}</p>
+              <div className="flex gap-3 justify-center">
+                <Button variant="outline" onClick={() => setConfirmAction(null)}>{lang === 'de' ? 'Abbrechen' : 'Cancel'}</Button>
+                <Button variant="destructive" onClick={confirmAction.onConfirm}>{t.delete}</Button>
+              </div>
+            </div>
+          </div>
         )}
 
         <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50/80 p-4">
