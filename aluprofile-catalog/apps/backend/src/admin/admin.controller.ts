@@ -328,7 +328,8 @@ export class AdminController {
     if (!file?.filename) {
       throw new BadRequestException('No valid file uploaded');
     }
-    const host = `${req.protocol}://${req.get('host')}`;
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const host = `${protocol}://${req.get('host')}`;
     return {
       url: `${host}/uploads/${file.filename}`,
       filename: file.filename,
