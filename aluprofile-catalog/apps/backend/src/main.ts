@@ -16,7 +16,7 @@ async function bootstrap() {
   }
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  const uploadsDir = join(process.cwd(), 'uploads');
+  const uploadsDir = process.env.UPLOADS_DIR || join(process.cwd(), 'uploads');
   mkdirSync(uploadsDir, { recursive: true });
 
   app.enableCors({

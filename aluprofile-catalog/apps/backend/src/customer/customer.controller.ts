@@ -127,7 +127,7 @@ export class CustomerController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: join(process.cwd(), 'uploads'),
+        destination: process.env.UPLOADS_DIR || join(process.cwd(), 'uploads'),
         filename: (_req, file, callback) => {
           const extension = extname(file.originalname || '');
           callback(null, `${Date.now()}-${randomUUID()}${extension}`);
