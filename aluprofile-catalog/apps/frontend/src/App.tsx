@@ -267,10 +267,10 @@ function safeUrl(value?: string) {
   return value && value.trim().length > 0 ? value : undefined;
 }
 
-const isImage = (url: string) => /\.(jpeg|jpg|gif|png|webp|svg|avif)$/i.test(url) || url.startsWith('blob:');
-const isPdf = (url: string) => /\.pdf$/i.test(url);
-const isWord = (url: string) => /\.(doc|docx)$/i.test(url);
-const isExcel = (url: string) => /\.(xls|xlsx)$/i.test(url);
+const isImage = (url: string) => /\.(jpeg|jpg|gif|png|webp|svg|avif|bmp)(\?.*)?$/i.test(url) || url.startsWith('blob:');
+const isPdf = (url: string) => /\.pdf(\?.*)?$/i.test(url);
+const isWord = (url: string) => /\.(doc|docx)(\?.*)?$/i.test(url);
+const isExcel = (url: string) => /\.(xls|xlsx)(\?.*)?$/i.test(url);
 
 function MediaThumbnail({ url, alt, className }: { url: string; alt: string; className?: string }) {
   if (isImage(url)) return <img src={url} alt={alt} className={className} />;

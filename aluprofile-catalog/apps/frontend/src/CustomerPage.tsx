@@ -1025,9 +1025,9 @@ function CustomerPage() {
                               <Button size="sm" variant="destructive" type="button" onClick={() => setProfileForm((current) => ({ ...current, drawingUrl: '' }))}>{t.delete}</Button>
                             </div>
                             <div className="relative h-48 w-full overflow-hidden rounded-md border bg-white flex items-center justify-center">
-                              {/\.(jpeg|jpg|gif|png|svg|bmp)$/i.test(profileForm.drawingUrl) ? (
+                              {/\.(jpeg|jpg|gif|png|svg|bmp)(\?.*)?$/i.test(profileForm.drawingUrl) ? (
                                 <img src={profileForm.drawingUrl} alt="Preview" className="h-full w-full object-contain" />
-                              ) : /\.(pdf)$/i.test(profileForm.drawingUrl) ? (
+                              ) : /\.(pdf)(\?.*)?$/i.test(profileForm.drawingUrl) ? (
                                 <iframe src={profileForm.drawingUrl} title="Preview" className="h-full w-full border-0" />
                               ) : (
                                 <div className="text-slate-400 text-sm">Preview not available</div>
@@ -1047,9 +1047,9 @@ function CustomerPage() {
                               <Button size="sm" variant="destructive" type="button" onClick={() => setProfileForm((current) => ({ ...current, photoUrl: '' }))}>{t.delete}</Button>
                             </div>
                             <div className="relative h-48 w-full overflow-hidden rounded-md border bg-white flex items-center justify-center">
-                              {/\.(jpeg|jpg|gif|png|svg|bmp)$/i.test(profileForm.photoUrl) ? (
+                              {/\.(jpeg|jpg|gif|png|svg|bmp)(\?.*)?$/i.test(profileForm.photoUrl) ? (
                                 <img src={profileForm.photoUrl} alt="Preview" className="h-full w-full object-contain" />
-                              ) : /\.(pdf)$/i.test(profileForm.photoUrl) ? (
+                              ) : /\.(pdf)(\?.*)?$/i.test(profileForm.photoUrl) ? (
                                 <iframe src={profileForm.photoUrl} title="Preview" className="h-full w-full border-0" />
                               ) : (
                                 <div className="text-slate-400 text-sm">Preview not available</div>
