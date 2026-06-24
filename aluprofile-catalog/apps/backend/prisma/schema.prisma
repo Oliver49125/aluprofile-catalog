@@ -26,26 +26,40 @@ model Profile {
   materialDe       String?
   lengthMm         Int?
   status           Status         @default(AVAILABLE)
-  ownerClerkUserId String?
+  ownerUserId      Int?
+  owner            User?          @relation(fields: [ownerUserId], references: [id])
   supplierId       Int?
-  supplier         Supplier?       @relation(fields: [supplierId], references: [id])
+  supplier         Supplier?      @relation(fields: [supplierId], references: [id])
+  price            Float?
+  currencyId       Int?
+  currency         Currency?      @relation(fields: [currencyId], references: [id])
   applications     Application[]  @relation("ApplicationToProfile")
   crossSections    CrossSection[] @relation("CrossSectionToProfile")
   inquiries        Inquiry[]
 
-  @@index([ownerClerkUserId])
+  @@index([ownerUserId])
+}
+
+model Currency {
+  id       Int       @id @default(autoincrement())
+  code     String    @unique
+  symbol   String
+  profiles Profile[]
 }
 
 model Supplier {
   id            Int       @id @default(autoincrement())
-  clerkUserId   String?   @unique
+  userId        Int?      @unique
+  user          User?     @relation(fields: [userId], references: [id])
   name          String
   nameDe        String?
+  industry      String?
   address       String?
   contactPerson String?
   email         String?
   phone         String?
   website       String?
+  uid           String?
   profiles      Profile[]
 }
 
@@ -63,13 +77,18 @@ model CrossSection {
   profiles Profile[] @relation("CrossSectionToProfile")
 }
 
-model UserAccess {
+model User {
   id          Int             @id @default(autoincrement())
-  clerkUserId String          @unique
+  email       String          @unique
+  password    String
+  firstName   String?
+  lastName    String?
   role        AppRole         @default(USER)
   permissions AppPermission[] @default([VIEW_ADMIN])
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
+  supplier    Supplier?
+  profiles    Profile[]
 }
 
 enum Status {

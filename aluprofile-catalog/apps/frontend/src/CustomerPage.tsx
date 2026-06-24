@@ -1,13 +1,6 @@
+import toast from 'react-hot-toast';
 import { useEffect, useMemo, useState } from 'react';
-import {
-  SignedIn,
-  SignedOut,
-  UserButton,
-  useAuth,
-  useSignIn,
-  useSignUp,
-  useUser,
-} from '@clerk/clerk-react';
+import { useAuth } from './AuthContext';
 import {
   Boxes,
   Eye,
@@ -44,6 +37,9 @@ type Profile = {
 
   applications: RefOption[];
   crossSections: RefOption[];
+  price?: number;
+  currencyId?: number;
+  currency?: { id: number; code: string; symbol: string };
 };
 
 const API_BASE = (import.meta.env.VITE_API_BASE ?? 'http://localhost:3000/api').replace(/\/+$/, '');
@@ -132,10 +128,13 @@ const TXT = {
     contactPerson: 'Contact Person',
     phone: 'Phone',
     website: 'Website',
-    uploadReady: 'Upload complete',
+    uploadReady: 'Upload ready',
     delete: 'Delete',
     confirmDelete: 'Are you sure you want to delete this item? This action cannot be undone.',
     edit: 'Edit',
+    price: 'Price',
+    currency: 'Currency',
+    uid: 'UID#',
   },
   de: {
     title: 'Kundenprofil-Portal',
@@ -224,6 +223,9 @@ const TXT = {
     delete: 'Loschen',
     confirmDelete: 'Sind Sie sicher, dass Sie dieses Element löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
     edit: 'Bearbeiten',
+    price: 'Preis',
+    currency: 'Währung',
+    uid: 'UID-Nr.',
   },
 } as const;
 
@@ -288,10 +290,7 @@ function exportTablePdf(title: string, headers: string[], rows: Array<Array<stri
 }
 
 function CustomerPage() {
-  const { getToken } = useAuth();
-  const { user } = useUser();
-  const { isLoaded: isSignInLoaded, signIn, setActive } = useSignIn();
-  const { isLoaded: isSignUpLoaded, signUp, setActive: setSignUpActive } = useSignUp();
+  const { token, user, login, logout, isLoading } = useAuth();
   const initialMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('mode') === 'sign-up' ? 'sign-up' : 'sign-in';
   const [lang, setLang] = useState<Lang>('en');
   const [authMode, setAuthMode] = useState<'sign-in' | 'sign-up'>(initialMode);
@@ -315,8 +314,7 @@ function CustomerPage() {
   const [showSignUpPassword, setShowSignUpPassword] = useState(false);
   const [signUpCode, setSignUpCode] = useState('');
   const [message, setMessage] = useState('');
-  const [messageKind, setMessageKind] = useState<'error' | 'success'>('error');
-  const [isSaving, setIsSaving] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
   const [referenceData, setReferenceData] = useState<{
     applications: RefOption[];
     crossSections: RefOption[];
@@ -324,7 +322,7 @@ function CustomerPage() {
   } | null>(null);
 
   const [supplierForm, setSupplierForm] = useState({
-    name: '', nameDe: '', address: '', contactPerson: '', email: '', phone: '', website: ''
+    name: '', nameDe: '', industry: '', address: '', contactPerson: '', email: '', phone: '', website: '', uid: ''
   });
   const [isSavingSupplier, setIsSavingSupplier] = useState(false);
 
@@ -354,15 +352,16 @@ function CustomerPage() {
     status: 'AVAILABLE',
     applicationIds: [] as number[],
     crossSectionIds: [] as number[],
+    price: '',
+    currencyId: '' as string | number,
   });
 
   const t = useMemo(() => TXT[lang], [lang]);
 
-  const [sectionMessage, setSectionMessage] = useState<{ section: 'global' | 'profile' | 'supplier'; text: string; type: 'success' | 'error' } | null>(null);
 
-  function showMessage(text: string, type: 'error' | 'success' = 'error', section: 'global' | 'profile' | 'supplier' = 'global') {
-    setSectionMessage({ section, text, type });
-    setTimeout(() => setSectionMessage(null), 5000);
+  function showMessage(text: string, type: 'error' | 'success' = 'error') {
+    if (type === 'success') toast.success(text);
+    else toast.error(text);
   }
 
   useEffect(() => {
@@ -376,19 +375,17 @@ function CustomerPage() {
 
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!isSignInLoaded || !signIn || !setActive) return;
     setMessage('');
     setLoginLoading(true);
     try {
-      const result = await signIn.create({
-        identifier: identifier.trim(),
-        password,
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: identifier.trim(), password }),
       });
-      if (result.status !== 'complete' || !result.createdSessionId) {
-        throw new Error('Sign-in could not be completed.');
-      }
-      await setActive({ session: result.createdSessionId });
-      window.location.assign('/customer');
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      login(data.token, data.user);
     } catch (error) {
       showMessage(parseApiError(error), 'error');
     } finally {
@@ -416,43 +413,11 @@ function CustomerPage() {
 
   async function handleForgotPasswordRequest(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!isSignInLoaded || !signIn) return;
-    setMessage('');
-    setForgotPasswordLoading(true);
-    try {
-      await signIn.create({
-        strategy: 'reset_password_email_code',
-        identifier: identifier.trim(),
-      });
-      setForgotPasswordStep('verify');
-    } catch (error) {
-      showMessage(parseApiError(error), 'error');
-    } finally {
-      setForgotPasswordLoading(false);
-    }
+    showMessage('Password reset is currently disabled');
   }
 
   async function handleForgotPasswordReset(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!isSignInLoaded || !signIn || !setActive) return;
-    setMessage('');
-    setForgotPasswordLoading(true);
-    try {
-      const result = await signIn.attemptFirstFactor({
-        strategy: 'reset_password_email_code',
-        code: resetCode.trim(),
-        password: resetPassword,
-      });
-      if (result.status !== 'complete' || !result.createdSessionId) {
-        throw new Error('Password reset could not be completed.');
-      }
-      await setActive({ session: result.createdSessionId });
-      window.location.assign('/customer');
-    } catch (error) {
-      showMessage(parseApiError(error), 'error');
-    } finally {
-      setForgotPasswordLoading(false);
-    }
   }
 
   function resetSignUpState() {
@@ -464,19 +429,22 @@ function CustomerPage() {
 
   async function handleSignUp(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!isSignUpLoaded || !signUp) return;
     setMessage('');
     setSignUpLoading(true);
     try {
-      await signUp.create({
-        firstName: signUpFirstName.trim() || undefined,
-        lastName: signUpLastName.trim() || undefined,
-        username: signUpUsername.trim() || undefined,
-        emailAddress: signUpEmail.trim(),
-        password: signUpPassword,
+      const res = await fetch(`${API_BASE}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: signUpFirstName.trim() || undefined,
+          lastName: signUpLastName.trim() || undefined,
+          email: signUpEmail.trim(),
+          password: signUpPassword,
+        }),
       });
-      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
-      setSignUpStep('verify');
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      login(data.token, data.user);
     } catch (error) {
       showMessage(parseApiError(error), 'error');
     } finally {
@@ -486,28 +454,11 @@ function CustomerPage() {
 
   async function handleSignUpVerification(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!isSignUpLoaded || !signUp || !setSignUpActive) return;
-    setMessage('');
-    setSignUpLoading(true);
-    try {
-      const result = await signUp.attemptEmailAddressVerification({
-        code: signUpCode.trim(),
-      });
-      if (result.status !== 'complete' || !result.createdSessionId) {
-        throw new Error('Registration could not be completed.');
-      }
-      await setSignUpActive({ session: result.createdSessionId });
-      window.location.assign('/customer');
-    } catch (error) {
-      showMessage(parseApiError(error), 'error');
-    } finally {
-      setSignUpLoading(false);
-    }
   }
 
   function openSignUp() {
     if (typeof window !== 'undefined') {
-      window.history.replaceState(null, '', '/customer?mode=sign-up');
+      window.history.replaceState(null, '', window.location.pathname);
     }
     setAuthMode('sign-up');
     setMessage('');
@@ -525,7 +476,6 @@ function CustomerPage() {
   }
 
   async function authedApi(path: string, options?: RequestInit) {
-    const token = await getToken();
     const res = await fetch(`${API_BASE}${path}`, {
       headers: {
         'Content-Type': 'application/json',
@@ -554,11 +504,13 @@ function CustomerPage() {
         setSupplierForm({
           name: supData.name || '',
           nameDe: supData.nameDe || '',
+          industry: supData.industry || '',
           address: supData.address || '',
           contactPerson: supData.contactPerson || '',
           email: supData.email || '',
           phone: supData.phone || '',
           website: supData.website || '',
+          uid: supData.uid || '',
         });
       }
     } catch (error) {
@@ -569,7 +521,7 @@ function CustomerPage() {
   useEffect(() => {
     if (!user) return;
     loadCustomerData();
-  }, [user?.id]);
+  }, [user]);
 
   function resetProfileForm() {
     setEditId(null);
@@ -592,6 +544,8 @@ function CustomerPage() {
       status: 'AVAILABLE',
       applicationIds: [],
       crossSectionIds: [],
+      price: '',
+      currencyId: '',
     });
   }
 
@@ -609,18 +563,19 @@ function CustomerPage() {
       photoUrl: profile.photoUrl ?? '',
       logoUrl: profile.logoUrl ?? '',
       dimensions: profile.dimensions ?? '',
-      weightPerMeter: profile.weightPerMeter ? String(profile.weightPerMeter) : '',
+      weightPerMeter: profile.weightPerMeter ? new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(profile.weightPerMeter) : '',
       material: profile.material ?? '',
       materialDe: profile.materialDe ?? '',
-      lengthMm: profile.lengthMm ? String(profile.lengthMm) : '',
+      lengthMm: profile.lengthMm ? new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(profile.lengthMm) : '',
       status: profile.status ?? 'AVAILABLE',
       applicationIds: (profile.applications ?? []).map((item) => item.id),
       crossSectionIds: (profile.crossSections ?? []).map((item) => item.id),
+      price: profile.price !== undefined && profile.price !== null ? new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(profile.price) : '',
+      currencyId: profile.currency?.id || '',
     });
   }
 
   async function uploadFile(file: File) {
-    const token = await getToken();
     const formData = new FormData();
     formData.append('file', file);
     const response = await fetch(`${API_BASE}/customer/uploads`, {
@@ -639,10 +594,9 @@ function CustomerPage() {
   }
 
   async function saveSupplier() {
-    if (!supplierForm.name) { showMessage('Supplier name is required', 'error', 'supplier'); return; }
+    if (!supplierForm.name) { showMessage('Supplier name is required'); return; }
     try {
       setIsSavingSupplier(true);
-      const token = await getToken();
       const res = await fetch(`${API_BASE}/customer/supplier`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -654,10 +608,10 @@ function CustomerPage() {
         throw new Error(errText || 'Failed to save');
       }
       await loadCustomerData();
-      showMessage('Supplier saved successfully', 'success', 'supplier');
+      showMessage('Supplier saved successfully', 'success');
     } catch (e: any) {
       console.error(e);
-      showMessage('Failed to save supplier profile: ' + parseApiError(e), 'error', 'supplier');
+      showMessage('Failed to save supplier profile: ' + parseApiError(e), 'error');
     } finally {
       setIsSavingSupplier(false);
     }
@@ -687,9 +641,9 @@ function CustomerPage() {
       }
       await loadCustomerData();
       resetProfileForm();
-      showMessage('Profile saved successfully', 'success', 'profile');
+      showMessage('Profile saved successfully', 'success');
     } catch (error) {
-      showMessage(parseApiError(error), 'error', 'profile');
+      showMessage(parseApiError(error), 'error');
     } finally {
       setIsSaving(false);
     }
@@ -703,12 +657,43 @@ function CustomerPage() {
         try {
           await authedApi(`/customer/profiles/${id}`, { method: 'DELETE' });
           await loadCustomerData();
-          showMessage('Profile deleted successfully', 'success', 'profile');
+          showMessage('Profile deleted successfully', 'success');
         } catch (error) {
-          showMessage(parseApiError(error), 'error', 'profile');
+          showMessage(parseApiError(error), 'error');
         }
       }
     });
+  }
+
+  async function hideAllProfiles() {
+    setConfirmAction({
+      message: lang === 'de' ? 'Möchten Sie wirklich alle Profile ausblenden? Alle Profile werden auf "Nicht verfügbar" gesetzt.' : 'Are you sure you want to hide all your profiles? They will be set to NOT AVAILABLE.',
+      onConfirm: async () => {
+        setConfirmAction(null);
+        try {
+          await authedApi('/customer/profiles/hide-all', { method: 'POST' });
+          await loadCustomerData();
+          showMessage(lang === 'de' ? 'Alle Profile erfolgreich ausgeblendet' : 'All profiles hidden successfully', 'success');
+        } catch (error) {
+          showMessage(parseApiError(error), 'error');
+        }
+      }
+    });
+  }
+
+  async function toggleProfileVisibility(profile: Profile) {
+    const isAvailable = profile.status === 'AVAILABLE';
+    const newStatus = isAvailable ? 'NOT_AVAILABLE' : 'AVAILABLE';
+    try {
+      await authedApi(`/customer/profiles/${profile.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ ...profile, status: newStatus }),
+      });
+      await loadCustomerData();
+      showMessage(lang === 'de' ? 'Sichtbarkeit aktualisiert' : 'Visibility updated', 'success');
+    } catch (error) {
+      showMessage(parseApiError(error), 'error');
+    }
   }
 
   useEffect(() => {
@@ -730,7 +715,7 @@ function CustomerPage() {
   const profileRows = paginateItems(filteredProfiles, profilePage);
 
   function exportCustomerProfiles(kind: 'excel' | 'pdf') {
-    const headers = [t.drawing, t.name, t.description, t.usage, t.applications, t.crossSections, t.status, t.dimensions, t.material, t.weightPerMeter, t.lengthMm];
+    const headers = [t.drawing, t.name, t.description, t.usage, t.applications, t.crossSections, t.status, t.dimensions, t.material, t.weightPerMeter, t.lengthMm, t.price];
     const rows = filteredProfiles.map((item) => [
       item.drawingUrl || '-',
       item.nameDe ? item.name + ' / ' + item.nameDe : item.name,
@@ -744,6 +729,7 @@ function CustomerPage() {
       item.materialDe ? (item.material || '-') + ' / ' + item.materialDe : item.material || '-',
       item.weightPerMeter ?? '-',
       item.lengthMm ?? '-',
+      item.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.price)} ${item.currency ? item.currency.symbol : ''}` : '-',
     ]);
 
     if (kind === 'excel') {
@@ -756,7 +742,7 @@ function CustomerPage() {
   return (
     <div className="min-h-screen">
       <div className="material-shell">
-        <SignedIn>
+        {token && (
           <header className="material-hero mb-6 p-6 md:p-8">
             <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
               <div className="max-w-3xl">
@@ -775,17 +761,16 @@ function CustomerPage() {
                     <option value="de">DE</option>
                   </select>
                 </label>
-                <SignedIn>
+                {token && (
                   <div className="rounded-full border border-white/70 bg-white/90 p-1.5 shadow-[0_16px_36px_-28px_rgba(15,23,42,0.4)]">
-                    <UserButton />
+                    <Button variant="ghost" onClick={logout} className="rounded-full font-bold">Logout</Button>
                   </div>
-                </SignedIn>
+                )}
               </div>
             </div>
           </header>
-        </SignedIn>
+        )}
 
-        {sectionMessage?.section === 'global' && <div className={`app-feedback ${sectionMessage.type === 'error' ? 'app-feedback-error' : 'app-feedback-success'}`}>{sectionMessage.text}</div>}
 
         {confirmAction && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={() => setConfirmAction(null)}>
@@ -803,7 +788,7 @@ function CustomerPage() {
           </div>
         )}
 
-        <SignedOut>
+        {!token && (
           <Card className="material-panel lg:col-span-3">
             <CardContent className="flex min-h-[60vh] items-center justify-center rounded-2xl bg-gradient-to-b from-white to-teal-50/40 p-6">
               {authMode === 'sign-in' ? (
@@ -834,7 +819,7 @@ function CustomerPage() {
                       <button type="button" className="text-sm font-medium text-teal-700 hover:text-teal-800" onClick={openForgotPassword}>{t.forgotPassword}</button>
                       <button type="button" className="text-sm font-medium text-teal-700 hover:text-teal-800" onClick={openSignUp}>{t.signUp}</button>
                     </div>
-                    <Button className="mt-4 w-full" type="submit" disabled={loginLoading || !isSignInLoaded}>
+                    <Button className="mt-4 w-full" type="submit" disabled={loginLoading || !!isLoading}>
                       {loginLoading ? t.signingIn : t.signIn}
                     </Button>
                   </form>
@@ -852,7 +837,7 @@ function CustomerPage() {
                     <div className="mt-4 flex items-center justify-between gap-3">
                       <button type="button" className="text-sm font-medium text-teal-700 hover:text-teal-800" onClick={backToLogin}>{t.backToLogin}</button>
                     </div>
-                    <Button className="mt-4 w-full" type="submit" disabled={forgotPasswordLoading || !isSignInLoaded}>
+                    <Button className="mt-4 w-full" type="submit" disabled={forgotPasswordLoading || !!isLoading}>
                       {forgotPasswordLoading ? t.sendingResetCode : t.sendResetCode}
                     </Button>
                   </form>
@@ -881,7 +866,7 @@ function CustomerPage() {
                     <div className="mt-4 flex items-center justify-between gap-3">
                       <button type="button" className="text-sm font-medium text-teal-700 hover:text-teal-800" onClick={backToLogin}>{t.backToLogin}</button>
                     </div>
-                    <Button className="mt-4 w-full" type="submit" disabled={forgotPasswordLoading || !isSignInLoaded}>
+                    <Button className="mt-4 w-full" type="submit" disabled={forgotPasswordLoading || !!isLoading}>
                       {forgotPasswordLoading ? t.resettingPassword : t.setNewPassword}
                     </Button>
                   </form>
@@ -926,7 +911,7 @@ function CustomerPage() {
                   <div className="mt-4 flex items-center justify-end gap-3">
                     <button type="button" className="text-sm font-medium text-teal-700 hover:text-teal-800" onClick={openSignIn}>{t.signIn}</button>
                   </div>
-                  <Button className="mt-4 w-full" type="submit" disabled={signUpLoading || !isSignUpLoaded}>
+                  <Button className="mt-4 w-full" type="submit" disabled={signUpLoading || !!isLoading}>
                     {signUpLoading ? t.creatingAccount : t.createAccount}
                   </Button>
                 </form>
@@ -945,16 +930,16 @@ function CustomerPage() {
                     <button type="button" className="text-sm font-medium text-teal-700 hover:text-teal-800" onClick={openSignUp}>{t.backToLogin}</button>
                     <button type="button" className="text-sm font-medium text-teal-700 hover:text-teal-800" onClick={openSignIn}>{t.signIn}</button>
                   </div>
-                  <Button className="mt-4 w-full" type="submit" disabled={signUpLoading || !isSignUpLoaded}>
+                  <Button className="mt-4 w-full" type="submit" disabled={signUpLoading || !!isLoading}>
                     {signUpLoading ? t.verifyingAccount : t.completeRegistration}
                   </Button>
                 </form>
               )}
             </CardContent>
           </Card>
-        </SignedOut>
+        )}
 
-        <SignedIn>
+        {token && (
           <div className="space-y-6">
             <div className="grid gap-4 md:grid-cols-3">
               <div className="material-stat public-stat-card"><p className="public-stat-label">{t.totalProfiles}</p><p className="public-stat-value"><span className="public-stat-icon"><Boxes className="h-5 w-5" /></span>{profiles.length}</p></div>
@@ -967,15 +952,16 @@ function CustomerPage() {
                 <CardTitle className="flex items-center gap-3"><UserRoundPlus className="h-5 w-5 text-teal-700" /> {t.companyProfile}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-5 pt-6">
-                {sectionMessage?.section === 'supplier' && <div className={`app-feedback ${sectionMessage.type === 'error' ? 'app-feedback-error' : 'app-feedback-success'}`}>{sectionMessage.text}</div>}
                 <div className="admin-editor-grid">
                   <Input placeholder={t.name + ' (EN)'} value={supplierForm.name} onChange={(e) => setSupplierForm({ ...supplierForm, name: e.target.value })} />
                   <Input placeholder={t.name + ' (DE)'} value={supplierForm.nameDe} onChange={(e) => setSupplierForm({ ...supplierForm, nameDe: e.target.value })} />
+                  <Input placeholder={lang === 'de' ? 'Branche' : 'Industry Type'} value={supplierForm.industry} onChange={(e) => setSupplierForm({ ...supplierForm, industry: e.target.value })} />
                   <Input placeholder={t.companyAddress} value={supplierForm.address} onChange={(e) => setSupplierForm({ ...supplierForm, address: e.target.value })} />
                   <Input placeholder={t.contactPerson} value={supplierForm.contactPerson} onChange={(e) => setSupplierForm({ ...supplierForm, contactPerson: e.target.value })} />
                   <Input placeholder={t.emailAddress} value={supplierForm.email} onChange={(e) => setSupplierForm({ ...supplierForm, email: e.target.value })} />
                   <Input placeholder={t.phone} value={supplierForm.phone} onChange={(e) => setSupplierForm({ ...supplierForm, phone: e.target.value })} />
                   <Input placeholder={t.website} value={supplierForm.website} onChange={(e) => setSupplierForm({ ...supplierForm, website: e.target.value })} />
+                  <Input placeholder={t.uid} value={supplierForm.uid} onChange={(e) => setSupplierForm({ ...supplierForm, uid: e.target.value })} />
                   <div className="md:col-span-2 flex justify-end">
                     <Button onClick={saveSupplier} disabled={isSavingSupplier}>{isSavingSupplier ? '...' : t.saveProfile.replace('Profile', '')}</Button>
                   </div>
@@ -987,14 +973,18 @@ function CustomerPage() {
               <CardHeader className="border-b border-slate-200/80">
                 <div className="admin-section-toolbar">
                   <CardTitle className="flex items-center gap-3"><Boxes className="h-5 w-5 text-teal-700" /> {t.profileControls}</CardTitle>
-                  <Button variant={showForm ? 'secondary' : 'default'} onClick={() => showForm ? resetProfileForm() : setShowForm(true)}>{showForm ? t.closeEditor : t.addProfile}</Button>
+                  <div className="flex gap-2">
+                    <Button variant="outline" className="border-amber-200 text-amber-700 hover:bg-amber-50" onClick={hideAllProfiles}>
+                      {lang === 'de' ? 'Alle ausblenden' : 'Hide All Profiles'}
+                    </Button>
+                    <Button variant={showForm ? 'secondary' : 'default'} onClick={() => showForm ? resetProfileForm() : setShowForm(true)}>{showForm ? t.closeEditor : t.addProfile}</Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-5 pt-6">
-                {sectionMessage?.section === 'profile' && <div className={`app-feedback ${sectionMessage.type === 'error' ? 'app-feedback-error' : 'app-feedback-success'}`}>{sectionMessage.text}</div>}
                 {showForm && (
                   <>
-                    <div className="mb-2 text-sm text-slate-500">{t.signedInAs}: {user?.primaryEmailAddress?.emailAddress || user?.username || user?.id}</div>
+                    <div className="mb-2 text-sm text-slate-500">{t.signedInAs}: {user?.email || user?.id}</div>
                     <div className="admin-editor-grid admin-editor-grid-wide">
                       <Input placeholder={t.name + ' (EN)'} value={profileForm.name} onChange={(e) => setProfileForm((current) => ({ ...current, name: e.target.value }))} />
                       <Input placeholder={t.name + ' (DE)'} value={profileForm.nameDe} onChange={(e) => setProfileForm((current) => ({ ...current, nameDe: e.target.value }))} />
@@ -1007,6 +997,11 @@ function CustomerPage() {
                       <Input placeholder={t.lengthMm} value={profileForm.lengthMm} onChange={(e) => setProfileForm((current) => ({ ...current, lengthMm: e.target.value }))} />
                       <Input placeholder={t.material + ' (EN)'} value={profileForm.material} onChange={(e) => setProfileForm((current) => ({ ...current, material: e.target.value }))} />
                       <Input placeholder={t.material + ' (DE)'} value={profileForm.materialDe} onChange={(e) => setProfileForm((current) => ({ ...current, materialDe: e.target.value }))} />
+                      <Input placeholder={t.price} value={profileForm.price} onChange={(e) => setProfileForm((current) => ({ ...current, price: e.target.value }))} />
+                      <select value={profileForm.currencyId} onChange={(e) => setProfileForm((current) => ({ ...current, currencyId: e.target.value }))}>
+                        <option value="">-- Select {t.currency} --</option>
+                        {((referenceData as any)?.currencies ?? []).map((currency: any) => <option key={currency.id} value={currency.id}>{currency.code} ({currency.symbol})</option>)}
+                      </select>
                       <select value={profileForm.status} onChange={(e) => setProfileForm((current) => ({ ...current, status: e.target.value }))}>
                         {(referenceData?.statusOptions ?? []).map((status) => <option key={status} value={status}>{status}</option>)}
                       </select>
@@ -1017,7 +1012,7 @@ function CustomerPage() {
                         {(referenceData?.crossSections ?? []).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
                       </select>
                       <div className="admin-upload-field">
-                        <div className="mb-1 text-sm font-medium text-slate-700">{t.drawingFile}</div>
+                        <div className="mb-1 text-sm font-medium text-slate-700">{t.drawingFile} <span className="text-xs text-slate-400 font-normal ml-2">(pdf, jpg, png, bmp)</span></div>
                         {profileForm.drawingUrl ? (
                           <div className="flex flex-col gap-2 rounded-lg border bg-slate-50 p-2 mt-1">
                             <div className="flex items-center justify-between">
@@ -1039,7 +1034,7 @@ function CustomerPage() {
                         )}
                       </div>
                       <div className="admin-upload-field">
-                        <div className="mb-1 text-sm font-medium text-slate-700">{t.photoFile}</div>
+                        <div className="mb-1 text-sm font-medium text-slate-700">{t.photoFile} <span className="text-xs text-slate-400 font-normal ml-2">(pdf, jpg, png, bmp)</span></div>
                         {profileForm.photoUrl ? (
                           <div className="flex flex-col gap-2 rounded-lg border bg-slate-50 p-2 mt-1">
                             <div className="flex items-center justify-between">
@@ -1100,6 +1095,7 @@ function CustomerPage() {
                             <th className="px-4 py-3">{t.material}</th>
                             <th className="px-4 py-3">{t.weightPerMeter}</th>
                             <th className="px-4 py-3">{t.lengthMm}</th>
+                            <th className="px-4 py-3">{t.price}</th>
                             <th className="px-4 py-3 text-right">{t.actions}</th>
                           </tr>
                         </thead>
@@ -1128,13 +1124,17 @@ function CustomerPage() {
 
                                 <td className="px-4 py-3 text-slate-600">{displayApplications}</td>
                                 <td className="px-4 py-3 text-slate-600">{displayCrossSections}</td>
-                                <td className="px-4 py-3"><span className="material-chip bg-teal-100 text-teal-700">{profile.status}</span></td>
+                                <td className="px-4 py-3"><span className={`material-chip ${profile.status === 'NOT_AVAILABLE' ? 'bg-red-100 text-red-700' : profile.status === 'IN_DEVELOPMENT' ? 'bg-amber-100 text-amber-900' : 'bg-teal-100 text-teal-700'}`}>{profile.status}</span></td>
                                 <td className="px-4 py-3 text-slate-600">{profile.dimensions || '-'}</td>
                                 <td className="px-4 py-3 text-slate-600">{displayMaterial}</td>
-                                <td className="px-4 py-3 text-slate-600">{profile.weightPerMeter ?? '-'}</td>
-                                <td className="px-4 py-3 text-slate-600">{profile.lengthMm ?? '-'}</td>
+                                <td className="px-4 py-3 text-slate-600">{profile.weightPerMeter ? new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(profile.weightPerMeter) : '-'}</td>
+                                <td className="px-4 py-3 text-slate-600">{profile.lengthMm ? new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(profile.lengthMm) : '-'}</td>
+                                <td className="px-4 py-3 text-slate-600">{profile.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(profile.price)} ${profile.currency ? profile.currency.symbol : ''}` : '-'}</td>
                                 <td className="px-4 py-3">
                                   <div className="flex justify-end gap-2">
+                                    <Button size="sm" variant="outline" className="border-slate-300" onClick={() => toggleProfileVisibility(profile)}>
+                                      {profile.status === 'AVAILABLE' ? (lang === 'de' ? 'Ausblenden' : 'Hide') : (lang === 'de' ? 'Einblenden' : 'Show')}
+                                    </Button>
                                     <Button size="sm" variant="ghost" onClick={() => startEditProfile(profile)}>{t.edit}</Button>
                                     <Button size="sm" variant="destructive" onClick={() => deleteProfile(profile.id)}>{t.delete}</Button>
                                   </div>
@@ -1158,7 +1158,7 @@ function CustomerPage() {
               </CardContent>
             </Card>
           </div>
-        </SignedIn>
+        )}
       </div>
     </div>
   );

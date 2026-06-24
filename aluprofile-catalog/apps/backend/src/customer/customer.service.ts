@@ -6,7 +6,6 @@ import {
 import { Status } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { ProfileInput } from '../admin/admin.service';
-import { createClerkClient } from '@clerk/backend';
 
 @Injectable()
 export class CustomerService {
@@ -16,32 +15,30 @@ export class CustomerService {
     return Promise.all([
       this.prisma.application.findMany({ orderBy: { name: 'asc' } }),
       this.prisma.crossSection.findMany({ orderBy: { name: 'asc' } }),
-    ]).then(([applications, crossSections]) => ({
+      this.prisma.currency.findMany({ orderBy: { code: 'asc' } }),
+    ]).then(([applications, crossSections, currencies]) => ({
       suppliers: [],
       applications,
       crossSections,
+      currencies,
       statusOptions: Object.values(Status),
     }));
   }
 
 
-  async getSupplierProfile(clerkUserId: string) {
+  async getSupplierProfile(userId: number) {
     let supplier = await this.prisma.supplier.findUnique({
-      where: { clerkUserId },
+      where: { userId },
     });
     if (!supplier) {
-      let name = 'Customer';
-      try {
-        const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
-        const user = await clerk.users.getUser(clerkUserId);
-        name = user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : (user.username || user.emailAddresses[0]?.emailAddress || 'Customer');
-      } catch (e) {
-        console.error('Failed to fetch clerk user for supplier creation:', e);
-      }
+      const user = await this.prisma.user.findUnique({ where: { id: userId } });
+      const name = user && (user.firstName || user.lastName) 
+        ? `${user.firstName || ''} ${user.lastName || ''}`.trim() 
+        : (user?.email || 'Customer');
       
       supplier = await this.prisma.supplier.create({
         data: {
-          clerkUserId,
+          userId,
           name,
         },
       });
@@ -49,45 +46,48 @@ export class CustomerService {
     return supplier;
   }
 
-  async updateSupplierProfile(clerkUserId: string, input: any) {
-    const supplier = await this.getSupplierProfile(clerkUserId);
+  async updateSupplierProfile(userId: number, input: any) {
+    const supplier = await this.getSupplierProfile(userId);
     return this.prisma.supplier.update({
-      where: { clerkUserId },
+      where: { userId },
       data: {
         name: input.name,
         nameDe: input.nameDe,
+        industry: input.industry,
         address: input.address,
         contactPerson: input.contactPerson,
         email: input.email,
         phone: input.phone,
         website: input.website,
+        uid: input.uid,
       },
     });
   }
 
-  listProfiles(clerkUserId: string) {
+  listProfiles(userId: number) {
     return this.prisma.profile.findMany({
-      where: { ownerClerkUserId: clerkUserId },
+      where: { ownerUserId: userId },
       orderBy: { updatedAt: 'desc' },
       include: {
         supplier: true,
         applications: true,
         crossSections: true,
+        currency: true,
       },
     });
   }
 
 
-  async createProfile(clerkUserId: string, input: ProfileInput) {
+  async createProfile(userId: number, input: ProfileInput) {
     if (!input.name) {
       throw new BadRequestException('name is required');
     }
 
-    const supplier = await this.getSupplierProfile(clerkUserId);
+    const supplier = await this.getSupplierProfile(userId);
 
     return this.prisma.profile.create({
       data: {
-        ownerClerkUserId: clerkUserId,
+        ownerUserId: userId,
         supplierId: supplier.id,
         name: input.name,
         nameDe: input.nameDe,
@@ -103,6 +103,8 @@ export class CustomerService {
         material: input.material,
         materialDe: input.materialDe,
         lengthMm: input.lengthMm,
+        price: input.price,
+        currencyId: input.currencyId,
         status: input.status ?? Status.AVAILABLE,
 
         applications: {
@@ -116,19 +118,20 @@ export class CustomerService {
         supplier: true,
         applications: true,
         crossSections: true,
+        currency: true,
       },
     });
   }
 
-  async updateProfile(clerkUserId: string, id: number, input: Partial<ProfileInput>) {
+  async updateProfile(userId: number, id: number, input: Partial<ProfileInput>) {
     const existing = await this.prisma.profile.findFirst({
-      where: { id, ownerClerkUserId: clerkUserId },
+      where: { id, ownerUserId: userId },
     });
     if (!existing) {
       throw new NotFoundException('Profile not found');
     }
 
-    const supplier = await this.getSupplierProfile(clerkUserId);
+    const supplier = await this.getSupplierProfile(userId);
 
     return this.prisma.profile.update({
       where: { id },
@@ -148,6 +151,8 @@ export class CustomerService {
         material: input.material,
         materialDe: input.materialDe,
         lengthMm: input.lengthMm,
+        price: input.price,
+        currencyId: input.currencyId,
         status: input.status,
 
         applications: input.applicationIds
@@ -161,13 +166,14 @@ export class CustomerService {
         supplier: true,
         applications: true,
         crossSections: true,
+        currency: true,
       },
     });
   }
 
-  async deleteProfile(clerkUserId: string, id: number) {
+  async deleteProfile(userId: number, id: number) {
     const existing = await this.prisma.profile.findFirst({
-      where: { id, ownerClerkUserId: clerkUserId },
+      where: { id, ownerUserId: userId },
     });
     if (!existing) {
       throw new NotFoundException('Profile not found');
@@ -175,5 +181,12 @@ export class CustomerService {
 
     await this.prisma.profile.delete({ where: { id } });
     return { ok: true, id };
+  }
+
+  async hideAllProfiles(userId: number) {
+    return this.prisma.profile.updateMany({
+      where: { ownerUserId: userId },
+      data: { status: Status.NOT_AVAILABLE },
+    });
   }
 }

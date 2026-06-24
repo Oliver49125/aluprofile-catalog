@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { Status } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { createClerkClient } from '@clerk/backend';
 import * as nodemailer from 'nodemailer';
 
 type Lang = 'en' | 'de';
@@ -58,7 +58,9 @@ export class PublicService {
   }
 
   async getOverview(lang: Lang) {
-    const publicProfilesWhere = {};
+    const publicProfilesWhere = {
+      status: { not: Status.NOT_AVAILABLE }
+    };
     const [applications, crossSections, newestProfiles, totalProfiles, visitsMetric] = await Promise.all([
       this.prisma.application.findMany({
         orderBy: { name: 'asc' },
@@ -88,7 +90,7 @@ export class PublicService {
         where: publicProfilesWhere,
         take: 8,
         orderBy: { createdAt: 'desc' },
-        include: { supplier: true, applications: true, crossSections: true },
+        include: { supplier: true, applications: true, crossSections: true, currency: true },
       }),
       this.prisma.profile.count({ where: publicProfilesWhere }),
       this.prisma.siteMetric.findUnique({ where: { key: 'visits' } }),
@@ -103,7 +105,9 @@ export class PublicService {
   }
 
   async getProfiles(filters: ProfileFilters, lang: Lang) {
-    const where: any = {};
+    const where: any = {
+      status: { not: Status.NOT_AVAILABLE }
+    };
     const and: any[] = [];
 
     if (filters.q) {
@@ -149,6 +153,7 @@ export class PublicService {
         supplier: true,
         applications: true,
         crossSections: true,
+        currency: true,
       },
     });
 
@@ -157,11 +162,12 @@ export class PublicService {
 
   async getProfileById(id: number, lang: Lang) {
     const profile = await this.prisma.profile.findFirst({
-      where: { id },
+      where: { id, status: { not: Status.NOT_AVAILABLE } },
       include: {
         supplier: true,
         applications: true,
         crossSections: true,
+        currency: true,
       },
     });
 
@@ -216,7 +222,7 @@ export class PublicService {
         const profileName = inquiry.profile?.name || `Profile #${data.profileId}`;
         const supplierEmail = inquiry.profile?.supplier?.email;
         
-        const toEmails = ['info@aluprofile.biz'];
+        const toEmails = ['info@aluprofile.biz', data.email];
         if (supplierEmail && supplierEmail.trim() !== '') {
           toEmails.push(supplierEmail.trim());
         }

@@ -1,6 +1,8 @@
 import { parseApiError } from './utils/apiError';
 import { useEffect, useMemo, useState } from 'react';
-import { SignedIn, UserButton } from '@clerk/clerk-react';
+import { useAuth } from './AuthContext';
+import { LogOut } from 'lucide-react';
+import toast from 'react-hot-toast';
 import {
 
   Boxes,
@@ -61,6 +63,8 @@ type Profile = {
   };
   applications: RefOption[];
   crossSections: RefOption[];
+  price?: number;
+  currency?: { id: number; code: string; symbol: string };
 };
 
 const API_BASE = (import.meta.env.VITE_API_BASE ?? 'http://localhost:3000/api').replace(/\/+$/, '');
@@ -101,6 +105,7 @@ const TXT = {
     length: 'Length',
     usage: 'Usage',
     status: 'Status',
+    price: 'Price',
 
     openDrawing: 'Open Drawing',
     openPhoto: 'Open Photo',
@@ -157,6 +162,7 @@ const TXT = {
     supplierAndFiles: 'Supplier & Files',
     contactPerson: 'Contact Person',
     website: 'Website',
+    onRequest: 'On Request',
   },
   de: {
     title: 'Aluprofile Suche & Katalog',
@@ -192,6 +198,7 @@ const TXT = {
     length: 'Lange',
     usage: 'Anwendung',
     status: 'Status',
+    price: 'Preis',
 
     openDrawing: 'Zeichnung öffnen',
     openPhoto: 'Foto öffnen',
@@ -222,7 +229,7 @@ const TXT = {
     technicalSheet: 'Technisches Blatt',
     availableStatus: 'Verfugbar',
     inDevelopmentStatus: 'In Entwicklung',
-    archivedStatus: 'Archiviert',
+    archivedStatus: 'nicht verfügbar',
 
     loadingCatalog: 'Katalogdaten werden geladen...',
     applicationSearch: 'Anwendung suchen',
@@ -231,7 +238,7 @@ const TXT = {
     noResultsTitle: 'Keine technischen Treffer gefunden',
     noResultsNote: 'Erweitern Sie die Filter oder setzen Sie die Suchbegriffe zuruck, um mehr Profile zu sehen.',
 
-    inquiry: 'Anfrage',
+    inquiry: 'Zur Anfrage',
     contactSeller: 'Verkäufer kontaktieren',
     firstName: 'Vorname',
     lastName: 'Nachname',
@@ -248,12 +255,14 @@ const TXT = {
     supplierAndFiles: 'Lieferant & Dateien',
     contactPerson: 'Ansprechpartner',
     website: 'Webseite',
+    onRequest: 'auf Anfrage',
   },
 } as const;
 
 function statusStyle(status?: string) {
   if (status === 'AVAILABLE') return 'material-chip bg-emerald-100 text-emerald-800';
   if (status === 'IN_DEVELOPMENT') return 'material-chip bg-amber-100 text-amber-900';
+  if (status === 'NOT_AVAILABLE') return 'material-chip bg-red-100 text-red-700';
   return 'material-chip bg-slate-200 text-slate-700';
 }
 
@@ -273,13 +282,18 @@ const isWord = (url: string) => /\.(doc|docx)(\?.*)?$/i.test(url);
 const isExcel = (url: string) => /\.(xls|xlsx)(\?.*)?$/i.test(url);
 
 function MediaThumbnail({ url, alt, className }: { url: string; alt: string; className?: string }) {
-  if (isImage(url)) return <img src={url} alt={alt} className={className} />;
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    window.open(url, '_blank');
+  };
+
+  if (isImage(url)) return <img src={url} alt={alt} className={`cursor-pointer ${className || ''}`} onClick={handleClick} />;
   
-  if (isPdf(url)) return <div className="flex h-full w-full flex-col items-center justify-center text-red-500 bg-red-50"><FileText className="h-8 w-8 mb-1" /><span className="text-[10px] font-bold">PDF</span></div>;
-  if (isWord(url)) return <div className="flex h-full w-full flex-col items-center justify-center text-blue-500 bg-blue-50"><FileText className="h-8 w-8 mb-1" /><span className="text-[10px] font-bold">DOC</span></div>;
-  if (isExcel(url)) return <div className="flex h-full w-full flex-col items-center justify-center text-green-500 bg-green-50"><FileSpreadsheet className="h-8 w-8 mb-1" /><span className="text-[10px] font-bold">XLS</span></div>;
+  if (isPdf(url)) return <div className="flex h-full w-full flex-col items-center justify-center text-red-500 bg-red-50 cursor-pointer hover:bg-red-100 transition-colors" onClick={handleClick}><FileText className="h-8 w-8 mb-1" /><span className="text-[10px] font-bold">PDF</span></div>;
+  if (isWord(url)) return <div className="flex h-full w-full flex-col items-center justify-center text-blue-500 bg-blue-50 cursor-pointer hover:bg-blue-100 transition-colors" onClick={handleClick}><FileText className="h-8 w-8 mb-1" /><span className="text-[10px] font-bold">DOC</span></div>;
+  if (isExcel(url)) return <div className="flex h-full w-full flex-col items-center justify-center text-green-500 bg-green-50 cursor-pointer hover:bg-green-100 transition-colors" onClick={handleClick}><FileSpreadsheet className="h-8 w-8 mb-1" /><span className="text-[10px] font-bold">XLS</span></div>;
   
-  return <div className="flex h-full w-full flex-col items-center justify-center text-slate-500 bg-slate-50"><FileIcon className="h-8 w-8 mb-1" /><span className="text-[10px] font-bold">FILE</span></div>;
+  return <div className="flex h-full w-full flex-col items-center justify-center text-slate-500 bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors" onClick={handleClick}><FileIcon className="h-8 w-8 mb-1" /><span className="text-[10px] font-bold">FILE</span></div>;
 }
 
 function paginateItems<T>(items: T[], page: number, pageSize = PAGE_SIZE) {
@@ -305,6 +319,7 @@ function resolveOptionId(query: string, options: Array<{ id: number; name: strin
 }
 
 function App() {
+  const { token, logout } = useAuth();
   const [lang, setLang] = useState<'en' | 'de'>('en');
   const [overview, setOverview] = useState<{
     applications: RefOption[];
@@ -332,12 +347,10 @@ function App() {
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const [page, setPage] = useState(1);
 
-  const [websiteVisits, setWebsiteVisits] = useState<number | null>(null);
   useEffect(() => {
     api('/public/visits', { method: 'POST' })
       .then(data => {
         if (data && typeof data.value === 'number') {
-          setWebsiteVisits(data.value);
         }
       })
       .catch(err => console.error('Failed to increment visits', err));
@@ -351,17 +364,6 @@ function App() {
   const [inquiryForm, setInquiryForm] = useState({ firstName: '', lastName: '', company: '', email: '', phone: '', message: '', requestPurchase: false });
   const [inquiryLoading, setInquiryLoading] = useState(false);
   const [inquirySuccess, setInquirySuccess] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-
-  function handleImageClick(url?: string) {
-    if (!url || !safeUrl(url)) return;
-    if (url.toLowerCase().endsWith('.pdf')) {
-      window.open(url, '_blank');
-    } else {
-      setSelectedImage(url);
-    }
-  }
-
   const t = useMemo(() => TXT[lang], [lang]);
 
   useEffect(() => {
@@ -397,7 +399,7 @@ function App() {
 
   async function loadPublic() {
     setIsLoading(true);
-    setMessage('');
+    
     try {
       const [overviewData, profileData] = await Promise.all([
         api(`/public/overview?lang=${lang}`),
@@ -408,7 +410,18 @@ function App() {
       setProfiles(profileList);
 
       setPage(1);
-      if (profileList.length > 0) {
+      setPage(1);
+      
+      const initialId = new URLSearchParams(window.location.search).get('profile');
+      if (initialId && !detail) {
+        try {
+          const initialDetail = await api(`/public/profiles/${initialId}?lang=${lang}`);
+          setDetail(initialDetail);
+        } catch (err) {
+          console.error('Failed to load initial profile', err);
+          if (profileList.length > 0) setDetail(profileList[0]);
+        }
+      } else if (profileList.length > 0) {
         const selectedStillExists = detail && profileList.some((p) => p.id === detail.id);
         if (!selectedStillExists) setDetail(profileList[0]);
       } else {
@@ -431,14 +444,14 @@ function App() {
   useEffect(() => {
     loadPublic().catch((err) => {
       setIsLoading(false);
-      setMessage(parseApiError(err));
+      toast.error(parseApiError(err));
     });
   }, []);
 
   useEffect(() => {
     loadPublic().catch((err) => {
       setIsLoading(false);
-      setMessage(parseApiError(err));
+      toast.error(parseApiError(err));
     });
   }, [filters, lang]);
 
@@ -508,6 +521,197 @@ function App() {
     setFilters((current) => ({ ...current, [key]: '' }));
   }
 
+  const isStandaloneTechnical = new URLSearchParams(window.location.search).get('view') === 'technical';
+
+  if (isStandaloneTechnical) {
+    return (
+      <div className="min-h-screen bg-slate-50 p-4 md:p-8">
+        <div className="mx-auto max-w-5xl">
+          {/* We need to render the technical sheet card here. Since it's big, we'll extract it by capturing it and injecting it here. */}
+          <Card className="overflow-hidden">
+            <CardHeader className="border-b border-slate-100 bg-gradient-to-r from-white via-white to-slate-50/70">
+              <CardTitle className="text-2xl font-semibold tracking-[-0.02em] text-slate-950">{t.technicalSheet}</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              {isDetailLoading ? (
+                <div className="space-y-4">
+                  <div className="public-skeleton-card">
+                    <div className="public-skeleton-block h-64" />
+                    <div className="public-skeleton-line mt-4 w-2/3" />
+                    <div className="public-skeleton-line mt-2 w-full" />
+                    <div className="public-skeleton-line mt-2 w-5/6" />
+                  </div>
+                </div>
+              ) : null}
+              {!isDetailLoading && !detail && <p className="text-sm text-slate-500">{t.selectProfile}</p>}
+              {!isDetailLoading && detail && (
+                <div className="grid gap-6 lg:grid-cols-[1fr_350px] items-start">
+                  <div className="space-y-5">
+                  <div className="public-detail-sheet overflow-hidden">
+                    <div className="border-b border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-700">{t.technicalView}</div>
+                    <div className="grid gap-5 p-5 lg:grid-cols-[220px_1fr]">
+                      <div className="h-[220px] overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-50 relative">
+                        {safeUrl(detail.drawingUrl) ? (
+                          isImage(detail.drawingUrl!) ? (
+                                    <a
+                                      href={detail.drawingUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="flex aspect-video items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-white"
+                                    >
+                                      <img src={detail.drawingUrl} alt="Drawing" className="public-media-fit h-full w-full" loading="lazy" />
+                                    </a>
+                          ) : (
+                            <div className="flex h-full flex-col items-center justify-center bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors group" onClick={() => window.open(detail.drawingUrl!, '_blank')}>
+                              <MediaThumbnail url={detail.drawingUrl!} alt={`${detail.name} drawing`} />
+                              <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Download className="h-8 w-8 text-primary mb-2" />
+                                <span className="text-sm font-semibold text-primary">{t.openDrawing}</span>
+                              </div>
+                            </div>
+                          )
+                        ) : (
+                          <div className="flex h-full items-center justify-center text-slate-400">
+                            <ImageIcon className="h-8 w-8 opacity-50" />
+                          </div>
+                        )}
+                      </div>
+                      <table className="public-detail-table w-full text-sm">
+                        <tbody>
+                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">{t.designation}</td><td className="py-3 text-slate-900">{detail.name}</td></tr>
+                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">{t.masse}</td><td className="py-3 text-slate-900">{detail.dimensions || '-'}</td></tr>
+                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">{t.weightPerMeter}</td><td className="py-3 text-slate-900">{detail.weightPerMeter ? new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US').format(detail.weightPerMeter) : '-'}</td></tr>
+                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">{t.material}</td><td className="py-3 text-slate-900">{detail.material || '-'}</td></tr>
+                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">{t.length}</td><td className="py-3 text-slate-900">{detail.lengthMm ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US').format(detail.lengthMm)} mm` : '-'}</td></tr>
+                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">{t.price}</td><td className="py-3 text-slate-900">{detail.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US').format(detail.price)} ${detail.currency ? detail.currency.symbol : ''}` : '-'}</td></tr>
+                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">{t.usage}</td><td className="py-3 text-slate-900">{detail.usage || '-'}</td></tr>
+                          <tr><td className="py-3 font-semibold text-slate-600">{t.status}</td><td className="py-3"><span className={statusStyle(detail.status)}>{statusLabel(detail.status, t)}</span></td></tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  
+                  <div className="public-detail-sheet overflow-hidden">
+                    <div className="border-b border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-700">{t.supplierAndFiles}</div>
+                    <div className="space-y-4 p-5 text-sm">
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {detail.supplier && (
+                          <div className="rounded-2xl border border-primary/10 bg-primary/[0.04] p-4 text-slate-700 sm:col-span-2 space-y-2">
+                            <p className="text-base font-medium text-slate-900">{detail.supplier.name}</p>
+                            {detail.supplier.contactPerson && <p className="flex items-center gap-2"><User className="h-4 w-4 text-slate-400" /> {detail.supplier.contactPerson}</p>}
+                            {detail.supplier.phone && <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-slate-400" /> {detail.supplier.phone}</p>}
+                            {detail.supplier.email && <p className="flex items-center gap-2"><Mail className="h-4 w-4 text-slate-400" /> <a href={`mailto:${detail.supplier.email}`} className="text-primary hover:underline">{detail.supplier.email}</a></p>}
+                            {detail.supplier.website && <p className="flex items-center gap-2"><Globe className="h-4 w-4 text-slate-400" /> <a href={detail.supplier.website} target="_blank" rel="noreferrer" className="text-primary hover:underline">{detail.supplier.website}</a></p>}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="public-detail-sheet overflow-hidden">
+                    <div className="border-b border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-700">{t.linkedCategories}</div>
+                    <div className="space-y-4 p-5 text-sm">
+                      <div className="grid gap-3 sm:grid-cols-2">
+
+                        <div className="rounded-2xl border border-primary/10 bg-primary/[0.04] p-4 text-slate-700 sm:col-span-2">
+                          <p className="text-sm leading-6">{t.application}: {(detail.applications ?? []).map((item) => item.name).join(', ') || '-'}</p>
+                          <p className="text-sm leading-6">{t.crossSection}: {(detail.crossSections ?? []).map((item) => item.name).join(', ') || '-'}</p>
+                        </div>
+                      </div>
+
+                      <div className="grid gap-2">
+                        {safeUrl(detail.drawingUrl) && (
+                          <Button className="w-full justify-between" variant="outline" onClick={() => {
+                            window.open(detail.drawingUrl!, '_blank');
+                          }}>{t.openDrawing} <ExternalLink className="h-4 w-4" /></Button>
+                        )}
+                        {safeUrl(detail.photoUrl) && (
+                          <Button className="w-full justify-between" variant="outline" onClick={() => {
+                            window.open(detail.photoUrl!, '_blank');
+                          }}>{t.openPhoto} <ExternalLink className="h-4 w-4" /></Button>
+                        )}
+
+                      </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="rounded-[1.25rem] border border-slate-200 bg-white shadow-sm overflow-hidden sticky top-6">
+                    <div className="border-b border-slate-100 bg-slate-50/80 px-5 py-4">
+                      <h3 className="text-base font-semibold text-slate-900">{t.contactSeller}</h3>
+                    </div>
+                    <div className="p-5">
+                      {inquirySuccess ? (
+                        <div className="text-center py-6">
+                          <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                            <Sparkles className="h-5 w-5" />
+                          </div>
+                          <h4 className="text-sm font-medium text-slate-900">{t.inquirySent}</h4>
+                        </div>
+                      ) : (
+                        <form className="space-y-4" onSubmit={async (e) => {
+                          e.preventDefault();
+                          setInquiryLoading(true);
+                          try {
+                            await api('/public/inquiries', {
+                              method: 'POST',
+                              body: JSON.stringify({ profileId: detail.id, ...inquiryForm })
+                            });
+                            setInquirySuccess(true);
+                          } catch (err) {
+                            toast.error(parseApiError(err));
+                          } finally {
+                            setInquiryLoading(false);
+                          }
+                        }}>
+                          <div className="grid grid-cols-2 gap-3">
+                            <label className="block text-[13px] font-medium text-slate-700">
+                              {t.firstName} *
+                              <Input required className="mt-1.5 h-9 text-sm" value={inquiryForm.firstName} onChange={e => setInquiryForm(f => ({ ...f, firstName: e.target.value }))} />
+                            </label>
+                            <label className="block text-[13px] font-medium text-slate-700">
+                              {t.lastName} *
+                              <Input required className="mt-1.5 h-9 text-sm" value={inquiryForm.lastName} onChange={e => setInquiryForm(f => ({ ...f, lastName: e.target.value }))} />
+                            </label>
+                          </div>
+                          <label className="block text-[13px] font-medium text-slate-700">
+                            {t.company}
+                            <Input className="mt-1.5 h-9 text-sm" value={inquiryForm.company} onChange={e => setInquiryForm(f => ({ ...f, company: e.target.value }))} />
+                          </label>
+                          <label className="block text-[13px] font-medium text-slate-700">
+                            {t.email} *
+                            <Input required type="email" className="mt-1.5 h-9 text-sm" value={inquiryForm.email} onChange={e => setInquiryForm(f => ({ ...f, email: e.target.value }))} />
+                          </label>
+                          <label className="block text-[13px] font-medium text-slate-700">
+                            {t.phone}
+                            <Input className="mt-1.5 h-9 text-sm" type="tel" value={inquiryForm.phone} onChange={e => setInquiryForm(f => ({ ...f, phone: e.target.value }))} />
+                          </label>
+                          <label className="block text-[13px] font-medium text-slate-700">
+                            {t.message} *
+                            <textarea required className="mt-1.5 block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.04)] focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" rows={3} value={inquiryForm.message} onChange={e => setInquiryForm(f => ({ ...f, message: e.target.value }))} />
+                          </label>
+                          <label className="flex items-center gap-2.5 text-[13px] text-slate-700">
+                            <input type="checkbox" className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary" checked={inquiryForm.requestPurchase} onChange={e => setInquiryForm(f => ({ ...f, requestPurchase: e.target.checked }))} />
+                            {t.receiveOffer}
+                          </label>
+                          <div className="pt-2">
+                            <Button type="submit" className="w-full" disabled={inquiryLoading}>
+                              {inquiryLoading ? t.sending : t.contactSeller}
+                            </Button>
+                          </div>
+                        </form>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       <div className="material-shell">
@@ -525,12 +729,6 @@ function App() {
                   <SlidersHorizontal className="h-4 w-4 text-primary" />
                   {t.heroNote}
                 </span>
-                {websiteVisits !== null && (
-                  <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.35)]">
-                    <UserRoundPlus className="h-4 w-4 text-primary" />
-                    {websiteVisits} Visits
-                  </span>
-                )}
               </div>
             </div>
 
@@ -539,11 +737,11 @@ function App() {
                 <a href="/customer">
                   <Button className="h-12 rounded-full px-6" variant="secondary">{t.customerLogin}</Button>
                 </a>
-                <SignedIn>
+                {!!token && (
                   <a href="/admin">
                     <Button className="h-12 rounded-full px-6" variant="secondary">{t.adminPanel}</Button>
                   </a>
-                </SignedIn>
+                )}
                 <label className="public-language-pill">
                   <span>{t.language}</span>
                   <select value={lang} onChange={(e) => setLang(e.target.value as Lang)} className="public-language-select">
@@ -551,11 +749,11 @@ function App() {
                     <option value="de">DE</option>
                   </select>
                 </label>
-                <SignedIn>
+                {!!token && (
                   <div className="rounded-full border border-white/70 bg-white/90 p-1.5 shadow-[0_16px_36px_-28px_rgba(15,23,42,0.4)]">
-                    <UserButton />
+                    <button onClick={() => logout()} title="Logout" className="flex items-center justify-center p-2 text-slate-600 hover:text-slate-900"><LogOut className="h-5 w-5" /></button>
                   </div>
-                </SignedIn>
+                )}
               </div>
 
               <div className="public-hero-panel mt-6">
@@ -587,7 +785,6 @@ function App() {
           </div>
         </header>
 
-        {message && <div className="app-feedback app-feedback-error">{message}</div>}
 
         <Card className="material-panel mb-6 overflow-hidden">
           <CardHeader className="border-b border-slate-100 bg-gradient-to-r from-white via-white to-slate-50/80">
@@ -721,11 +918,10 @@ function App() {
                                                   <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
 
                                                     <div className="text-left">
-
-                                                      <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">Preis</p>
-
-                                                      <p className="font-semibold text-slate-900">auf Anfrage</p>
-
+                                                      <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">{t.price}</p>
+                                                      <p className="font-semibold text-slate-900">
+                                                        {p.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(p.price)} ${p.currency ? p.currency.symbol : ''}` : t.onRequest}
+                                                      </p>
                                                     </div>
 
                                                     <Button size="sm" onClick={(e) => { e.stopPropagation(); setShowInquiryModal(p); }}>
@@ -805,16 +1001,20 @@ function App() {
                               
                               <div className="space-y-2">
                                 <div className="mb-2">
-                                  <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">Preis</p>
-                                  <p className="font-semibold text-slate-900">auf Anfrage</p>
+                                  <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">{t.price}</p>
+                                  <p className="font-semibold text-slate-900">
+                                    {p.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(p.price)} ${p.currency ? p.currency.symbol : ''}` : t.onRequest}
+                                  </p>
                                 </div>
                                 <Button size="sm" onClick={(e) => { e.stopPropagation(); setShowInquiryModal(p); }} className="w-full">
                                   {t.inquiry}
                                 </Button>
-                                <Button size="sm" className="w-full" variant="outline" onClick={(e) => {
-                                  e.stopPropagation();
-                                  loadDetail(p.id).catch((err) => setMessage(parseApiError(err)));
-                                }}>
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={(e) => { e.stopPropagation(); window.open(`/?profile=${p.id}&view=technical`, '_blank'); }}
+                                  className="w-full"
+                                >
                                   {t.details}
                                 </Button>
                               </div>
@@ -862,12 +1062,14 @@ function App() {
                         <div className="mt-4 flex flex-col gap-3 rounded-[1rem] bg-slate-50 px-4 py-3 border border-slate-100 sm:flex-row sm:items-center sm:justify-between">
                           <div className="flex items-center gap-3">
                             <div className="text-left">
-                              <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">Preis</p>
-                              <p className="text-sm font-bold text-slate-900">auf Anfrage</p>
+                              <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">{t.price}</p>
+                              <p className="text-sm font-bold text-slate-900">
+                                {p.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(p.price)} ${p.currency ? p.currency.symbol : ''}` : t.onRequest}
+                              </p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <Button variant="secondary" size="sm" onClick={() => loadDetail(p.id)}>{t.details}</Button>
+                            <Button variant="secondary" size="sm" onClick={() => window.open(`/?profile=${p.id}&view=technical`, '_blank')}>{t.details}</Button>
                             <Button size="sm" onClick={(e) => { e.stopPropagation(); setShowInquiryModal(p); }}>
                               {t.inquiry}
                             </Button>
@@ -903,190 +1105,9 @@ function App() {
             </CardContent>
           </Card>
 
-          <Card className="overflow-hidden">
-            <CardHeader className="border-b border-slate-100 bg-gradient-to-r from-white via-white to-slate-50/70">
-              <CardTitle className="text-2xl font-semibold tracking-[-0.02em] text-slate-950">{t.technicalSheet}</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6">
-              {isDetailLoading ? (
-                <div className="space-y-4">
-                  <div className="public-skeleton-card">
-                    <div className="public-skeleton-block h-64" />
-                    <div className="public-skeleton-line mt-4 w-2/3" />
-                    <div className="public-skeleton-line mt-2 w-full" />
-                    <div className="public-skeleton-line mt-2 w-5/6" />
-                  </div>
-                </div>
-              ) : null}
-              {!isDetailLoading && !detail && <p className="text-sm text-slate-500">{t.selectProfile}</p>}
-              {!isDetailLoading && detail && (
-                <div className="grid gap-6 lg:grid-cols-[1fr_350px] items-start">
-                  <div className="space-y-5">
-                  <div className="public-detail-sheet overflow-hidden">
-                    <div className="border-b border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-700">{t.technicalView}</div>
-                    <div className="grid gap-5 p-5 lg:grid-cols-[220px_1fr]">
-                      <div className="h-[220px] overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-50 relative">
-                        {safeUrl(detail.drawingUrl) ? (
-                          isImage(detail.drawingUrl!) ? (
-                            <img src={detail.drawingUrl!} alt={`${detail.name} drawing`} className="public-media-fit cursor-pointer transition-transform hover:scale-105" onClick={() => handleImageClick(detail.drawingUrl!)} />
-                          ) : (
-                            <div className="flex h-full flex-col items-center justify-center bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors group" onClick={() => window.open(detail.drawingUrl!, '_blank')}>
-                              <MediaThumbnail url={detail.drawingUrl!} alt={`${detail.name} drawing`} />
-                              <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Download className="h-8 w-8 text-primary mb-2" />
-                                <span className="text-sm font-semibold text-primary">{t.openDrawing}</span>
-                              </div>
-                            </div>
-                          )
-                        ) : (
-                          <div className="flex h-full items-center justify-center text-slate-400">
-                            <ImageIcon className="h-8 w-8 opacity-50" />
-                          </div>
-                        )}
-                      </div>
-                      <table className="public-detail-table w-full text-sm">
-                        <tbody>
-                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">{t.designation}</td><td className="py-3 text-slate-900">{detail.name}</td></tr>
-                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">{t.masse}</td><td className="py-3 text-slate-900">{detail.dimensions || '-'}</td></tr>
-                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">{t.weightPerMeter}</td><td className="py-3 text-slate-900">{detail.weightPerMeter ?? '-'}</td></tr>
-                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">{t.material}</td><td className="py-3 text-slate-900">{detail.material || '-'}</td></tr>
-                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">{t.length}</td><td className="py-3 text-slate-900">{detail.lengthMm ? `${detail.lengthMm} mm` : '-'}</td></tr>
-                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">{t.usage}</td><td className="py-3 text-slate-900">{detail.usage || '-'}</td></tr>
-                          <tr><td className="py-3 font-semibold text-slate-600">{t.status}</td><td className="py-3"><span className={statusStyle(detail.status)}>{statusLabel(detail.status, t)}</span></td></tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-
-                  
-                  <div className="public-detail-sheet overflow-hidden">
-                    <div className="border-b border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-700">{t.supplierAndFiles}</div>
-                    <div className="space-y-4 p-5 text-sm">
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        {detail.supplier && (
-                          <div className="rounded-2xl border border-primary/10 bg-primary/[0.04] p-4 text-slate-700 sm:col-span-2 space-y-2">
-                            <p className="text-base font-medium text-slate-900">{detail.supplier.name}</p>
-                            {detail.supplier.contactPerson && <p className="flex items-center gap-2"><User className="h-4 w-4 text-slate-400" /> {detail.supplier.contactPerson}</p>}
-                            {detail.supplier.phone && <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-slate-400" /> {detail.supplier.phone}</p>}
-                            {detail.supplier.email && <p className="flex items-center gap-2"><Mail className="h-4 w-4 text-slate-400" /> <a href={`mailto:${detail.supplier.email}`} className="text-primary hover:underline">{detail.supplier.email}</a></p>}
-                            {detail.supplier.website && <p className="flex items-center gap-2"><Globe className="h-4 w-4 text-slate-400" /> <a href={detail.supplier.website} target="_blank" rel="noreferrer" className="text-primary hover:underline">{detail.supplier.website}</a></p>}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="public-detail-sheet overflow-hidden">
-                    <div className="border-b border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-700">{t.linkedCategories}</div>
-                    <div className="space-y-4 p-5 text-sm">
-                      <div className="grid gap-3 sm:grid-cols-2">
-
-                        <div className="rounded-2xl border border-primary/10 bg-primary/[0.04] p-4 text-slate-700 sm:col-span-2">
-                          <p className="text-sm leading-6">{t.application}: {(detail.applications ?? []).map((item) => item.name).join(', ') || '-'}</p>
-                          <p className="text-sm leading-6">{t.crossSection}: {(detail.crossSections ?? []).map((item) => item.name).join(', ') || '-'}</p>
-                        </div>
-                      </div>
-
-                      <div className="grid gap-2">
-                        {safeUrl(detail.drawingUrl) && (
-                          <Button className="w-full justify-between" variant="outline" onClick={() => {
-                            if (isImage(detail.drawingUrl!)) handleImageClick(detail.drawingUrl!);
-                            else window.open(detail.drawingUrl!, '_blank');
-                          }}>{t.openDrawing} <ExternalLink className="h-4 w-4" /></Button>
-                        )}
-                        {safeUrl(detail.photoUrl) && (
-                          <Button className="w-full justify-between" variant="outline" onClick={() => {
-                            if (isImage(detail.photoUrl!)) handleImageClick(detail.photoUrl!);
-                            else window.open(detail.photoUrl!, '_blank');
-                          }}>{t.openPhoto} <ExternalLink className="h-4 w-4" /></Button>
-                        )}
-
-                      </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="rounded-[1.25rem] border border-slate-200 bg-white shadow-sm overflow-hidden sticky top-6">
-                    <div className="border-b border-slate-100 bg-slate-50/80 px-5 py-4">
-                      <h3 className="text-base font-semibold text-slate-900">{t.contactSeller}</h3>
-                    </div>
-                    <div className="p-5">
-                      {inquirySuccess ? (
-                        <div className="text-center py-6">
-                          <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                            <Sparkles className="h-5 w-5" />
-                          </div>
-                          <h4 className="text-sm font-medium text-slate-900">{t.inquirySent}</h4>
-                        </div>
-                      ) : (
-                        <form className="space-y-4" onSubmit={async (e) => {
-                          e.preventDefault();
-                          setInquiryLoading(true);
-                          try {
-                            await api('/public/inquiries', {
-                              method: 'POST',
-                              body: JSON.stringify({ profileId: detail.id, ...inquiryForm })
-                            });
-                            setInquirySuccess(true);
-                          } catch (err) {
-                            setMessage(parseApiError(err));
-                          } finally {
-                            setInquiryLoading(false);
-                          }
-                        }}>
-                          <div className="grid grid-cols-2 gap-3">
-                            <label className="block text-[13px] font-medium text-slate-700">
-                              {t.firstName} *
-                              <Input required className="mt-1.5 h-9 text-sm" value={inquiryForm.firstName} onChange={e => setInquiryForm(f => ({ ...f, firstName: e.target.value }))} />
-                            </label>
-                            <label className="block text-[13px] font-medium text-slate-700">
-                              {t.lastName} *
-                              <Input required className="mt-1.5 h-9 text-sm" value={inquiryForm.lastName} onChange={e => setInquiryForm(f => ({ ...f, lastName: e.target.value }))} />
-                            </label>
-                          </div>
-                          <label className="block text-[13px] font-medium text-slate-700">
-                            {t.company}
-                            <Input className="mt-1.5 h-9 text-sm" value={inquiryForm.company} onChange={e => setInquiryForm(f => ({ ...f, company: e.target.value }))} />
-                          </label>
-                          <label className="block text-[13px] font-medium text-slate-700">
-                            {t.email} *
-                            <Input required type="email" className="mt-1.5 h-9 text-sm" value={inquiryForm.email} onChange={e => setInquiryForm(f => ({ ...f, email: e.target.value }))} />
-                          </label>
-                          <label className="block text-[13px] font-medium text-slate-700">
-                            {t.phone}
-                            <Input className="mt-1.5 h-9 text-sm" type="tel" value={inquiryForm.phone} onChange={e => setInquiryForm(f => ({ ...f, phone: e.target.value }))} />
-                          </label>
-                          <label className="block text-[13px] font-medium text-slate-700">
-                            {t.message} *
-                            <textarea required className="mt-1.5 block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.04)] focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" rows={3} value={inquiryForm.message} onChange={e => setInquiryForm(f => ({ ...f, message: e.target.value }))} />
-                          </label>
-                          <label className="flex items-center gap-2.5 text-[13px] text-slate-700">
-                            <input type="checkbox" className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary" checked={inquiryForm.requestPurchase} onChange={e => setInquiryForm(f => ({ ...f, requestPurchase: e.target.checked }))} />
-                            {t.receiveOffer}
-                          </label>
-                          <div className="pt-2">
-                            <Button type="submit" className="w-full" disabled={inquiryLoading}>
-                              {inquiryLoading ? t.sending : t.contactSeller}
-                            </Button>
-                          </div>
-                        </form>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </div>
       </div>
 
-      {selectedImage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/90 p-4 backdrop-blur-md" onClick={() => setSelectedImage(null)}>
-          <button className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20 transition-colors" onClick={() => setSelectedImage(null)}>
-            <X className="h-6 w-6" />
-          </button>
-          <img src={selectedImage} alt="Fullscreen view" className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain shadow-2xl" onClick={e => e.stopPropagation()} />
-        </div>
-      )}
 
               {showInquiryModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={() => { setShowInquiryModal(null); setInquirySuccess(false); setInquiryForm({ firstName: '', lastName: '', company: '', email: '', phone: '', message: '', requestPurchase: false }); }}>
@@ -1117,7 +1138,7 @@ function App() {
                     });
                     setInquirySuccess(true);
                   } catch (err) {
-                    setMessage(parseApiError(err));
+                    toast.error(parseApiError(err));
                   } finally {
                     setInquiryLoading(false);
                   }
@@ -1164,14 +1185,6 @@ function App() {
         </div>
       )}
 
-      {selectedImage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/90 p-4 backdrop-blur-md" onClick={() => setSelectedImage(null)}>
-          <button className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20 transition-colors" onClick={() => setSelectedImage(null)}>
-            <X className="h-6 w-6" />
-          </button>
-          <img src={selectedImage} alt="Fullscreen view" className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain shadow-2xl" onClick={e => e.stopPropagation()} />
-        </div>
-      )}
     </div>
   );
 }

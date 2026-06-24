@@ -1,90 +1,60 @@
 import {
   Injectable,
-  InternalServerErrorException,
   UnauthorizedException,
+  ConflictException,
+  InternalServerErrorException,
 } from '@nestjs/common';
-import { verifyToken } from '@clerk/backend';
 import { AppPermission, AppRole } from '../../node_modules/.prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import * as bcrypt from 'bcryptjs';
+import * as jwt from 'jsonwebtoken';
 import { AuthContext } from './auth.types';
 
 @Injectable()
 export class AuthService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private get secretKey() {
-    const value = process.env.CLERK_SECRET_KEY;
-    if (!value) {
-      throw new InternalServerErrorException(
-        'CLERK_SECRET_KEY is not configured',
-      );
-    }
-    return value;
+  private get jwtSecret() {
+    return process.env.JWT_SECRET || 'fallback-secret-for-dev-only-change-in-prod';
   }
 
-  private get bootstrapAdminUserIds() {
-    return (process.env.CLERK_BOOTSTRAP_ADMIN_USER_IDS ?? '')
-      .split(',')
-      .map((item) => item.trim())
-      .filter(Boolean);
-  }
+  async verify(token: string): Promise<AuthContext> {
+    if (!token) throw new UnauthorizedException('Missing bearer token');
 
-  private async verifyIdentity(token: string) {
-    if (!token) {
-      throw new UnauthorizedException('Missing bearer token');
-    }
+    try {
+      const decoded = jwt.verify(token, this.jwtSecret) as { userId: number; role: AppRole };
+      
+      const user = await this.prisma.user.findUnique({
+        where: { id: decoded.userId },
+        select: { id: true, role: true, permissions: true },
+      });
 
-    const payload = (await verifyToken(token, {
-      secretKey: this.secretKey,
-    })) as {
-      sub?: string;
-      org_role?: string;
-      org_permissions?: string[];
-    };
+      if (!user) throw new UnauthorizedException('User not found');
 
-    const clerkUserId = payload.sub ?? '';
-    if (!clerkUserId) {
-      throw new UnauthorizedException('Token missing user id');
-    }
-
-    return { clerkUserId };
-  }
-
-  async verifyCustomer(token: string) {
-    return this.verifyIdentity(token);
-  }
-
-  async verify(token: string) {
-    const { clerkUserId } = await this.verifyIdentity(token);
-
-    const bootstrap = this.bootstrapAdminUserIds.includes(clerkUserId);
-    if (bootstrap) {
       return {
-        clerkUserId,
-        appRole: AppRole.ADMIN,
-        appPermissions: Object.values(AppPermission),
-        source: 'bootstrap',
-      } satisfies AuthContext;
+        userId: user.id,
+        appRole: user.role,
+        appPermissions: user.permissions,
+        source: 'database',
+      };
+    } catch (e) {
+      throw new UnauthorizedException('Invalid token');
     }
+  }
 
-    const access = await this.prisma.userAccess.findUnique({
-      where: { clerkUserId },
-    });
-
-    if (!access) {
-      throw new UnauthorizedException('No access configured for this user');
-    }
-
-    return {
-      clerkUserId,
-      appRole: access.role,
-      appPermissions: access.permissions,
-      source: 'database',
-    } satisfies AuthContext;
+  async verifyCustomer(token: string): Promise<{ userId: number }> {
+    const auth = await this.verify(token);
+    return { userId: auth.userId };
   }
 
   async getAccessCheck(token: string) {
-    const { clerkUserId } = await this.verifyIdentity(token);
+    let authContext;
+    try {
+      authContext = await this.verify(token);
+    } catch (e) {
+      return { ok: false, reason: ['INVALID_TOKEN'] };
+    }
+
     const requiredRole = AppRole.ADMIN;
     const requiredPermissions = [
       AppPermission.VIEW_ADMIN,
@@ -94,53 +64,9 @@ export class AuthService {
       AppPermission.CATEGORIES_MANAGE,
     ];
 
-    const bootstrap = this.bootstrapAdminUserIds.includes(clerkUserId);
-    if (bootstrap) {
-      const allPermissions = Object.values(AppPermission);
-      return {
-        ok: true,
-        clerkUserId,
-        source: 'bootstrap' as const,
-        role: AppRole.ADMIN,
-        permissions: allPermissions,
-        required: {
-          role: requiredRole,
-          permissions: requiredPermissions,
-        },
-        missing: {
-          role: false,
-          permissions: [] as AppPermission[],
-        },
-        reason: [] as string[],
-      };
-    }
-
-    const access = await this.prisma.userAccess.findUnique({
-      where: { clerkUserId },
-    });
-
-    if (!access) {
-      return {
-        ok: false,
-        clerkUserId,
-        source: 'none' as const,
-        role: null,
-        permissions: [] as AppPermission[],
-        required: {
-          role: requiredRole,
-          permissions: requiredPermissions,
-        },
-        missing: {
-          role: true,
-          permissions: requiredPermissions,
-        },
-        reason: ['NO_USER_ACCESS_RECORD'],
-      };
-    }
-
-    const missingRole = access.role !== requiredRole;
+    const missingRole = authContext.appRole !== requiredRole;
     const missingPermissions = requiredPermissions.filter(
-      (permission) => !access.permissions.includes(permission),
+      (permission) => !authContext.appPermissions.includes(permission),
     );
 
     const reason: string[] = [];
@@ -149,18 +75,10 @@ export class AuthService {
 
     return {
       ok: !missingRole && missingPermissions.length === 0,
-      clerkUserId,
-      source: 'database' as const,
-      role: access.role,
-      permissions: access.permissions,
-      required: {
-        role: requiredRole,
-        permissions: requiredPermissions,
-      },
-      missing: {
-        role: missingRole,
-        permissions: missingPermissions,
-      },
+      userId: authContext.userId,
+      role: authContext.appRole,
+      permissions: authContext.appPermissions,
+      missing: { role: missingRole, permissions: missingPermissions },
       reason,
     };
   }

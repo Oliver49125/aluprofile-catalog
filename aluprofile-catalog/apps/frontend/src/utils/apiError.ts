@@ -1,8 +1,21 @@
 export function parseApiError(error: unknown): string {
-  if (error instanceof Error) {
+  const tryParse = (str: string) => {
+    let cleanStr = str;
+    if (cleanStr.startsWith('Error: ')) {
+      cleanStr = cleanStr.substring(7);
+    }
+    // Also remove leading/trailing quotes if it was doubly stringified
+    cleanStr = cleanStr.trim();
+    if (cleanStr.startsWith('"') && cleanStr.endsWith('"')) {
+      try {
+        cleanStr = JSON.parse(cleanStr);
+      } catch {
+        // ignore
+      }
+    }
+
     try {
-      // Try to parse the error message if it's JSON (NestJS standard error format)
-      const parsed = JSON.parse(error.message);
+      const parsed = JSON.parse(cleanStr);
       if (parsed && parsed.message) {
         if (Array.isArray(parsed.message)) {
           return parsed.message.join(', ');
@@ -10,10 +23,23 @@ export function parseApiError(error: unknown): string {
         return String(parsed.message);
       }
     } catch {
-      // If it's not JSON, just return the message
-      return error.message;
+      // Ignored
     }
-    return error.message;
+    
+    // If it's a generic "Unauthorized" error message inside the string but not JSON
+    if (cleanStr.includes('Invalid credentials')) return 'Invalid credentials';
+    if (cleanStr.includes('Unauthorized')) return 'Unauthorized';
+
+    return str;
+  };
+
+  if (error instanceof Error) {
+    return tryParse(error.message);
   }
-  return typeof error === 'string' ? error : 'An unexpected error occurred';
+
+  if (typeof error === 'string') {
+    return tryParse(error);
+  }
+
+  return 'An unexpected error occurred';
 }

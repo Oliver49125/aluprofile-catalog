@@ -1,18 +1,19 @@
 import { parseApiError } from './utils/apiError';
 import { useEffect, useMemo, useState } from 'react';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from './AuthContext';
 import { Mail, Search, ShieldCheck, Users, ShieldAlert } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { Button } from './components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { Input } from './components/ui/input';
 
-type ClerkUser = {
-  id: string;
+type User = {
+  id: number;
   firstName?: string;
   lastName?: string;
-  username?: string;
-  primaryEmailAddress?: string;
-  emailAddresses?: { id: string; emailAddress: string; verificationStatus?: string | null }[];
+  email: string;
+  role: string;
+  createdAt: string;
 };
 
 type Lang = 'en' | 'de';
@@ -22,10 +23,6 @@ type Props = {
   lang: Lang;
 };
 
-type ToastState = {
-  text: string;
-  kind: 'success' | 'error';
-};
 
 const API_BASE = (import.meta.env.VITE_API_BASE ?? 'http://localhost:3000/api').replace(/\/+$/, '');
 const PAGE_SIZE = 5;
@@ -200,31 +197,29 @@ function paginateItems<T>(items: T[], page: number, pageSize = PAGE_SIZE) {
 }
 
 export default function ClerkUsersPanel({ canManageUsers, lang }: Props) {
-  const { getToken } = useAuth();
-  const [users, setUsers] = useState<ClerkUser[]>([]);
+  const { token } = useAuth();
+  const [users, setUsers] = useState<User[]>([]);
   const [query, setQuery] = useState('');
   const [sortBy, setSortBy] = useState<'name-asc' | 'email-asc' | 'username-asc'>('name-asc');
   const [page, setPage] = useState(1);
   const [confirmAction, setConfirmAction] = useState<{ message: string; onConfirm: () => void } | null>(null);
-  const [toast, setToast] = useState<ToastState | null>(null);
-  const [form, setForm] = useState({
+    const [form, setForm] = useState({
     userId: '',
     email: '',
     password: '',
     firstName: '',
     lastName: '',
-    username: '',
+    role: 'USER',
   });
 
   const t = TXT[lang];
 
-  function showToast(msg: string, type: 'success' | 'error') {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 4500);
+  function showToast(message: string, type: 'success' | 'error') {
+    if (type === 'success') toast.success(message);
+    else toast.error(message);
   }
 
   async function api(path: string, options?: RequestInit) {
-    const token = await getToken();
     const res = await fetch(`${API_BASE}${path}`, {
       headers: {
         'Content-Type': 'application/json',
@@ -250,7 +245,7 @@ export default function ClerkUsersPanel({ canManageUsers, lang }: Props) {
 
   async function loadUsers() {
     if (!canManageUsers) return;
-    const data = await api('/admin/clerk-users');
+    const data = await api('/admin/users');
     setUsers(data);
   }
 
@@ -268,22 +263,17 @@ export default function ClerkUsersPanel({ canManageUsers, lang }: Props) {
       .filter((item) => {
         if (!search) return true;
         return [
-          item.id,
-          item.username,
+          String(item.id),
           item.firstName,
           item.lastName,
-          item.primaryEmailAddress,
-          item.emailAddresses?.[0]?.emailAddress,
+          item.email,
         ].some((value) => String(value ?? '').toLowerCase().includes(search));
       })
       .sort((a, b) => {
         if (sortBy === 'email-asc') {
-          return compareText(a.primaryEmailAddress || a.emailAddresses?.[0]?.emailAddress, b.primaryEmailAddress || b.emailAddresses?.[0]?.emailAddress);
+          return compareText(a.email, b.email);
         }
-        if (sortBy === 'username-asc') {
-          return compareText(a.username, b.username);
-        }
-        return compareText([a.firstName, a.lastName].filter(Boolean).join(' ') || a.username || a.id, [b.firstName, b.lastName].filter(Boolean).join(' ') || b.username || b.id);
+        return compareText([a.firstName, a.lastName].filter(Boolean).join(' ') || String(a.id), [b.firstName, b.lastName].filter(Boolean).join(' ') || String(b.id));
       });
   }, [query, sortBy, users]);
 
@@ -291,31 +281,35 @@ export default function ClerkUsersPanel({ canManageUsers, lang }: Props) {
 
   async function saveUser() {
     if (!canManageUsers) return;
+    
+    if (!form.email.trim() && !form.userId) {
+      showToast(lang === 'de' ? 'E-Mail ist erforderlich' : 'Email is required', 'error');
+      return;
+    }
+
     try {
       if (form.userId) {
-        await api(`/admin/clerk-users/${encodeURIComponent(form.userId)}`, {
+        await api(`/admin/users/${encodeURIComponent(form.userId)}`, {
           method: 'PUT',
           body: JSON.stringify({
             firstName: form.firstName.trim() || undefined,
             lastName: form.lastName.trim() || undefined,
-            username: form.username.trim() || undefined,
             password: form.password.trim() || undefined,
           }),
         });
       } else {
-        await api('/admin/clerk-users', {
+        await api('/admin/users', {
           method: 'POST',
           body: JSON.stringify({
             email: form.email.trim(),
             password: form.password.trim(),
             firstName: form.firstName.trim() || undefined,
             lastName: form.lastName.trim() || undefined,
-            username: form.username.trim() || undefined,
           }),
         });
       }
 
-      setForm({ userId: '', email: '', password: '', firstName: '', lastName: '', username: '' });
+      setForm({ userId: '', email: '', password: '', firstName: '', lastName: '', role: 'USER' });
       showToast(t.saved, 'success');
       await loadUsers();
     } catch (err) {
@@ -323,14 +317,14 @@ export default function ClerkUsersPanel({ canManageUsers, lang }: Props) {
     }
   }
 
-  async function deleteUser(userId: string) {
+  async function deleteUser(userId: string | number) {
     if (!canManageUsers) return;
     setConfirmAction({
       message: t.confirmDelete,
       onConfirm: async () => {
         setConfirmAction(null);
         try {
-          await api(`/admin/clerk-users/${encodeURIComponent(userId)}`, { method: 'DELETE' });
+          await api(`/admin/users/${encodeURIComponent(userId)}`, { method: 'DELETE' });
           showToast(t.deleted, 'success');
           await loadUsers();
         } catch (err) {
@@ -340,24 +334,23 @@ export default function ClerkUsersPanel({ canManageUsers, lang }: Props) {
     });
   }
 
-  function editUser(item: ClerkUser) {
+  function editUser(item: User) {
     setForm({
-      userId: item.id,
-      email: item.primaryEmailAddress ?? item.emailAddresses?.[0]?.emailAddress ?? '',
+      userId: String(item.id),
+      email: item.email,
       password: '',
       firstName: item.firstName ?? '',
       lastName: item.lastName ?? '',
-      username: item.username ?? '',
+      role: item.role ?? 'USER',
     });
   }
 
   function exportUsers(kind: 'excel' | 'pdf') {
-    const headers = [t.userId, t.nameAsc.replace(' A-Z', ''), t.email, t.username];
+    const headers = [t.userId, t.nameAsc.replace(' A-Z', ''), t.email];
     const rows = filteredUsers.map((item) => [
       item.id,
       [item.firstName, item.lastName].filter(Boolean).join(' ') || '-',
-      item.primaryEmailAddress || item.emailAddresses?.[0]?.emailAddress || '-',
-      item.username || '-',
+      item.email,
     ]);
     if (kind === 'excel') {
       downloadCsv('user-management.csv', headers, rows);
@@ -377,12 +370,7 @@ export default function ClerkUsersPanel({ canManageUsers, lang }: Props) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-5 pt-6">
-        {toast && (
-          <div className={`app-feedback ${toast.type === 'error' ? 'app-feedback-error' : 'app-feedback-success'}`}>
-            {toast.msg}
-          </div>
-        )}
-
+        
         {confirmAction && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={() => setConfirmAction(null)}>
             <div className="w-full max-w-sm rounded-[1.5rem] bg-white shadow-2xl p-6 text-center" onClick={e => e.stopPropagation()}>
@@ -405,14 +393,13 @@ export default function ClerkUsersPanel({ canManageUsers, lang }: Props) {
           </div>
           <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_auto_auto_auto]">
             <Input placeholder={t.search} value={query} onChange={(e) => setQuery(e.target.value)} />
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value as 'name-asc' | 'email-asc' | 'username-asc')}>
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value as 'name-asc' | 'email-asc')}>
               <option value="name-asc">{t.nameAsc}</option>
               <option value="email-asc">{t.emailAsc}</option>
-              <option value="username-asc">{t.usernameAsc}</option>
             </select>
             <Button variant="outline" onClick={() => exportUsers('excel')}>{t.exportExcel}</Button>
             <Button variant="outline" onClick={() => exportUsers('pdf')}>{t.exportPdf}</Button>
-            <Button variant="secondary" onClick={() => { setForm({ userId: '', email: '', password: '', firstName: '', lastName: '', username: '' }); loadUsers().catch((err) => showToast(parseApiError(err), 'error')); }}>{t.searchBtn}</Button>
+            <Button variant="secondary" onClick={() => { setForm({ userId: '', email: '', password: '', firstName: '', lastName: '', role: 'USER' }); loadUsers().catch((err) => showToast(parseApiError(err), 'error')); }}>{t.searchBtn}</Button>
           </div>
           <div className="mt-4 admin-table-wrap">
             <table className="w-full text-sm">
@@ -420,7 +407,6 @@ export default function ClerkUsersPanel({ canManageUsers, lang }: Props) {
                 <tr className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
                   <th className="px-4 py-3">{t.nameAsc.replace(' A-Z', '')}</th>
                   <th className="px-4 py-3">{t.email}</th>
-                  <th className="px-4 py-3">{t.username}</th>
                   <th className="px-4 py-3">{t.userId}</th>
                   <th className="px-4 py-3 text-right">{t.actions}</th>
                 </tr>
@@ -429,8 +415,7 @@ export default function ClerkUsersPanel({ canManageUsers, lang }: Props) {
                 {pagedUsers.items.map((item) => (
                   <tr key={item.id} className="material-table-row">
                     <td className="px-4 py-3 font-medium text-slate-950">{[item.firstName, item.lastName].filter(Boolean).join(' ') || '-'}</td>
-                    <td className="px-4 py-3 text-slate-600"><span className="inline-flex items-center gap-1"><Mail className="h-3.5 w-3.5 text-primary" /> {item.primaryEmailAddress || item.emailAddresses?.[0]?.emailAddress || '-'}</span></td>
-                    <td className="px-4 py-3 text-slate-600">{item.username || '-'}</td>
+                    <td className="px-4 py-3 text-slate-600"><span className="inline-flex items-center gap-1"><Mail className="h-3.5 w-3.5 text-primary" /> {item.email}</span></td>
                     <td className="px-4 py-3 text-xs text-slate-500">{item.id}</td>
                     <td className="px-4 py-3"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => editUser(item)}>{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteUser(item.id)}>{t.delete}</Button></div></td>
                   </tr>
@@ -448,7 +433,6 @@ export default function ClerkUsersPanel({ canManageUsers, lang }: Props) {
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             <Input placeholder={t.email} value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
             <Input type="password" placeholder={t.password} value={form.password} onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))} />
-            <Input placeholder={t.username} value={form.username} onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))} />
             <Input placeholder={t.firstName} value={form.firstName} onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))} />
             <Input placeholder={t.lastName} value={form.lastName} onChange={(e) => setForm((f) => ({ ...f, lastName: e.target.value }))} />
             <Button onClick={saveUser}>{form.userId ? t.update : t.create}</Button>

@@ -1,6 +1,7 @@
+import toast from 'react-hot-toast';
 import { useEffect, useMemo, useState } from 'react';
 import { parseApiError } from './utils/apiError';
-import { SignedIn, SignedOut, UserButton, useAuth, useSignIn, useUser } from '@clerk/clerk-react';
+import { useAuth } from './AuthContext';
 import {
   BadgeCheck,
   Boxes,
@@ -21,6 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { Input } from './components/ui/input';
 import ClerkUsersPanel from './ClerkUsersPanel';
 
+type CurrencyOption = { id: number; code: string; symbol: string; _count?: { profiles: number } };
 type RefOption = { id: number; name: string; nameDe?: string; profilesCount?: number };
 type SupplierOption = {
   id: number;
@@ -31,6 +33,7 @@ type SupplierOption = {
   email?: string;
   phone?: string;
   website?: string;
+  uid?: string;
   _count?: { profiles: number };
 };
 type Profile = {
@@ -53,6 +56,9 @@ type Profile = {
   supplier?: SupplierOption;
   applications: RefOption[];
   crossSections: RefOption[];
+  price?: number;
+  currencyId?: number;
+  currency?: CurrencyOption;
 };
 type AppRole = 'ADMIN' | 'MANAGER' | 'USER';
 type AppPermission =
@@ -67,9 +73,9 @@ type AuthContext = {
   appPermissions: AppPermission[];
   source: 'database' | 'bootstrap';
 };
-type UserAccess = {
+type UserAdmin = {
   id: number;
-  clerkUserId: string;
+  email: string;
   role: AppRole;
   permissions: AppPermission[];
 };
@@ -100,6 +106,7 @@ const TXT = {
     language: 'Language',
     profiles: 'Profiles',
     categories: 'Categories',
+    currencies: 'Currencies',
     suppliers: 'Suppliers',
     clerkUsers: 'Users',
     managedUsers: 'Managed Users',
@@ -116,11 +123,18 @@ const TXT = {
     crossSection: 'Cross-section',
     crossSectionName: 'Cross-section name',
     saveCrossSection: 'Save Cross-section',
+    currencyCode: 'Currency Code (e.g., EUR)',
+    currencySymbol: 'Currency Symbol (e.g., €)',
+    saveCurrency: 'Save Currency',
+    addCurrency: 'Add Currency',
+    filterCurrencies: 'Filter currencies',
     saveProfile: 'Save Profile',
+    price: 'Price',
+    currency: 'Currency',
     drawingFile: 'Drawing file',
     photoFile: 'Photo file',
     clerkUserId: 'User ID (user_xxx)',
-    saveUserAccess: 'Save User Access',
+    saveUserAdmin: 'Save User Access',
     backendEnforced: 'Admin role plus permissions are enforced by backend for all /admin endpoints.',
     login: 'Catalog System Login',
     accessDenied: 'Access denied',
@@ -136,6 +150,7 @@ const TXT = {
     email: 'Email',
     phone: 'Phone',
     website: 'Website',
+    uid: 'UID#',
     filterSuppliers: 'Filter suppliers',
     supplier: 'Supplier',
     selectSupplier: 'Select Supplier...',
@@ -200,6 +215,7 @@ const TXT = {
     language: 'Sprache',
     profiles: 'Profile',
     categories: 'Kategorien',
+    currencies: 'Währungen',
     suppliers: 'Lieferanten',
     clerkUsers: 'Benutzer',
     managedUsers: 'Verwaltete Benutzer',
@@ -216,11 +232,18 @@ const TXT = {
     crossSection: 'Querschnitt',
     crossSectionName: 'Querschnittsname',
     saveCrossSection: 'Querschnitt speichern',
+    currencyCode: 'Währungscode (z.B., EUR)',
+    currencySymbol: 'Währungssymbol (z.B., €)',
+    saveCurrency: 'Währung speichern',
+    addCurrency: 'Währung hinzufügen',
+    filterCurrencies: 'Währungen filtern',
     saveProfile: 'Profil speichern',
+    price: 'Preis',
+    currency: 'Währung',
     drawingFile: 'Zeichnungsdatei',
     photoFile: 'Fotodatei',
     clerkUserId: 'Benutzer-ID (user_xxx)',
-    saveUserAccess: 'Benutzerzugriff speichern',
+    saveUserAdmin: 'Benutzerzugriff speichern',
     backendEnforced: 'Admin-Rolle und Berechtigungen werden fur alle /admin-Endpunkte im Backend erzwungen.',
     login: 'Katalogsystem-Anmeldung',
     accessDenied: 'Zugriff verweigert',
@@ -236,6 +259,7 @@ const TXT = {
     email: 'E-Mail',
     phone: 'Telefon',
     website: 'Webseite',
+    uid: 'UID-Nr.',
     filterSuppliers: 'Lieferanten filtern',
     supplier: 'Lieferant',
     selectSupplier: 'Lieferant auswählen...',
@@ -388,9 +412,7 @@ function exportTablePdf(title: string, headers: string[], rows: Array<Array<stri
 }
 
 function AdminPage() {
-  const { getToken, isSignedIn } = useAuth();
-  const { user } = useUser();
-  const { isLoaded: isSignInLoaded, signIn, setActive } = useSignIn();
+  const { token, user, login, logout, isLoading } = useAuth();
   const [message, setMessage] = useState('');
   const [messageKind, setMessageKind] = useState<'error' | 'success'>('error');
   const [lang, setLang] = useState<Lang>('en');
@@ -404,23 +426,25 @@ function AdminPage() {
   const [resetCode, setResetCode] = useState('');
   const [resetPassword, setResetPassword] = useState('');
   const [showResetPassword, setShowResetPassword] = useState(false);
-  const [activeSection, setActiveSection] = useState<'overview' | 'profiles' | 'categories' | 'suppliers' | 'users' | 'roles'>('overview');
+  const [activeSection, setActiveSection] = useState<'overview' | 'profiles' | 'categories' | 'currencies' | 'suppliers' | 'users' | 'roles'>('overview');
+
+  const [websiteVisits, setWebsiteVisits] = useState<number | null>(null);
   const [adminRef, setAdminRef] = useState<{
     suppliers: SupplierOption[];
     applications: RefOption[];
     crossSections: RefOption[];
+    currencies: CurrencyOption[];
     statusOptions: string[];
     roleOptions: AppRole[];
     permissionOptions: AppPermission[];
   } | null>(null);
   const [adminProfiles, setAdminProfiles] = useState<Profile[]>([]);
-  const [authContext, setAuthContext] = useState<AuthContext | null>(null);
-  const [userAccessList, setUserAccessList] = useState<UserAccess[]>([]);
+    const [userList, setUserList] = useState<UserAdmin[]>([]);
   const [applicationName, setApplicationName] = useState('');
   const [applicationNameDe, setApplicationNameDe] = useState('');
   const [crossSectionName, setCrossSectionName] = useState('');
   const [crossSectionNameDe, setCrossSectionNameDe] = useState('');
-  const [editType, setEditType] = useState<'application' | 'cross' | 'profile' | 'supplier' | ''>('');
+  const [editType, setEditType] = useState<'application' | 'cross' | 'currency' | 'profile' | 'supplier' | ''>('');
   const [editId, setEditId] = useState<number | null>(null);
   const [profileForm, setProfileForm] = useState({
     name: '',
@@ -441,47 +465,59 @@ function AdminPage() {
     supplierId: '' as string | number,
     applicationIds: [] as number[],
     crossSectionIds: [] as number[],
+    price: '',
+    currencyId: '' as string | number,
   });
-  const [userAccessForm, setUserAccessForm] = useState<{
-    clerkUserId: string;
+  const [userForm, setUserForm] = useState<{
+    id?: number;
+    email: string;
+    password?: string;
     role: AppRole;
     permissions: AppPermission[];
   }>({
-    clerkUserId: '',
+    email: '',
+    password: '',
     role: 'USER',
     permissions: ['VIEW_ADMIN'],
   });
   const [showApplicationForm, setShowApplicationForm] = useState(false);
   const [showCrossSectionForm, setShowCrossSectionForm] = useState(false);
+  const [showCurrencyForm, setShowCurrencyForm] = useState(false);
+  const [currencyCode, setCurrencyCode] = useState('');
+  const [currencySymbol, setCurrencySymbol] = useState('');
+  const [currencyFilter, setCurrencyFilter] = useState('');
+  const [currencySort, setCurrencySort] = useState<'code-asc' | 'code-desc'>('code-asc');
+  const [currencyPage, setCurrencyPage] = useState(1);
+  const [showSupplierForm, setShowSupplierForm] = useState(false);
   const [showProfileForm, setShowProfileForm] = useState(false);
   const [showRoleForm, setShowRoleForm] = useState(false);
   const [applicationPage, setApplicationPage] = useState(1);
   const [crossSectionPage, setCrossSectionPage] = useState(1);
   const [profilePage, setProfilePage] = useState(1);
   const [rolePage, setRolePage] = useState(1);
-  const [applicationFilter, setApplicationFilter] = useState('');
-  const [applicationSort, setApplicationSort] = useState<'name-asc' | 'name-desc' | 'count-desc'>('name-asc');
-  const [crossSectionFilter, setCrossSectionFilter] = useState('');
-  const [crossSectionSort, setCrossSectionSort] = useState<'name-asc' | 'name-desc' | 'count-desc'>('name-asc');
-  const [profileFilter, setProfileFilter] = useState('');
-  const [profileSort, setProfileSort] = useState<'name-asc' | 'name-desc' | 'status-asc'>('name-asc');
-  const [roleFilter, setRoleFilter] = useState('');
-  const [roleSort, setRoleSort] = useState<'user-asc' | 'role-asc'>('user-asc');
 
   const [supplierFilter, setSupplierFilter] = useState('');
   const [supplierPage, setSupplierPage] = useState(1);
-  const [showSupplierForm, setShowSupplierForm] = useState(false);
   const [supplierForm, setSupplierForm] = useState({
-    name: '', nameDe: '', address: '', contactPerson: '', email: '', phone: '', website: ''
+    name: '', nameDe: '', address: '', contactPerson: '', email: '', phone: '', website: '', uid: ''
   });
   const [confirmAction, setConfirmAction] = useState<{ message: string; onConfirm: () => void } | null>(null);
+  
+  const [applicationFilter, setApplicationFilter] = useState('');
+  const [applicationSort, setApplicationSort] = useState<string>('name-asc');
+  const [crossSectionFilter, setCrossSectionFilter] = useState('');
+  const [crossSectionSort, setCrossSectionSort] = useState<string>('name-asc');
+  const [profileFilter, setProfileFilter] = useState('');
+  const [profileSort, setProfileSort] = useState<string>('name-asc');
+  const [roleFilter, setRoleFilter] = useState('');
+  const [roleSort, setRoleSort] = useState<'user-asc' | 'role-asc'>('user-asc');
+
   const t = TXT[lang];
 
-  const [sectionMessage, setSectionMessage] = useState<{ section: 'global' | 'profile' | 'application' | 'cross-section' | 'supplier' | 'user'; text: string; type: 'success' | 'error' } | null>(null);
 
-  function showMessage(text: string, type: 'error' | 'success' = 'error', section: 'global' | 'profile' | 'application' | 'cross-section' | 'supplier' | 'user' = 'global') {
-    setSectionMessage({ section, text, type });
-    setTimeout(() => setSectionMessage(null), 5000);
+  function showMessage(text: string, type: 'success' | 'error' = 'error') {
+    if (type === 'success') toast.success(text);
+    else toast.error(text);
   }
 
   useEffect(() => {
@@ -493,7 +529,7 @@ function AdminPage() {
     window.localStorage.setItem('aluprofile_lang', lang);
   }, [lang]);
 
-  const permissions = authContext?.appPermissions ?? [];
+  const permissions = user?.permissions ?? [];
   const canViewAdmin = permissions.includes('VIEW_ADMIN');
   const canManageUsers = permissions.includes('USERS_MANAGE');
     const canManageProfiles = permissions.includes('PROFILES_MANAGE');
@@ -502,46 +538,36 @@ function AdminPage() {
 
   useEffect(() => {
     const nextSection =
-      canManageProfiles ? 'profiles' : canManageSuppliers ? 'suppliers' : canManageCategories ? 'categories' : canManageUsers ? 'users' : 'overview';
+      canManageProfiles ? 'profiles' : canManageCategories ? 'categories' : canManageCategories ? 'currencies' : canManageSuppliers ? 'suppliers' : canManageUsers ? 'users' : 'overview';
 
     if (activeSection === 'overview') return;
     if (activeSection === 'profiles' && canManageProfiles) return;
     if (activeSection === 'suppliers' && canManageSuppliers) return;
     if (activeSection === 'categories' && canManageCategories) return;
+    if (activeSection === 'currencies' && canManageCategories) return;
+    if (activeSection === 'currencies' && canManageCategories) return;
     if ((activeSection === 'users' || activeSection === 'roles') && canManageUsers) return;
 
     setActiveSection(nextSection);
   }, [activeSection, canManageCategories, canManageProfiles, canManageUsers, canManageSuppliers]);
 
-  function parseAuthError(error: unknown) {
-    if (typeof error === 'string') return error;
-    if (error && typeof error === 'object') {
-      const authError = error as { errors?: Array<{ longMessage?: string; message?: string }>; message?: string };
-      if (Array.isArray(authError.errors) && authError.errors.length > 0) {
-        return authError.errors[0].longMessage || authError.errors[0].message || 'Authentication failed';
-      }
-      if (authError.message) return authError.message;
-    }
-    return 'Authentication failed';
-  }
+  
 
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!isSignInLoaded || !signIn || !setActive) return;
     setMessage('');
     setLoginLoading(true);
     try {
-      const result = await signIn.create({
-        identifier: identifier.trim(),
-        password,
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: identifier.trim(), password }),
       });
-      if (result.status !== 'complete' || !result.createdSessionId) {
-        throw new Error('Sign-in could not be completed.');
-      }
-      await setActive({ session: result.createdSessionId });
-      window.location.assign('/admin');
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      login(data.token, data.user);
     } catch (error) {
-      showMessage(parseAuthError(error), 'error');
+      showMessage(parseApiError(error), 'error');
     } finally {
       setLoginLoading(false);
     }
@@ -567,27 +593,13 @@ function AdminPage() {
 
   async function handleForgotPasswordRequest(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!isSignInLoaded || !signIn) return;
-    setMessage('');
-    setForgotPasswordLoading(true);
-    try {
-      await signIn.create({
-        strategy: 'reset_password_email_code',
-        identifier: identifier.trim(),
-      });
-      setForgotPasswordStep('verify');
-      showMessage(t.resetPasswordSent, 'success');
-    } catch (error) {
-      showMessage(parseAuthError(error), 'error');
-    } finally {
-      setForgotPasswordLoading(false);
-    }
+    showMessage('Password reset is currently disabled');
   }
 
 
 
   function resetSupplierForm() {
-    setSupplierForm({ name: '', nameDe: '', address: '', contactPerson: '', email: '', phone: '', website: '' });
+    setSupplierForm({ name: '', nameDe: '', address: '', contactPerson: '', email: '', phone: '', website: '', uid: '' });
     setEditType('');
     setEditId(null);
     setShowSupplierForm(false);
@@ -600,16 +612,17 @@ function AdminPage() {
       name: supplier.name,
       nameDe: supplier.nameDe ?? '',
       address: supplier.address ?? '',
-      contactPerson: supplier.contactPerson ?? '',
-      email: supplier.email ?? '',
-      phone: supplier.phone ?? '',
-      website: supplier.website ?? '',
+      contactPerson: supplier.contactPerson || '',
+      email: supplier.email || '',
+      phone: supplier.phone || '',
+      website: supplier.website || '',
+      uid: supplier.uid || '',
     });
     setShowSupplierForm(true);
   }
 
   async function saveSupplier() {
-    if (!supplierForm.name) { showMessage('Supplier name is required', 'error', 'supplier'); return; }
+    if (!supplierForm.name) { showMessage('Supplier name is required', 'error'); return; }
     try {
       const method = editType === 'supplier' && editId ? 'PUT' : 'POST';
       const path = method === 'PUT' ? '/admin/suppliers/' + editId : '/admin/suppliers';
@@ -617,9 +630,9 @@ function AdminPage() {
       resetSupplierForm();
       setSupplierPage(1);
       await adminLoad();
-      showMessage('Supplier saved successfully', 'success', 'supplier');
+      showMessage('Supplier saved successfully', 'success');
     } catch (error) {
-      showMessage(parseApiError(error), 'error', 'supplier');
+      showMessage(parseApiError(error), 'error');
     }
   }
 
@@ -632,33 +645,27 @@ function AdminPage() {
   }
 
   function resetCrossSectionForm() {
-    setCrossSectionName('');
-    setCrossSectionNameDe('');
+    setShowCrossSectionForm(false);
     setEditType('');
     setEditId(null);
-    setShowCrossSectionForm(false);
+    setCrossSectionName('');
+    setCrossSectionNameDe('');
+  }
+
+  function resetCurrencyForm() {
+    setShowCurrencyForm(false);
+    setEditType('');
+    setEditId(null);
+    setCurrencyCode('');
+    setCurrencySymbol('');
   }
 
   function resetProfileForm() {
     setProfileForm({
-      name: '',
-      nameDe: '',
-      description: '',
-      descriptionDe: '',
-      usage: '',
-      usageDe: '',
-      drawingUrl: '',
-      photoUrl: '',
-      logoUrl: '',
-      dimensions: '',
-      weightPerMeter: '',
-      material: '',
-      materialDe: '',
-      lengthMm: '',
-      status: 'AVAILABLE',
-      supplierId: '' as string | number,
-      applicationIds: [] as number[],
-      crossSectionIds: [] as number[],
+      name: '', nameDe: '', description: '', descriptionDe: '', usage: '', usageDe: '',
+      drawingUrl: '', photoUrl: '', logoUrl: '', dimensions: '', weightPerMeter: '',
+      material: '', materialDe: '', lengthMm: '', status: 'AVAILABLE', supplierId: '',
+      applicationIds: [], crossSectionIds: [], price: '', currencyId: '',
     });
     setEditType('');
     setEditId(null);
@@ -666,8 +673,9 @@ function AdminPage() {
   }
 
   function resetRoleForm() {
-    setUserAccessForm({
-      clerkUserId: '',
+    setUserForm({
+      email: '',
+      password: '',
       role: 'USER',
       permissions: ['VIEW_ADMIN'],
     });
@@ -684,12 +692,28 @@ function AdminPage() {
     setShowApplicationForm(true);
   }
 
-  function startEditCrossSection(crossSection: RefOption) {
-    setEditType('cross');
-    setEditId(crossSection.id);
-    setCrossSectionName(crossSection.name);
-    setCrossSectionNameDe(crossSection.nameDe ?? '');
+  function startEditCrossSection(item: RefOption) {
+    resetProfileForm();
+    resetApplicationForm();
+    resetCurrencyForm();
     setShowCrossSectionForm(true);
+    setEditType('cross');
+    setEditId(item.id);
+    setCrossSectionName(item.name);
+    setCrossSectionNameDe(item.nameDe ?? '');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+  }
+
+  function startEditCurrency(item: CurrencyOption) {
+    resetProfileForm();
+    resetApplicationForm();
+    resetCrossSectionForm();
+    setShowCurrencyForm(true);
+    setEditType('currency');
+    setEditId(item.id);
+    setCurrencyCode(item.code);
+    setCurrencySymbol(item.symbol);
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
   }
 
   function startEditProfile(profile: Profile) {
@@ -706,21 +730,25 @@ function AdminPage() {
       photoUrl: profile.photoUrl ?? '',
       logoUrl: profile.logoUrl ?? '',
       dimensions: profile.dimensions ?? '',
-      weightPerMeter: String(profile.weightPerMeter ?? ''),
+      weightPerMeter: profile.weightPerMeter ? new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(profile.weightPerMeter) : '',
       material: profile.material ?? '',
       materialDe: profile.materialDe ?? '',
-      lengthMm: String(profile.lengthMm ?? ''),
+      lengthMm: profile.lengthMm ? new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(profile.lengthMm) : '',
       status: profile.status ?? 'AVAILABLE',
       supplierId: profile.supplier?.id || '',
       applicationIds: profile.applications.map((item) => item.id),
       crossSectionIds: profile.crossSections.map((item) => item.id),
+      price: profile.price !== undefined && profile.price !== null ? new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(profile.price) : '',
+      currencyId: profile.currency?.id || '',
     });
     setShowProfileForm(true);
   }
 
-  function startEditRole(item: UserAccess) {
-    setUserAccessForm({
-      clerkUserId: item.clerkUserId,
+  function startEditRole(item: UserAdmin) {
+    setUserForm({
+      id: item.id,
+      email: item.email,
+      password: '',
       role: item.role,
       permissions: item.permissions,
     });
@@ -729,29 +757,10 @@ function AdminPage() {
 
   async function handleForgotPasswordReset(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!isSignInLoaded || !signIn || !setActive) return;
-    setMessage('');
-    setForgotPasswordLoading(true);
-    try {
-      const result = await signIn.attemptFirstFactor({
-        strategy: 'reset_password_email_code',
-        code: resetCode.trim(),
-        password: resetPassword,
-      });
-      if (result.status !== 'complete' || !result.createdSessionId) {
-        throw new Error('Password reset could not be completed.');
-      }
-      await setActive({ session: result.createdSessionId });
-      window.location.assign('/admin');
-    } catch (error) {
-      showMessage(parseAuthError(error), 'error');
-    } finally {
-      setForgotPasswordLoading(false);
-    }
   }
 
   async function api(path: string, options?: RequestInit, requiresAuth = false) {
-    const authToken = requiresAuth ? await getToken() : null;
+    const authToken = requiresAuth ? token : null;
     const res = await fetch(API_BASE + path, {
       headers: {
         'Content-Type': 'application/json',
@@ -767,6 +776,15 @@ function AdminPage() {
   }
 
   async function adminLoad() {
+
+    try {
+      const publicOverview = await api('/public/overview?lang=en');
+      if (publicOverview?.totals?.visits !== undefined) {
+        setWebsiteVisits(publicOverview.totals.visits);
+      }
+    } catch(err) {
+      console.error(err);
+    }
     if (!canViewAdmin) return;
     const ref = await api('/admin/reference-data', undefined, true);
     setAdminRef(ref);
@@ -778,41 +796,26 @@ function AdminPage() {
     }
   }
 
-  async function loadAuthContext() {
-    if (!isSignedIn) {
-      setAuthContext(null);
-      return;
-    }
-    try {
-      const me = await api('/auth/me', undefined, true);
-      setAuthContext(me.auth ?? null);
-    } catch {
-      setAuthContext(null);
-    }
-  }
-
-  async function loadUserAccess() {
+    async function loadUsers() {
     if (!canManageUsers) return;
-    const list = await api('/admin/user-access', undefined, true);
-    setUserAccessList(list);
+    const list = await api('/admin/users', undefined, true);
+    setUserList(list);
   }
 
-  useEffect(() => {
-    loadAuthContext().catch((err) => showMessage(String(err), 'error'));
-  }, [isSignedIn]);
+  
 
   useEffect(() => {
     adminLoad().catch((err) => canViewAdmin && showMessage(String(err), 'error'));
-  }, [canViewAdmin, canManageProfiles]);
+  }, [canViewAdmin]);
 
   useEffect(() => {
-    loadUserAccess().catch((err) => canManageUsers && showMessage(String(err), 'error'));
+    loadUsers().catch((err) => canManageUsers && showMessage(String(err), 'error'));
   }, [canManageUsers]);
 
   async function uploadFile(file: File) {
     const form = new FormData();
     form.append('file', file);
-    const authToken = await getToken();
+    const authToken = token;
     const res = await fetch(API_BASE + '/admin/uploads', {
       method: 'POST',
       headers: authToken ? { Authorization: 'Bearer ' + authToken } : {},
@@ -825,7 +828,7 @@ function AdminPage() {
 
 
   async function saveApplication() {
-    if (!applicationName) { showMessage('Application name is required', 'error', 'application'); return; }
+    if (!applicationName) { showMessage('Application name is required', 'error'); return; }
     try {
       const method = editType === 'application' && editId ? 'PUT' : 'POST';
       const path = method === 'PUT' ? '/admin/applications/' + editId : '/admin/applications';
@@ -833,14 +836,14 @@ function AdminPage() {
       resetApplicationForm();
       setApplicationPage(1);
       await adminLoad();
-      showMessage('Application saved successfully', 'success', 'application');
+      showMessage('Application saved successfully', 'success');
     } catch (error) {
-      showMessage(parseApiError(error), 'error', 'application');
+      showMessage(parseApiError(error), 'error');
     }
   }
 
   async function saveCrossSection() {
-    if (!crossSectionName) { showMessage('Cross-section name is required', 'error', 'cross-section'); return; }
+    if (!crossSectionName) { showMessage('Cross-section name is required', 'error'); return; }
     try {
       const method = editType === 'cross' && editId ? 'PUT' : 'POST';
       const path = method === 'PUT' ? '/admin/cross-sections/' + editId : '/admin/cross-sections';
@@ -848,14 +851,40 @@ function AdminPage() {
       resetCrossSectionForm();
       setCrossSectionPage(1);
       await adminLoad();
-      showMessage('Cross-section saved successfully', 'success', 'cross-section');
+      showMessage('Cross-section saved successfully', 'success');
     } catch (error) {
-      showMessage(parseApiError(error), 'error', 'cross-section');
+      showMessage(parseApiError(error), 'error');
+    }
+  }
+
+  async function saveCurrency() {
+    if (!currencyCode.trim() || !currencySymbol.trim()) {
+      showMessage('Code and Symbol are required', 'error');
+      return;
+    }
+    try {
+      if (editType === 'currency' && editId) {
+        await api('/admin/currencies/' + editId, {
+          method: 'PUT',
+          body: JSON.stringify({ code: currencyCode.trim(), symbol: currencySymbol.trim() }),
+        }, true);
+        showMessage(lang === 'de' ? 'Währung erfolgreich aktualisiert' : 'Currency updated successfully', 'success');
+      } else {
+        await api('/admin/currencies', {
+          method: 'POST',
+          body: JSON.stringify({ code: currencyCode.trim(), symbol: currencySymbol.trim() }),
+        }, true);
+        showMessage(lang === 'de' ? 'Währung erfolgreich erstellt' : 'Currency created successfully', 'success');
+      }
+      resetCurrencyForm();
+      adminLoad();
+    } catch (error) {
+      showMessage(parseApiError(error), 'error');
     }
   }
 
   async function saveProfile() {
-    if (!profileForm.name) { showMessage('Profile name is required', 'error', 'profile'); return; }
+    if (!profileForm.name) { showMessage('Profile name is required', 'error'); return; }
     try {
       const method = editType === 'profile' && editId ? 'PUT' : 'POST';
       const path = method === 'PUT' ? '/admin/profiles/' + editId : '/admin/profiles';
@@ -868,13 +897,13 @@ function AdminPage() {
       resetProfileForm();
       setProfilePage(1);
       await adminLoad();
-      showMessage('Profile saved successfully', 'success', 'profile');
+      showMessage('Profile saved successfully', 'success');
     } catch (error) {
-      showMessage(parseApiError(error), 'error', 'profile');
+      showMessage(parseApiError(error), 'error');
     }
   }
 
-  const deleteItem = async (path: string, section: 'profile' | 'application' | 'cross-section' | 'supplier') => {
+  const deleteItem = async (path: string) => {
     setConfirmAction({
       message: t.confirmDelete,
       onConfirm: async () => {
@@ -882,45 +911,47 @@ function AdminPage() {
         try {
           await api(path, { method: 'DELETE' }, true);
           await adminLoad();
-          showMessage('Item deleted successfully', 'success', section);
+          showMessage('Item deleted successfully', 'success');
         } catch (err) {
-          showMessage(parseApiError(err), 'error', section);
+          showMessage(parseApiError(err), 'error');
         }
       }
     });
   };
 
-  async function saveUserAccess() {
-    if (!userAccessForm.clerkUserId.trim()) { showMessage('Clerk User ID is required', 'error', 'user'); return; }
+  async function saveUser() {
+    if (!userForm.email.trim()) { showMessage('Email is required', 'error'); return; }
     try {
-      await api('/admin/user-access', {
-        method: 'POST',
+      const isEditing = !!userForm.id;
+      await api('/admin/users' + (isEditing ? '/' + userForm.id : ''), {
+        method: isEditing ? 'PUT' : 'POST',
         body: JSON.stringify({
-          clerkUserId: userAccessForm.clerkUserId.trim(),
-          role: userAccessForm.role,
-          permissions: userAccessForm.permissions,
+          email: userForm.email.trim(),
+          ...(userForm.password ? { password: userForm.password } : {}),
+          role: userForm.role,
+          permissions: userForm.permissions,
         }),
       }, true);
       resetRoleForm();
       setRolePage(1);
-      await loadUserAccess();
-      showMessage('Access rule saved successfully', 'success', 'user');
+      await loadUsers();
+      showMessage('User saved successfully', 'success');
     } catch (error) {
-      showMessage(parseApiError(error), 'error', 'user');
+      showMessage(parseApiError(error), 'error');
     }
   }
 
-  async function deleteUserAccess(clerkUserId: string) {
+  async function deleteUser(id: number) {
     setConfirmAction({
       message: t.confirmDelete,
       onConfirm: async () => {
         setConfirmAction(null);
         try {
-          await api('/admin/user-access/' + encodeURIComponent(clerkUserId), { method: 'DELETE' }, true);
-          await loadUserAccess();
-          showMessage('Access rule deleted successfully', 'success', 'user');
+          await api('/admin/users/' + id, { method: 'DELETE' }, true);
+          await loadUsers();
+          showMessage('User deleted successfully', 'success');
         } catch (err) {
-          showMessage(parseApiError(err), 'error', 'user');
+          showMessage(parseApiError(err), 'error');
         }
       }
     });
@@ -940,7 +971,7 @@ function AdminPage() {
   useEffect(() => setApplicationPage(1), [applicationFilter, applicationSort, applications.length]);
   useEffect(() => setCrossSectionPage(1), [crossSectionFilter, crossSectionSort, crossSections.length]);
   useEffect(() => setProfilePage(1), [profileFilter, profileSort, adminProfiles.length]);
-  useEffect(() => setRolePage(1), [roleFilter, roleSort, userAccessList.length]);
+  useEffect(() => setRolePage(1), [roleFilter, roleSort, userList.length]);
 
   const filteredApplications = useMemo(() => {
     const query = normalizeForSearch(applicationFilter);
@@ -954,15 +985,34 @@ function AdminPage() {
   }, [applicationFilter, applicationSort, applications]);
 
   const filteredCrossSections = useMemo(() => {
-    const query = normalizeForSearch(crossSectionFilter);
-    return [...crossSections]
-      .filter((item) => !query || [item.name, item.nameDe].some((value) => normalizeForSearch(value).includes(query)))
-      .sort((a, b) => {
-        if (crossSectionSort === 'name-desc') return compareText(b.name, a.name);
-        if (crossSectionSort === 'count-desc') return (b.profilesCount ?? 0) - (a.profilesCount ?? 0);
-        return compareText(a.name, b.name);
-      });
-  }, [crossSectionFilter, crossSectionSort, crossSections]);
+    let result = crossSections;
+    if (crossSectionFilter) {
+      const q = normalizeForSearch(crossSectionFilter);
+      result = result.filter((item) => normalizeForSearch(item.name).includes(q) || (item.nameDe && normalizeForSearch(item.nameDe).includes(q)));
+    }
+    result.sort((left, right) => {
+      if (crossSectionSort === 'name-asc') return left.name.localeCompare(right.name);
+      if (crossSectionSort === 'name-desc') return right.name.localeCompare(left.name);
+      if (crossSectionSort === 'count-desc') return (right.profilesCount ?? 0) - (left.profilesCount ?? 0);
+      return 0;
+    });
+    return result;
+  }, [crossSections, crossSectionFilter, crossSectionSort]);
+
+  const currencies = adminRef?.currencies ?? [];
+  const filteredCurrencies = useMemo(() => {
+    let result = currencies;
+    if (currencyFilter) {
+      const q = normalizeForSearch(currencyFilter);
+      result = result.filter((item) => normalizeForSearch(item.code).includes(q) || normalizeForSearch(item.symbol).includes(q));
+    }
+    result.sort((left, right) => {
+      if (currencySort === 'code-asc') return left.code.localeCompare(right.code);
+      if (currencySort === 'code-desc') return right.code.localeCompare(left.code);
+      return 0;
+    });
+    return result;
+  }, [currencies, currencyFilter, currencySort]);
 
   const filteredProfiles = useMemo(() => {
     const query = normalizeForSearch(profileFilter);
@@ -978,18 +1028,19 @@ function AdminPage() {
 
   const filteredRoles = useMemo(() => {
     const query = normalizeForSearch(roleFilter);
-    return [...userAccessList]
-      .filter((item) => !query || [item.clerkUserId, item.role, item.permissions.join(', ')].some((value) => normalizeForSearch(value).includes(query)))
+    return [...userList]
+      .filter((item) => !query || [item.email, item.role, item.permissions.join(', ')].some((value) => normalizeForSearch(value).includes(query)))
       .sort((a, b) => {
-        if (roleSort === 'role-asc') return compareText(a.role, b.role) || compareText(a.clerkUserId, b.clerkUserId);
-        return compareText(a.clerkUserId, b.clerkUserId);
+        if (roleSort === 'role-asc') return compareText(a.role, b.role) || compareText(a.email, b.email);
+        return compareText(a.email, b.email);
       });
-  }, [roleFilter, roleSort, userAccessList]);
+  }, [roleFilter, roleSort, userList]);
 
 
   const applicationRows = paginateItems(filteredApplications, applicationPage);
   const crossSectionRows = paginateItems(filteredCrossSections, crossSectionPage);
   const profileRows = paginateItems(filteredProfiles, profilePage);
+  const currencyRows = paginateItems(filteredCurrencies, currencyPage);
   const roleRows = paginateItems(filteredRoles, rolePage);
 
   function exportAdminSection(kind: 'excel' | 'pdf', title: string, headers: string[], rows: Array<Array<string | number>>) {
@@ -1003,7 +1054,7 @@ function AdminPage() {
   return (
     <div className="min-h-screen">
       <div className="material-shell">
-        {isSignedIn && (
+        {!!token && (
         <header className="material-hero mb-6 p-6 md:p-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -1023,11 +1074,11 @@ function AdminPage() {
                   <option value="de">DE</option>
                 </select>
               </label>
-              <SignedIn>
+              {token && (
                 <div className="rounded-full border border-white/70 bg-white/90 p-1.5 shadow-[0_16px_36px_-28px_rgba(15,23,42,0.4)]">
-                  <UserButton />
+                  <Button variant="ghost" onClick={logout} className="rounded-full font-bold">Logout</Button>
                 </div>
-              </SignedIn>
+              )}
             </div>
           </div>
 
@@ -1043,13 +1094,12 @@ function AdminPage() {
             </div>
             <div className="material-stat">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">{t.managedUsers}</p>
-              <p className="mt-3 flex items-center gap-3 text-3xl font-bold tracking-[-0.03em] text-slate-950"><span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary"><Users className="h-5 w-5" /></span> {userAccessList.length}</p>
+              <p className="mt-3 flex items-center gap-3 text-3xl font-bold tracking-[-0.03em] text-slate-950"><span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary"><Users className="h-5 w-5" /></span> {userList.length}</p>
             </div>
           </div>
         </header>
         )}
 
-        {sectionMessage?.section === 'global' && <div className={`app-feedback ${sectionMessage.type === 'error' ? 'app-feedback-error' : 'app-feedback-success'}`}>{sectionMessage.text}</div>}
 
         {confirmAction && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={() => setConfirmAction(null)}>
@@ -1068,7 +1118,7 @@ function AdminPage() {
         )}
 
         <main className="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
-          <SignedOut>
+          {!token && (
             <Card className="material-panel lg:col-span-3">
               <CardContent className="flex min-h-[60vh] items-center justify-center rounded-2xl bg-gradient-to-b from-white to-teal-50/40 p-6">
                 {!forgotPasswordMode ? (
@@ -1112,7 +1162,7 @@ function AdminPage() {
                         {t.forgotPassword}
                       </button>
                     </div>
-                    <Button className="mt-4 w-full" type="submit" disabled={loginLoading || !isSignInLoaded}>
+                    <Button className="mt-4 w-full" type="submit" disabled={loginLoading}>
                       {loginLoading ? t.signingIn : t.signIn}
                     </Button>
                   </form>
@@ -1135,7 +1185,7 @@ function AdminPage() {
                         {t.backToLogin}
                       </button>
                     </div>
-                    <Button className="mt-4 w-full" type="submit" disabled={forgotPasswordLoading || !isSignInLoaded}>
+                    <Button className="mt-4 w-full" type="submit" disabled={forgotPasswordLoading}>
                       {forgotPasswordLoading ? t.sendingResetCode : t.sendResetCode}
                     </Button>
                   </form>
@@ -1180,30 +1230,29 @@ function AdminPage() {
                         {t.backToLogin}
                       </button>
                     </div>
-                    <Button className="mt-4 w-full" type="submit" disabled={forgotPasswordLoading || !isSignInLoaded}>
+                    <Button className="mt-4 w-full" type="submit" disabled={forgotPasswordLoading}>
                       {forgotPasswordLoading ? t.resettingPassword : t.setNewPassword}
                     </Button>
                   </form>
                 )}
               </CardContent>
             </Card>
-          </SignedOut>
+          )}
 
-          <SignedIn>
-            {!canViewAdmin && (
+          {token && !canViewAdmin && (
               <Card className="material-panel lg:col-span-3">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-red-700 text-2xl tracking-[-0.02em]"><Shield className="h-5 w-5" /> {t.accessDenied}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">
-                    {t.signedInAs} {user?.primaryEmailAddress?.emailAddress ?? t.unknownUser}, but {t.accessDeniedText}
+                    {t.signedInAs} {user?.email ?? t.unknownUser}, but {t.accessDeniedText}
                   </p>
                 </CardContent>
               </Card>
             )}
 
-            {canViewAdmin && (
+          {token && canViewAdmin && (
               <>
                 <aside className="admin-sidebar">
                   <p className="text-xs font-semibold uppercase tracking-[0.26em] text-slate-400">catalog system</p>
@@ -1214,12 +1263,13 @@ function AdminPage() {
                     {canManageProfiles && <button type="button" className={`admin-nav-link ${activeSection === 'profiles' ? 'bg-white/14 text-white shadow-[0_16px_30px_-22px_rgba(15,23,42,0.8)]' : ''}`} onClick={() => setActiveSection('profiles')}><span>{t.profileControls}</span><ChevronRight className="h-4 w-4" /></button>}
 
                     {canManageCategories && <button type="button" className={`admin-nav-link ${activeSection === 'categories' ? 'bg-white/14 text-white shadow-[0_16px_30px_-22px_rgba(15,23,42,0.8)]' : ''}`} onClick={() => setActiveSection('categories')}><span>{t.categoryControls}</span><ChevronRight className="h-4 w-4" /></button>}
+                    {canManageCategories && <button type="button" className={`admin-nav-link ${activeSection === 'currencies' ? 'bg-white/14 text-white shadow-[0_16px_30px_-22px_rgba(15,23,42,0.8)]' : ''}`} onClick={() => setActiveSection('currencies')}><span>{t.currencies}</span><ChevronRight className="h-4 w-4" /></button>}
                     {canManageUsers && <button type="button" className={`admin-nav-link ${activeSection === 'users' ? 'bg-white/14 text-white shadow-[0_16px_30px_-22px_rgba(15,23,42,0.8)]' : ''}`} onClick={() => setActiveSection('users')}><span>{t.clerkUsers}</span><ChevronRight className="h-4 w-4" /></button>}
                     {canManageUsers && <button type="button" className={`admin-nav-link ${activeSection === 'roles' ? 'bg-white/14 text-white shadow-[0_16px_30px_-22px_rgba(15,23,42,0.8)]' : ''}`} onClick={() => setActiveSection('roles')}><span>{t.appRolePermissions}</span><ChevronRight className="h-4 w-4" /></button>}
                   </div>
                   <div className="mt-6 rounded-[1.2rem] border border-white/10 bg-white/5 p-4 text-xs text-slate-300">
                     <p className="font-semibold uppercase tracking-[0.24em] text-slate-400">{t.role}</p>
-                    <p className="mt-2 text-sm font-medium text-white">{authContext?.appRole ?? '-'}</p>
+                    <p className="mt-2 text-sm font-medium text-white">{user?.role ?? '-'}</p>
                     <p className="mt-4 font-semibold uppercase tracking-[0.24em] text-slate-400">{t.permissions}</p>
                     <div className="mt-2 flex flex-wrap gap-2">{permissions.map((permission) => <span key={permission} className="rounded-full bg-white/10 px-3 py-1">{permission}</span>)}</div>
                   </div>
@@ -1232,10 +1282,18 @@ function AdminPage() {
                       </CardHeader>
                       <CardContent className="space-y-6 pt-6">
                         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+
+                          <div className="admin-action-tile cursor-default border-primary/20 bg-primary/5">
+                            <span className="text-xs uppercase tracking-[0.2em] text-primary/70">Analytics</span>
+                            <span className="mt-3 text-xl font-bold text-slate-950">{(t as any).visitorCount || 'Website Visits'}</span>
+                            <span className="mt-2 text-3xl font-light text-slate-700">{websiteVisits ?? '-'}</span>
+                            <span className="mt-3 text-sm text-slate-500">Total number of catalog page visits.</span>
+                          </div>
                           {canManageProfiles && <button type="button" className="admin-action-tile" onClick={() => setActiveSection('profiles')}><span className="text-xs uppercase tracking-[0.2em] text-primary/70">{t.quickActions}</span><span className="mt-3 text-xl font-bold text-slate-950">{t.profileControls}</span><span className="mt-2 text-sm text-slate-600">{adminProfiles.length} {t.records}</span><span className="mt-3 text-sm text-slate-500">Create, edit, and review technical profile entries.</span></button>}
 
                           {canManageCategories && <button type="button" className="admin-action-tile" onClick={() => setActiveSection('categories')}><span className="text-xs uppercase tracking-[0.2em] text-primary/70">{t.quickActions}</span><span className="mt-3 text-xl font-bold text-slate-950">{t.categoryControls}</span><span className="mt-2 text-sm text-slate-600">{applications.length + crossSections.length} {t.records}</span><span className="mt-3 text-sm text-slate-500">Organize applications and cross-sections for search.</span></button>}
-                          {canManageUsers && <button type="button" className="admin-action-tile" onClick={() => setActiveSection('users')}><span className="text-xs uppercase tracking-[0.2em] text-primary/70">{t.quickActions}</span><span className="mt-3 text-xl font-bold text-slate-950">{t.clerkUsers}</span><span className="mt-2 text-sm text-slate-600">{userAccessList.length} {t.records}</span><span className="mt-3 text-sm text-slate-500">Invite, update, and remove authenticated users.</span></button>}
+                          {canManageCategories && <button type="button" className="admin-action-tile" onClick={() => setActiveSection('currencies')}><span className="text-xs uppercase tracking-[0.2em] text-primary/70">{t.quickActions}</span><span className="mt-3 text-xl font-bold text-slate-950">{t.currencies}</span><span className="mt-2 text-sm text-slate-600">{adminRef?.currencies.length || 0} {t.records}</span><span className="mt-3 text-sm text-slate-500">Manage currencies for profile pricing.</span></button>}
+                          {canManageUsers && <button type="button" className="admin-action-tile" onClick={() => setActiveSection('users')}><span className="text-xs uppercase tracking-[0.2em] text-primary/70">{t.quickActions}</span><span className="mt-3 text-xl font-bold text-slate-950">{t.clerkUsers}</span><span className="mt-2 text-sm text-slate-600">{userList.length} {t.records}</span><span className="mt-3 text-sm text-slate-500">Invite, update, and remove authenticated users.</span></button>}
                           {canManageUsers && <button type="button" className="admin-action-tile" onClick={() => setActiveSection('roles')}><span className="text-xs uppercase tracking-[0.2em] text-primary/70">{t.quickActions}</span><span className="mt-3 text-xl font-bold text-slate-950">{t.appRolePermissions}</span><span className="mt-2 text-sm text-slate-600">{roleRows.total} {t.records}</span><span className="mt-3 text-sm text-slate-500">Control role assignment and section permissions.</span></button>}
                         </div>
                         <div className="rounded-[1.3rem] border border-slate-200 bg-slate-50/80 p-4">
@@ -1253,9 +1311,115 @@ function AdminPage() {
 
                 {activeSection === 'users' && <div id="admin-users"><ClerkUsersPanel canManageUsers={canManageUsers} lang={lang} /></div>}
 
+                {activeSection === 'roles' && canManageUsers && (
+                  <Card id="admin-roles" className="material-panel">
+                    <CardHeader className="border-b border-slate-200/80">
+                      <div className="admin-section-toolbar">
+                        <CardTitle className="flex items-center gap-3"><UserCog className="h-5 w-5 text-teal-700" /> {t.appRolePermissions}</CardTitle>
+                        <Button variant={showRoleForm ? 'secondary' : 'default'} onClick={() => showRoleForm ? resetRoleForm() : setShowRoleForm(true)}>{showRoleForm ? t.closeEditor : t.addAccessRule}</Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-5 pt-6">
+                      {showRoleForm && (
+                        <div className="admin-editor-grid">
+                          <Input placeholder={t.email} value={userForm.email} onChange={(e) => setUserForm((f) => ({ ...f, email: e.target.value }))} disabled={!!userForm.id} />
+                          <Input type="password" placeholder={t.password} value={userForm.password ?? ''} onChange={(e) => setUserForm((f) => ({ ...f, password: e.target.value }))} />
+                          <select value={userForm.role} onChange={(e) => setUserForm((f) => ({ ...f, role: e.target.value as AppRole }))} className="flex h-9 w-full rounded-md border border-slate-200 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50">
+                            {(adminRef?.roleOptions ?? ['ADMIN', 'MANAGER', 'USER']).map((role) => <option key={role} value={role}>{role}</option>)}
+                          </select>
+                          <div className="md:col-span-2 grid gap-3 md:grid-cols-2">
+                            {(adminRef?.permissionOptions ?? ['VIEW_ADMIN', 'PROFILES_MANAGE', 'CATEGORIES_MANAGE', 'USERS_MANAGE', 'SUPPLIERS_MANAGE'] as AppPermission[]).map((permission) => (
+                              <label key={permission} className="flex items-center gap-2 rounded-[1rem] border border-slate-200 bg-slate-50/80 p-3">
+                                <input type="checkbox" checked={userForm.permissions.includes(permission)} onChange={(e) => setUserForm((f) => ({ ...f, permissions: e.target.checked ? [...new Set([...f.permissions, permission])] : f.permissions.filter((item) => item !== permission) }))} className="rounded border-slate-300 text-teal-600 focus:ring-teal-600" />
+                                <KeyRound className="h-4 w-4 text-teal-700" />
+                                <span className="text-sm">{permission}</span>
+                              </label>
+                            ))}
+                          </div>
+                          <div className="admin-editor-actions md:col-span-2">
+                            <Button onClick={saveUser}>{t.save}</Button>
+                            <Button variant="outline" onClick={resetRoleForm}>{t.cancel}</Button>
+                          </div>
+                        </div>
+                      )}
+                      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_auto_auto]">
+                        <Input placeholder={t.filterRoles} value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} />
+                        <select value={roleSort} onChange={(e) => setRoleSort(e.target.value as 'user-asc' | 'role-asc')} className="flex h-9 w-full rounded-md border border-slate-200 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50">
+                          <option value="user-asc">{t.nameAsc || 'Email A-Z'}</option>
+                          <option value="role-asc">{t.roleAsc || 'Role A-Z'}</option>
+                        </select>
+                        <Button variant="outline" onClick={() => exportAdminSection('excel', t.appRolePermissions, [t.email, t.role, t.permissions || 'Permissions'], filteredRoles.map((item) => [item.email, item.role, item.permissions.join(', ')]))}>{t.exportExcel}</Button>
+                        <Button variant="outline" onClick={() => exportAdminSection('pdf', t.appRolePermissions, [t.email, t.role, t.permissions || 'Permissions'], filteredRoles.map((item) => [item.email, item.role, item.permissions.join(', ')]))}>{t.exportPdf}</Button>
+                      </div>
+                      <div className="admin-table-wrap">
+                        <table className="w-full text-sm">
+                          <thead><tr className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-[0.18em] text-slate-500"><th className="px-4 py-3">{t.email}</th><th className="px-4 py-3">{t.role}</th><th className="px-4 py-3">{t.permissions || 'Permissions'}</th><th className="px-4 py-3 text-right">{t.actions}</th></tr></thead>
+                          <tbody>
+                            {roleRows.items.map((item) => (
+                              <tr key={item.id} className="material-table-row">
+                                <td className="px-4 py-3 font-medium text-slate-900">{item.email}</td>
+                                <td className="px-4 py-3"><span className="material-chip bg-slate-100 text-slate-700">{item.role}</span></td>
+                                <td className="px-4 py-3 text-slate-600">{item.permissions.join(', ')}</td>
+                                <td className="px-4 py-3"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => startEditRole(item)}>{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteUser(item.id)}>{t.delete}</Button></div></td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <div className="admin-pagination"><span>{t.showing} {roleRows.start}-{roleRows.end} / {roleRows.total} {t.records}</span><div className="flex items-center gap-2"><Button size="sm" variant="outline" disabled={roleRows.page <= 1} onClick={() => setRolePage((page) => page - 1)}>{t.previous}</Button><span>{t.pageLabel} {roleRows.page} {t.ofLabel} {roleRows.totalPages}</span><Button size="sm" variant="outline" disabled={roleRows.page >= roleRows.totalPages} onClick={() => setRolePage((page) => page + 1)}>{t.next}</Button></div></div>
+                      <p className="mt-3 flex items-center gap-1 text-xs text-slate-500"><BadgeCheck className="h-3 w-3" /> {t.backendEnforced || 'Backend Enforced'}</p>
+                    </CardContent>
+                  </Card>
+                )}
+                
+            {activeSection === 'currencies' && canManageCategories && (
+              <div id="admin-currencies" className="space-y-6">
+                <Card className="material-panel ">
+                    <CardHeader className="border-b border-slate-200/80">
+                      <div className="admin-section-toolbar">
+                        <CardTitle className="flex items-center gap-3"><BadgeCheck className="h-5 w-5 text-teal-700" /> {t.currencies}</CardTitle>
+                        <Button variant={showCurrencyForm ? 'secondary' : 'default'} onClick={() => showCurrencyForm ? resetCurrencyForm() : setShowCurrencyForm(true)}>{showCurrencyForm ? t.closeEditor : t.addCurrency}</Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-5 pt-6">
+                      {showCurrencyForm && (
+                        <div className="admin-editor-grid">
+                          <Input placeholder={t.currencyCode} value={currencyCode} onChange={(e) => setCurrencyCode(e.target.value)} />
+                          <Input placeholder={t.currencySymbol} value={currencySymbol} onChange={(e) => setCurrencySymbol(e.target.value)} />
+                          <div className="admin-editor-actions md:col-span-2">
+                            <Button onClick={saveCurrency}>{t.saveCurrency}</Button>
+                            <Button variant="outline" onClick={resetCurrencyForm}>{t.cancel}</Button>
+                          </div>
+                        </div>
+                      )}
+                      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_auto_auto]">
+                        <Input placeholder={t.filterCurrencies} value={currencyFilter} onChange={(e) => setCurrencyFilter(e.target.value)} />
+                        <select value={currencySort} onChange={(e) => setCurrencySort(e.target.value as 'code-asc' | 'code-desc')}>
+                          <option value="code-asc">{t.nameAsc}</option>
+                          <option value="code-desc">{t.nameDesc}</option>
+                        </select>
+                      </div>
+                      <div className="admin-table-wrap">
+                        <table className="w-full text-sm">
+                          <thead><tr className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-[0.18em] text-slate-500"><th className="px-4 py-3">{t.currencyCode}</th><th className="px-4 py-3">{t.currencySymbol}</th><th className="px-4 py-3 text-right">{t.actions}</th></tr></thead>
+                          <tbody>
+                            {currencyRows.items.map((item) => (
+                              <tr key={item.id} className="material-table-row">
+                                <td className="px-4 py-3 font-medium text-slate-900">{item.code}</td>
+                                <td className="px-4 py-3 text-slate-600">{item.symbol}</td>
+                                <td className="px-4 py-3"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => startEditCurrency(item)}>{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteItem('/admin/currencies/' + item.id)}>{t.delete}</Button></div></td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <div className="admin-pagination"><span>{t.showing} {currencyRows.start}-{currencyRows.end} / {currencyRows.total} {t.records}</span><div className="flex items-center gap-2"><Button size="sm" variant="outline" disabled={currencyRows.page <= 1} onClick={() => setCurrencyPage((page) => page - 1)}>{t.previous}</Button><span>{t.pageLabel} {currencyRows.page} {t.ofLabel} {currencyRows.totalPages}</span><Button size="sm" variant="outline" disabled={currencyRows.page >= currencyRows.totalPages} onClick={() => setCurrencyPage((page) => page + 1)}>{t.next}</Button></div></div>
+                    </CardContent>
+                  </Card>
+              </div>
+            )}
 
-
-                {activeSection === 'suppliers' && canManageSuppliers && (
+            {activeSection === 'suppliers' && canManageSuppliers && (
               <div className="space-y-6">
                 <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                   <h2 className="text-xl font-bold text-slate-900">{t.supplierControls}</h2>
@@ -1294,7 +1458,7 @@ function AdminPage() {
                                 <Button variant="ghost" size="sm" onClick={() => startEditSupplier(item)} className="text-primary hover:bg-primary/10 hover:text-primary">
                                   {t.edit}
                                 </Button>
-                                <Button variant="ghost" size="sm" onClick={() => deleteItem('/admin/suppliers/' + item.id, 'supplier')} className="text-red-600 hover:bg-red-50 hover:text-red-700">
+                                <Button variant="ghost" size="sm" onClick={() => deleteItem('/admin/suppliers/' + item.id)} className="text-red-600 hover:bg-red-50 hover:text-red-700">
                                   {t.delete}
                                 </Button>
                               </td>
@@ -1321,6 +1485,7 @@ function AdminPage() {
                         <div><label className="mb-1 block text-sm font-medium text-slate-700">{t.phone}</label><Input value={supplierForm.phone} onChange={e => setSupplierForm(f => ({ ...f, phone: e.target.value }))} /></div>
                         <div><label className="mb-1 block text-sm font-medium text-slate-700">{t.website}</label><Input value={supplierForm.website} onChange={e => setSupplierForm(f => ({ ...f, website: e.target.value }))} /></div>
                         <div><label className="mb-1 block text-sm font-medium text-slate-700">{t.address}</label><Input value={supplierForm.address} onChange={e => setSupplierForm(f => ({ ...f, address: e.target.value }))} /></div>
+                        <div><label className="mb-1 block text-sm font-medium text-slate-700">{t.uid}</label><Input value={supplierForm.uid} onChange={e => setSupplierForm(f => ({ ...f, uid: e.target.value }))} /></div>
                         <Button onClick={saveSupplier} className="w-full" disabled={!supplierForm.name}>{t.saveSupplier}</Button>
                       </div>
                     </div>
@@ -1338,7 +1503,6 @@ function AdminPage() {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-5 pt-6">
-                      {sectionMessage?.section === 'application' && <div className={`app-feedback ${sectionMessage.type === 'error' ? 'app-feedback-error' : 'app-feedback-success'}`}>{sectionMessage.text}</div>}
                       {showApplicationForm && (
                         <div className="admin-editor-grid">
                           <Input placeholder={t.appName + ' (EN)'} value={applicationName} onChange={(e) => setApplicationName(e.target.value)} />
@@ -1367,7 +1531,7 @@ function AdminPage() {
                               <tr key={item.id} className="material-table-row">
                                 <td className="px-4 py-3 font-medium text-slate-900">{item.name}{item.nameDe ? ' / ' + item.nameDe : ''}</td>
                                 <td className="px-4 py-3 text-slate-600">{item.profilesCount ?? 0}</td>
-                                <td className="px-4 py-3"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => startEditApplication(item)}>{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteItem('/admin/applications/' + item.id, 'application')}>{t.delete}</Button></div></td>
+                                <td className="px-4 py-3"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => startEditApplication(item)}>{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteItem('/admin/applications/' + item.id)}>{t.delete}</Button></div></td>
                               </tr>
                             ))}
                           </tbody>
@@ -1385,7 +1549,6 @@ function AdminPage() {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-5 pt-6">
-                      {sectionMessage?.section === 'cross-section' && <div className={`app-feedback ${sectionMessage.type === 'error' ? 'app-feedback-error' : 'app-feedback-success'}`}>{sectionMessage.text}</div>}
                       {showCrossSectionForm && (
                         <div className="admin-editor-grid">
                           <Input placeholder={t.crossSectionName + ' (EN)'} value={crossSectionName} onChange={(e) => setCrossSectionName(e.target.value)} />
@@ -1414,7 +1577,7 @@ function AdminPage() {
                               <tr key={item.id} className="material-table-row">
                                 <td className="px-4 py-3 font-medium text-slate-900">{item.name}{item.nameDe ? ' / ' + item.nameDe : ''}</td>
                                 <td className="px-4 py-3 text-slate-600">{item.profilesCount ?? 0}</td>
-                                <td className="px-4 py-3"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => startEditCrossSection(item)}>{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteItem('/admin/cross-sections/' + item.id, 'cross-section')}>{t.delete}</Button></div></td>
+                                <td className="px-4 py-3"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => startEditCrossSection(item)}>{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteItem('/admin/cross-sections/' + item.id)}>{t.delete}</Button></div></td>
                               </tr>
                             ))}
                           </tbody>
@@ -1423,6 +1586,8 @@ function AdminPage() {
                       <div className="admin-pagination"><span>{t.showing} {crossSectionRows.start}-{crossSectionRows.end} / {crossSectionRows.total} {t.records}</span><div className="flex items-center gap-2"><Button size="sm" variant="outline" disabled={crossSectionRows.page <= 1} onClick={() => setCrossSectionPage((page) => page - 1)}>{t.previous}</Button><span>{t.pageLabel} {crossSectionRows.page} {t.ofLabel} {crossSectionRows.totalPages}</span><Button size="sm" variant="outline" disabled={crossSectionRows.page >= crossSectionRows.totalPages} onClick={() => setCrossSectionPage((page) => page + 1)}>{t.next}</Button></div></div>
                     </CardContent>
                   </Card>
+
+                  
                 </div>
                 )}
 
@@ -1435,7 +1600,6 @@ function AdminPage() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-5 pt-6">
-                    {sectionMessage?.section === 'profile' && <div className={`app-feedback ${sectionMessage.type === 'error' ? 'app-feedback-error' : 'app-feedback-success'}`}>{sectionMessage.text}</div>}
                     {showProfileForm && (
                       <div className="admin-editor-grid admin-editor-grid-wide">
                         <Input placeholder={t.name + ' (EN)'} value={profileForm.name} onChange={(e) => setProfileForm((f) => ({ ...f, name: e.target.value }))} />
@@ -1449,6 +1613,11 @@ function AdminPage() {
                         <Input placeholder="Length mm" value={profileForm.lengthMm} onChange={(e) => setProfileForm((f) => ({ ...f, lengthMm: e.target.value }))} />
                         <Input placeholder="Material (EN)" value={profileForm.material} onChange={(e) => setProfileForm((f) => ({ ...f, material: e.target.value }))} />
                         <Input placeholder="Material (DE)" value={profileForm.materialDe} onChange={(e) => setProfileForm((f) => ({ ...f, materialDe: e.target.value }))} />
+                        <Input placeholder={t.price} value={profileForm.price} onChange={(e) => setProfileForm((f) => ({ ...f, price: e.target.value }))} />
+                        <select value={profileForm.currencyId} onChange={(e) => setProfileForm((f) => ({ ...f, currencyId: e.target.value }))}>
+                          <option value="">-- Select {t.currency} --</option>
+                          {adminRef?.currencies.map((currency) => <option key={currency.id} value={currency.id}>{currency.code} ({currency.symbol})</option>)}
+                        </select>
                         <select value={profileForm.status} onChange={(e) => setProfileForm((f) => ({ ...f, status: e.target.value }))}>
                           {adminRef?.statusOptions.map((status) => <option key={status} value={status}>{status}</option>)}
                         </select>
@@ -1459,7 +1628,7 @@ function AdminPage() {
                           {crossSections.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
                         </select>
                       <div className="admin-upload-field">
-                        <div className="mb-1 text-sm font-medium text-slate-700">{t.drawingFile}</div>
+                        <div className="mb-1 text-sm font-medium text-slate-700">{t.drawingFile} <span className="text-xs text-slate-400 font-normal ml-2">(pdf, jpg, png, bmp)</span></div>
                         {profileForm.drawingUrl ? (
                           <div className="flex flex-col gap-2 rounded-lg border bg-slate-50 p-2 mt-1">
                             <div className="flex items-center justify-between">
@@ -1481,7 +1650,7 @@ function AdminPage() {
                         )}
                       </div>
                       <div className="admin-upload-field">
-                        <div className="mb-1 text-sm font-medium text-slate-700">{t.photoFile}</div>
+                        <div className="mb-1 text-sm font-medium text-slate-700">{t.photoFile} <span className="text-xs text-slate-400 font-normal ml-2">(pdf, jpg, png, bmp)</span></div>
                         {profileForm.photoUrl ? (
                           <div className="flex flex-col gap-2 rounded-lg border bg-slate-50 p-2 mt-1">
                             <div className="flex items-center justify-between">
@@ -1516,20 +1685,22 @@ function AdminPage() {
 
                         <option value="status-asc">{t.statusAsc}</option>
                       </select>
-                      <Button variant="outline" onClick={() => exportAdminSection('excel', t.profileControls, [t.name, t.status, t.dimensions], filteredProfiles.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.status, item.dimensions || '-']))}>{t.exportExcel}</Button>
-                      <Button variant="outline" onClick={() => exportAdminSection('pdf', t.profileControls, [t.name, t.status, t.dimensions], filteredProfiles.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.status, item.dimensions || '-']))}>{t.exportPdf}</Button>
+                      <Button variant="outline" onClick={() => exportAdminSection('excel', t.profileControls, [t.name, t.status, t.dimensions, t.price], filteredProfiles.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.status, item.dimensions || '-', item.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.price)} ${item.currency ? item.currency.symbol : ''}` : '-']))}>{t.exportExcel}</Button>
+                      <Button variant="outline" onClick={() => exportAdminSection('pdf', t.profileControls, [t.name, t.status, t.dimensions, t.price], filteredProfiles.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.status, item.dimensions || '-', item.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.price)} ${item.currency ? item.currency.symbol : ''}` : '-']))}>{t.exportPdf}</Button>
                     </div>
                     <div className="admin-table-wrap">
                       <table className="w-full text-sm">
-                        <thead><tr className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-[0.18em] text-slate-500"><th className="px-4 py-3">{t.name}</th><th className="px-4 py-3">{t.status}</th><th className="px-4 py-3">{t.dimensions}</th><th className="px-4 py-3 text-right">{t.actions}</th></tr></thead>
+                        <thead><tr className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-[0.18em] text-slate-500"><th className="px-4 py-3">{t.name}</th><th className="px-4 py-3">{t.status}</th><th className="px-4 py-3">{t.dimensions}</th><th className="px-4 py-3">{t.currency}</th><th className="px-4 py-3">{t.price}</th><th className="px-4 py-3 text-right">{t.actions}</th></tr></thead>
                         <tbody>
                           {profileRows.items.map((item) => (
                             <tr key={item.id} className="material-table-row">
                               <td className="px-4 py-3 font-medium text-slate-900">{item.name}{item.nameDe ? ' / ' + item.nameDe : ''}</td>
 
-                              <td className="px-4 py-3"><span className="material-chip bg-teal-100 text-teal-700">{item.status}</span></td>
+                              <td className="px-4 py-3"><span className={`material-chip ${item.status === 'NOT_AVAILABLE' ? 'bg-red-100 text-red-700' : item.status === 'IN_DEVELOPMENT' ? 'bg-amber-100 text-amber-900' : 'bg-teal-100 text-teal-700'}`}>{item.status}</span></td>
                               <td className="px-4 py-3 text-slate-600">{item.dimensions || '-'}</td>
-                              <td className="px-4 py-3"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => startEditProfile(item)}>{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteItem('/admin/profiles/' + item.id, 'profile')}>{t.delete}</Button></div></td>
+                              <td className="px-4 py-3 text-slate-600">{item.currency ? `${item.currency.code} (${item.currency.symbol})` : '-'}</td>
+                              <td className="px-4 py-3 text-slate-600">{item.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.price)} ${item.currency ? item.currency.symbol : ''}` : '-'}</td>
+                              <td className="px-4 py-3"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => startEditProfile(item)}>{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteItem('/admin/profiles/' + item.id)}>{t.delete}</Button></div></td>
                             </tr>
                           ))}
                         </tbody>
@@ -1540,69 +1711,10 @@ function AdminPage() {
                 </Card>
                 )}
 
-                {activeSection === 'roles' && canManageUsers && (
-                  <Card id="admin-roles" className="material-panel">
-                    <CardHeader className="border-b border-slate-200/80">
-                      <div className="admin-section-toolbar">
-                        <CardTitle className="flex items-center gap-3"><UserCog className="h-5 w-5 text-teal-700" /> {t.appRolePermissions}</CardTitle>
-                        <Button variant={showRoleForm ? 'secondary' : 'default'} onClick={() => showRoleForm ? resetRoleForm() : setShowRoleForm(true)}>{showRoleForm ? t.closeEditor : t.addAccessRule}</Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-5 pt-6">
-                      {showRoleForm && (
-                        <div className="admin-editor-grid">
-                          <Input placeholder={t.clerkUserId} value={userAccessForm.clerkUserId} onChange={(e) => setUserAccessForm((f) => ({ ...f, clerkUserId: e.target.value }))} />
-                          <select value={userAccessForm.role} onChange={(e) => setUserAccessForm((f) => ({ ...f, role: e.target.value as AppRole }))}>
-                            {(adminRef?.roleOptions ?? ['ADMIN', 'MANAGER', 'USER']).map((role) => <option key={role} value={role}>{role}</option>)}
-                          </select>
-                          <div className="md:col-span-2 grid gap-3 md:grid-cols-2">
-                            {(adminRef?.permissionOptions ?? ['VIEW_ADMIN', 'PROFILES_MANAGE', 'CATEGORIES_MANAGE', 'USERS_MANAGE'] as AppPermission[]).map((permission) => (
-                              <label key={permission} className="flex items-center gap-2 rounded-[1rem] border border-slate-200 bg-slate-50/80 p-3">
-                                <input type="checkbox" checked={userAccessForm.permissions.includes(permission)} onChange={(e) => setUserAccessForm((f) => ({ ...f, permissions: e.target.checked ? [...new Set([...f.permissions, permission])] : f.permissions.filter((item) => item !== permission) }))} />
-                                <KeyRound className="h-4 w-4 text-teal-700" />
-                                <span className="text-sm">{permission}</span>
-                              </label>
-                            ))}
-                          </div>
-                          <div className="admin-editor-actions md:col-span-2">
-                            <Button onClick={saveUserAccess}>{t.saveUserAccess}</Button>
-                            <Button variant="outline" onClick={resetRoleForm}>{t.cancel}</Button>
-                          </div>
-                        </div>
-                      )}
-                      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_auto_auto]">
-                        <Input placeholder={t.filterRoles} value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} />
-                        <select value={roleSort} onChange={(e) => setRoleSort(e.target.value as 'user-asc' | 'role-asc')}>
-                          <option value="user-asc">{t.nameAsc}</option>
-                          <option value="role-asc">{t.roleAsc}</option>
-                        </select>
-                        <Button variant="outline" onClick={() => exportAdminSection('excel', t.appRolePermissions, [t.clerkUserId, t.role, t.permissions], filteredRoles.map((item) => [item.clerkUserId, item.role, item.permissions.join(', ')]))}>{t.exportExcel}</Button>
-                        <Button variant="outline" onClick={() => exportAdminSection('pdf', t.appRolePermissions, [t.clerkUserId, t.role, t.permissions], filteredRoles.map((item) => [item.clerkUserId, item.role, item.permissions.join(', ')]))}>{t.exportPdf}</Button>
-                      </div>
-                      <div className="admin-table-wrap">
-                        <table className="w-full text-sm">
-                          <thead><tr className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-[0.18em] text-slate-500"><th className="px-4 py-3">{t.clerkUserId}</th><th className="px-4 py-3">{t.role}</th><th className="px-4 py-3">{t.permissions}</th><th className="px-4 py-3 text-right">{t.actions}</th></tr></thead>
-                          <tbody>
-                            {roleRows.items.map((item) => (
-                              <tr key={item.id} className="material-table-row">
-                                <td className="px-4 py-3 font-medium text-slate-900">{item.clerkUserId}</td>
-                                <td className="px-4 py-3"><span className="material-chip bg-slate-100 text-slate-700">{item.role}</span></td>
-                                <td className="px-4 py-3 text-slate-600">{item.permissions.join(', ')}</td>
-                                <td className="px-4 py-3"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => startEditRole(item)}>{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteUserAccess(item.clerkUserId)}>{t.delete}</Button></div></td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                      <div className="admin-pagination"><span>{t.showing} {roleRows.start}-{roleRows.end} / {roleRows.total} {t.records}</span><div className="flex items-center gap-2"><Button size="sm" variant="outline" disabled={roleRows.page <= 1} onClick={() => setRolePage((page) => page - 1)}>{t.previous}</Button><span>{t.pageLabel} {roleRows.page} {t.ofLabel} {roleRows.totalPages}</span><Button size="sm" variant="outline" disabled={roleRows.page >= roleRows.totalPages} onClick={() => setRolePage((page) => page + 1)}>{t.next}</Button></div></div>
-                      <p className="mt-3 flex items-center gap-1 text-xs text-slate-500"><BadgeCheck className="h-3 w-3" /> {t.backendEnforced}</p>
-                    </CardContent>
-                  </Card>
-                )}
+
                 </div>
               </>
             )}
-          </SignedIn>
         </main>
       </div>
     </div>

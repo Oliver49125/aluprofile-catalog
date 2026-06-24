@@ -37,6 +37,13 @@ function toNumberArray(input: unknown): number[] {
   return [];
 }
 
+function parseLocalizedNumber(value: unknown): number | undefined {
+  if (value === undefined || value === null || value === '') return undefined;
+  const str = String(value).trim().replace(',', '.');
+  const num = Number(str);
+  return Number.isNaN(num) ? undefined : num;
+}
+
 function parseProfileBody(body: Record<string, unknown>): ProfileInput {
   return {
     name: body.name ? String(body.name) : undefined,
@@ -49,11 +56,13 @@ function parseProfileBody(body: Record<string, unknown>): ProfileInput {
     photoUrl: body.photoUrl ? String(body.photoUrl) : undefined,
     logoUrl: body.logoUrl ? String(body.logoUrl) : undefined,
     dimensions: body.dimensions ? String(body.dimensions) : undefined,
-    weightPerMeter: body.weightPerMeter ? Number(body.weightPerMeter) : undefined,
+    weightPerMeter: parseLocalizedNumber(body.weightPerMeter),
     material: body.material ? String(body.material) : undefined,
     materialDe: body.materialDe ? String(body.materialDe) : undefined,
-    lengthMm: body.lengthMm ? Number(body.lengthMm) : undefined,
+    lengthMm: parseLocalizedNumber(body.lengthMm),
     status: body.status ? (String(body.status) as Status) : undefined,
+    price: parseLocalizedNumber(body.price),
+    currencyId: body.currencyId ? Number(body.currencyId) : undefined,
     applicationIds: toNumberArray(body.applicationIds),
     crossSectionIds: toNumberArray(body.crossSectionIds),
   };
@@ -72,7 +81,7 @@ export class CustomerController {
 
   @Get('supplier')
   getSupplierProfile(@Req() req: Request & { customerAuth?: CustomerAuthContext }) {
-    return this.customerService.getSupplierProfile(req.customerAuth!.clerkUserId);
+    return this.customerService.getSupplierProfile(req.customerAuth!.userId);
   }
 
   @Put('supplier')
@@ -81,14 +90,14 @@ export class CustomerController {
     @Body() body: Record<string, unknown>,
   ) {
     return this.customerService.updateSupplierProfile(
-      req.customerAuth!.clerkUserId,
+      req.customerAuth!.userId,
       body,
     );
   }
 
   @Get('profiles')
   listProfiles(@Req() req: Request & { customerAuth?: CustomerAuthContext }) {
-    return this.customerService.listProfiles(req.customerAuth!.clerkUserId);
+    return this.customerService.listProfiles(req.customerAuth!.userId);
   }
 
   @Post('profiles')
@@ -97,7 +106,7 @@ export class CustomerController {
     @Body() body: Record<string, unknown>,
   ) {
     return this.customerService.createProfile(
-      req.customerAuth!.clerkUserId,
+      req.customerAuth!.userId,
       parseProfileBody(body),
     );
   }
@@ -109,10 +118,15 @@ export class CustomerController {
     @Body() body: Record<string, unknown>,
   ) {
     return this.customerService.updateProfile(
-      req.customerAuth!.clerkUserId,
+      req.customerAuth!.userId,
       id,
       parseProfileBody(body),
     );
+  }
+
+  @Post('profiles/hide-all')
+  hideAllProfiles(@Req() req: Request & { customerAuth?: CustomerAuthContext }) {
+    return this.customerService.hideAllProfiles(req.customerAuth!.userId);
   }
 
   @Delete('profiles/:id')
@@ -120,7 +134,7 @@ export class CustomerController {
     @Req() req: Request & { customerAuth?: CustomerAuthContext },
     @Param('id', ParseIntPipe) id: number,
   ) {
-    return this.customerService.deleteProfile(req.customerAuth!.clerkUserId, id);
+    return this.customerService.deleteProfile(req.customerAuth!.userId, id);
   }
 
   @Post('uploads')

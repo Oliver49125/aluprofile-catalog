@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { createClerkClient } from '@clerk/backend';
+import * as bcrypt from 'bcryptjs';
 import { AppPermission, AppRole, Status } from '@prisma/client';
 
 export type ProfileInput = {
@@ -23,169 +23,113 @@ export type ProfileInput = {
   applicationIds?: number[];
   crossSectionIds?: number[];
   supplierId?: number;
+  price?: number;
+  currencyId?: number;
 };
 
 @Injectable()
 export class AdminService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private get clerkSecretKey() {
-    const value = process.env.CLERK_SECRET_KEY;
-    if (!value) {
-      throw new InternalServerErrorException('CLERK_SECRET_KEY is not configured');
-    }
-    return value;
-  }
-
-  private get clerkClient() {
-    return createClerkClient({ secretKey: this.clerkSecretKey });
-  }
-
-  private mapClerkUser(user: any) {
-    return {
-      id: user.id,
-      firstName: user.firstName ?? '',
-      lastName: user.lastName ?? '',
-      username: user.username ?? '',
-      banned: Boolean(user.banned),
-      locked: Boolean(user.locked),
-      imageUrl: user.imageUrl ?? '',
-      createdAt: user.createdAt ?? null,
-      updatedAt: user.updatedAt ?? null,
-      lastSignInAt: user.lastSignInAt ?? null,
-      emailAddresses: (user.emailAddresses ?? []).map((item: any) => ({
-        id: item.id,
-        emailAddress: item.emailAddress,
-        verificationStatus: item.verification?.status ?? null,
-      })),
-      primaryEmailAddressId: user.primaryEmailAddressId ?? null,
-      primaryEmailAddress:
-        (user.emailAddresses ?? []).find((item: any) => item.id === user.primaryEmailAddressId)
-          ?.emailAddress ?? null,
-    };
-  }
-
   getReferenceData() {
     return Promise.all([
       this.prisma.application.findMany({ orderBy: { name: 'asc' } }),
       this.prisma.crossSection.findMany({ orderBy: { name: 'asc' } }),
       this.prisma.supplier.findMany({ orderBy: { name: 'asc' } }),
-    ]).then(([applications, crossSections, suppliers]) => ({
+      this.prisma.currency.findMany({ orderBy: { code: 'asc' } }),
+    ]).then(([applications, crossSections, suppliers, currencies]) => ({
       suppliers,
       applications,
       crossSections,
+      currencies,
       statusOptions: Object.values(Status),
       roleOptions: Object.values(AppRole),
       permissionOptions: Object.values(AppPermission),
     }));
   }
 
-  listUserAccess() {
-    return this.prisma.userAccess.findMany({
-      orderBy: [{ role: 'asc' }, { clerkUserId: 'asc' }],
+  async listUsers(query?: string) {
+    return this.prisma.user.findMany({
+      where: query ? {
+        OR: [
+          { email: { contains: query, mode: 'insensitive' } },
+          { firstName: { contains: query, mode: 'insensitive' } },
+          { lastName: { contains: query, mode: 'insensitive' } },
+        ],
+      } : undefined,
+      orderBy: [{ role: 'asc' }, { id: 'desc' }],
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        permissions: true,
+        createdAt: true,
+      }
     });
   }
 
-  upsertUserAccess(input: {
-    clerkUserId: string;
-    role: AppRole;
-    permissions: AppPermission[];
-  }) {
-    return this.prisma.userAccess.upsert({
-      where: { clerkUserId: input.clerkUserId },
-      create: input,
-      update: {
-        role: input.role,
-        permissions: input.permissions,
-      },
-    });
-  }
-
-  deleteUserAccess(clerkUserId: string) {
-    return this.prisma.userAccess.delete({
-      where: { clerkUserId },
-    });
-  }
-
-  async listClerkUsers(query?: string) {
-    const result = await this.clerkClient.users.getUserList({
-      limit: 100,
-      orderBy: '-created_at',
-      query: query?.trim() || undefined,
-    });
-    return result.data.map((user) => this.mapClerkUser(user));
-  }
-
-  async createClerkUser(input: {
+  async createUser(input: {
     email: string;
-    password: string;
+    password?: string;
     firstName?: string;
     lastName?: string;
-    username?: string;
+    role?: AppRole;
+    permissions?: AppPermission[];
   }) {
     const email = input.email?.trim();
-    const password = input.password?.trim();
-    if (!email) {
-      throw new BadRequestException('email is required');
-    }
-    if (!password || password.length < 8) {
-      throw new BadRequestException('password must be at least 8 characters');
-    }
+    if (!email) throw new BadRequestException('email is required');
+    
+    const password = input.password?.trim() || 'Welcome123!';
+    const passwordHash = await bcrypt.hash(password, 10);
 
-    const created = await this.clerkClient.users.createUser({
-      emailAddress: [email],
-      password,
-      firstName: input.firstName?.trim() || undefined,
-      lastName: input.lastName?.trim() || undefined,
-      username: input.username?.trim() || undefined,
+    return this.prisma.user.create({
+      data: {
+        email,
+        password: passwordHash,
+        firstName: input.firstName?.trim() || null,
+        lastName: input.lastName?.trim() || null,
+        role: input.role || AppRole.USER,
+        permissions: input.permissions || [AppPermission.VIEW_ADMIN],
+      },
+      select: { id: true, email: true, firstName: true, lastName: true, role: true, permissions: true }
     });
-
-    return this.mapClerkUser(created);
   }
 
-  async updateClerkUser(
-    userId: string,
+  async updateUser(
+    id: number,
     input: {
       email?: string;
       password?: string;
       firstName?: string;
       lastName?: string;
-      username?: string;
+      role?: AppRole;
+      permissions?: AppPermission[];
     },
   ) {
-    const existing = await this.clerkClient.users.getUser(userId);
-    const payload: Record<string, unknown> = {
+    const data: any = {
       firstName: input.firstName?.trim() || undefined,
       lastName: input.lastName?.trim() || undefined,
-      username: input.username?.trim() || undefined,
+      email: input.email?.trim() || undefined,
+      role: input.role,
+      permissions: input.permissions,
     };
 
-    const email = input.email?.trim();
-    if (email) {
-      payload.primaryEmailAddressID = existing.primaryEmailAddressId;
-      payload.emailAddress = [email];
+    if (input.password?.trim()) {
+      data.password = await bcrypt.hash(input.password.trim(), 10);
     }
 
-    const password = input.password?.trim();
-    if (password) {
-      if (password.length < 8) {
-        throw new BadRequestException('password must be at least 8 characters');
-      }
-      payload.password = password;
-    }
-
-    const updated = await this.clerkClient.users.updateUser(userId, payload);
-    return this.mapClerkUser(updated);
+    return this.prisma.user.update({
+      where: { id },
+      data,
+      select: { id: true, email: true, firstName: true, lastName: true, role: true, permissions: true }
+    });
   }
 
-  async deleteClerkUser(userId: string) {
-    const deleted = await this.clerkClient.users.deleteUser(userId);
-    await this.prisma.userAccess.deleteMany({ where: { clerkUserId: userId } });
-    return {
-      ok: true,
-      userId,
-      deleted: this.mapClerkUser(deleted),
-    };
+  async deleteUser(id: number) {
+    const deleted = await this.prisma.user.delete({ where: { id } });
+    return { ok: true, deleted: { id: deleted.id, email: deleted.email } };
   }
 
 
@@ -205,6 +149,7 @@ export class AdminService {
     email?: string;
     phone?: string;
     website?: string;
+    uid?: string;
   }) {
     return this.prisma.supplier.create({ data: input });
   }
@@ -217,12 +162,31 @@ export class AdminService {
     email?: string;
     phone?: string;
     website?: string;
+    uid?: string;
   }) {
     return this.prisma.supplier.update({ where: { id }, data: input });
   }
 
   deleteSupplier(id: number) {
     return this.prisma.supplier.delete({ where: { id } });
+  }
+
+  // --- Currencies ---
+  getCurrencies() {
+    return this.prisma.currency.findMany({ orderBy: { code: 'asc' } });
+  }
+
+  createCurrency(input: { code: string; symbol: string }) {
+    if (!input.code || !input.symbol) throw new BadRequestException('code and symbol are required');
+    return this.prisma.currency.create({ data: input });
+  }
+
+  updateCurrency(id: number, input: { code: string; symbol: string }) {
+    return this.prisma.currency.update({ where: { id }, data: input });
+  }
+
+  deleteCurrency(id: number) {
+    return this.prisma.currency.delete({ where: { id } });
   }
 
   listApplications() {
@@ -270,27 +234,29 @@ export class AdminService {
         supplier: true,
         applications: true,
         crossSections: true,
+        currency: true,
       },
     });
 
-    const userIds = [...new Set(profiles.filter(p => p.ownerClerkUserId).map(p => p.ownerClerkUserId as string))];
-    let userMap = new Map<string, string>();
+    const userIds = [...new Set(profiles.filter(p => p.ownerUserId).map(p => p.ownerUserId as number))];
+    const userMap = new Map<number, string>();
     if (userIds.length > 0) {
       try {
-        const users = await this.clerkClient.users.getUserList({ userId: userIds });
-        userMap = new Map(users.data.map((u: any) => [u.id, u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : (u.username || u.emailAddresses[0]?.emailAddress || 'Customer')]));
+        const users = await this.prisma.user.findMany({ where: { id: { in: userIds } } });
+        users.forEach(u => {
+          userMap.set(u.id, `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email);
+        });
       } catch (error) {
-        console.error('Failed to fetch clerk users for admin profiles:', error);
+        console.error('Failed to fetch users for admin profiles:', error);
       }
     }
 
-    return profiles.map((item) => {
-      const p = { ...item };
-      if (p.ownerClerkUserId && userMap.has(p.ownerClerkUserId)) {
-        p.supplier = { id: 0, name: userMap.get(p.ownerClerkUserId) || 'Customer' } as any;
+    profiles.forEach(p => {
+      if (p.ownerUserId && userMap.has(p.ownerUserId)) {
+        p.supplier = { id: 0, name: userMap.get(p.ownerUserId) || 'Customer' } as any;
       }
-      return p;
     });
+    return profiles;
   }
 
   async createProfile(input: ProfileInput) {
@@ -314,7 +280,8 @@ export class AdminService {
         materialDe: input.materialDe,
         lengthMm: input.lengthMm,
         status: input.status ?? Status.AVAILABLE,
-        supplier: input.supplierId ? { connect: { id: input.supplierId } } : undefined,
+        price: input.price,
+        currencyId: input.currencyId || null,
         applications: {
           connect: (input.applicationIds ?? []).map((id) => ({ id })),
         },
@@ -326,6 +293,7 @@ export class AdminService {
         supplier: true,
         applications: true,
         crossSections: true,
+        currency: true,
       },
     });
   }
@@ -333,7 +301,7 @@ export class AdminService {
   async updateProfile(id: number, input: Partial<ProfileInput>) {
     const existing = await this.prisma.profile.findUnique({
       where: { id },
-      include: { applications: true, crossSections: true },
+      include: { applications: true, crossSections: true, currency: true },
     });
     if (!existing) {
       throw new NotFoundException('Profile not found');
@@ -357,9 +325,8 @@ export class AdminService {
         materialDe: input.materialDe,
         lengthMm: input.lengthMm,
         status: input.status,
-        supplier: input.supplierId !== undefined
-          ? (input.supplierId ? { connect: { id: input.supplierId } } : { disconnect: true })
-          : undefined,
+        price: input.price,
+        currencyId: input.currencyId || null,
 
         applications: input.applicationIds
           ? {
@@ -376,6 +343,7 @@ export class AdminService {
         supplier: true,
         applications: true,
         crossSections: true,
+        currency: true,
       },
     });
   }
