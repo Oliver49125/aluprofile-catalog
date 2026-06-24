@@ -6,7 +6,7 @@
     "private": true,
     "license": "UNLICENSED",
     "scripts": {
-        "prebuild": "npm run prisma:generate",
+        "prebuild": "npm run prisma:generate && npm run prisma:migrate",
         "build": "npx tsc -p tsconfig.build.json",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
         "start": "npx prisma migrate deploy --schema prisma/schema.prisma && node dist/main",
