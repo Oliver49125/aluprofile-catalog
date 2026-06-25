@@ -362,7 +362,7 @@ function App() {
 
   const [showInquiryModal, setShowInquiryModal] = useState<Profile | null>(null);
   const [inquiryForm, setInquiryForm] = useState({ firstName: '', lastName: '', company: '', email: '', phone: '', message: '', requestPurchase: false });
-  const [inquiryLoading, setInquiryLoading] = useState(false);
+  const [inquiryLoadingId, setInquiryLoadingId] = useState<number | null>(null);
   const [inquirySuccess, setInquirySuccess] = useState(false);
   const t = useMemo(() => TXT[lang], [lang]);
 
@@ -525,14 +525,14 @@ function App() {
 
   if (isStandaloneTechnical) {
     return (
-      <div className="min-h-screen bg-slate-50 p-4 md:p-8">
+      <div className="min-h-screen bg-white p-4 md:p-8 print:p-0 print:bg-white">
         <div className="mx-auto max-w-5xl">
-          {/* We need to render the technical sheet card here. Since it's big, we'll extract it by capturing it and injecting it here. */}
-          <Card className="overflow-hidden">
-            <CardHeader className="border-b border-slate-100 bg-gradient-to-r from-white via-white to-slate-50/70">
-              <CardTitle className="text-2xl font-semibold tracking-[-0.02em] text-slate-950">{t.technicalSheet}</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6">
+          <div className="overflow-hidden bg-white">
+            <div className="mb-8 border-b border-slate-200 pb-4">
+              <h1 className="text-3xl font-bold tracking-tight text-slate-900">{detail?.name || t.technicalSheet}</h1>
+              <p className="mt-2 text-slate-500">{t.catalogLabel}</p>
+            </div>
+            <div className="pt-2">
               {isDetailLoading ? (
                 <div className="space-y-4">
                   <div className="public-skeleton-card">
@@ -651,7 +651,7 @@ function App() {
                       ) : (
                         <form className="space-y-4" onSubmit={async (e) => {
                           e.preventDefault();
-                          setInquiryLoading(true);
+                          setInquiryLoadingId(detail.id);
                           try {
                             await api('/public/inquiries', {
                               method: 'POST',
@@ -661,7 +661,7 @@ function App() {
                           } catch (err) {
                             toast.error(parseApiError(err));
                           } finally {
-                            setInquiryLoading(false);
+                            setInquiryLoadingId(null);
                           }
                         }}>
                           <div className="grid grid-cols-2 gap-3">
@@ -695,8 +695,8 @@ function App() {
                             {t.receiveOffer}
                           </label>
                           <div className="pt-2">
-                            <Button type="submit" className="w-full" disabled={inquiryLoading}>
-                              {inquiryLoading ? t.sending : t.contactSeller}
+                            <Button type="submit" className="w-full" disabled={inquiryLoadingId === detail.id}>
+                              {inquiryLoadingId === detail.id ? t.sending : t.contactSeller}
                             </Button>
                           </div>
                         </form>
@@ -705,9 +705,8 @@ function App() {
                   </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </div>
       </div>
     );
   }
@@ -1130,7 +1129,7 @@ function App() {
               ) : (
                 <form className="space-y-4" onSubmit={async (e) => {
                   e.preventDefault();
-                  setInquiryLoading(true);
+                  setInquiryLoadingId(showInquiryModal.id);
                   try {
                     await api('/public/inquiries', {
                       method: 'POST',
@@ -1140,7 +1139,7 @@ function App() {
                   } catch (err) {
                     toast.error(parseApiError(err));
                   } finally {
-                    setInquiryLoading(false);
+                    setInquiryLoadingId(null);
                   }
                 }}>
                   <div className="grid grid-cols-2 gap-4">
@@ -1174,8 +1173,8 @@ function App() {
                     {t.receiveOffer}
                   </label>
                   <div className="pt-2">
-                    <Button type="submit" className="w-full" disabled={inquiryLoading}>
-                      {inquiryLoading ? t.sending : t.sendInquiry}
+                    <Button type="submit" className="w-full" disabled={inquiryLoadingId === showInquiryModal.id}>
+                      {inquiryLoadingId === showInquiryModal.id ? t.sending : t.sendInquiry}
                     </Button>
                   </div>
                 </form>
