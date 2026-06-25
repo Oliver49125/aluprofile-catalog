@@ -20,11 +20,16 @@ export class AuthController {
 
   @Post('register')
   async register(@Body() body: any) {
-    const { email, password, firstName, lastName } = body;
+    const { email, password, firstName, lastName, username } = body;
     if (!email || !password) throw new BadRequestException('Email and password required');
 
-    const existingUser = await this.prisma.user.findUnique({ where: { email } });
-    if (existingUser) throw new ConflictException('Email already in use');
+    const existingUser = await this.prisma.user.findFirst({
+      where: { OR: [{ email }, ...(username ? [{ username }] : [])] }
+    });
+    if (existingUser) {
+      if (existingUser.email === email) throw new ConflictException('Email already in use');
+      if (existingUser.username === username) throw new ConflictException('Username already in use');
+    }
 
     const passwordHash = await bcrypt.hash(password, 10);
 
@@ -33,6 +38,7 @@ export class AuthController {
     const user = await this.prisma.user.create({
       data: {
         email,
+        username,
         password: passwordHash,
         firstName,
         lastName,
@@ -48,9 +54,11 @@ export class AuthController {
   @Post('login')
   async login(@Body() body: any) {
     const { email, password } = body;
-    if (!email || !password) throw new BadRequestException('Email and password required');
+    if (!email || !password) throw new BadRequestException('Email/Username and password required');
 
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    const user = await this.prisma.user.findFirst({
+      where: { OR: [{ email: email }, { username: email }] }
+    });
     if (!user) throw new UnauthorizedException('Invalid credentials');
 
     const valid = await bcrypt.compare(password, user.password);

@@ -55,12 +55,14 @@ export class AdminService {
           { email: { contains: query, mode: 'insensitive' } },
           { firstName: { contains: query, mode: 'insensitive' } },
           { lastName: { contains: query, mode: 'insensitive' } },
+          { username: { contains: query, mode: 'insensitive' } },
         ],
       } : undefined,
       orderBy: [{ role: 'asc' }, { id: 'desc' }],
       select: {
         id: true,
         email: true,
+        username: true,
         firstName: true,
         lastName: true,
         role: true,
@@ -75,6 +77,7 @@ export class AdminService {
     password?: string;
     firstName?: string;
     lastName?: string;
+    username?: string;
     role?: AppRole;
     permissions?: AppPermission[];
   }) {
@@ -87,34 +90,35 @@ export class AdminService {
     return this.prisma.user.create({
       data: {
         email,
+        username: input.username?.trim() || null,
         password: passwordHash,
         firstName: input.firstName?.trim() || null,
         lastName: input.lastName?.trim() || null,
         role: input.role || AppRole.USER,
         permissions: input.permissions || [AppPermission.VIEW_ADMIN],
       },
-      select: { id: true, email: true, firstName: true, lastName: true, role: true, permissions: true }
+      select: {
+        id: true, email: true, firstName: true, lastName: true, role: true, permissions: true, createdAt: true, username: true
+      }
     });
   }
 
-  async updateUser(
-    id: number,
-    input: {
-      email?: string;
-      password?: string;
-      firstName?: string;
-      lastName?: string;
-      role?: AppRole;
-      permissions?: AppPermission[];
-    },
-  ) {
-    const data: any = {
-      firstName: input.firstName?.trim() || undefined,
-      lastName: input.lastName?.trim() || undefined,
-      email: input.email?.trim() || undefined,
-      role: input.role,
-      permissions: input.permissions,
-    };
+  async updateUser(id: number, input: {
+    email?: string;
+    password?: string;
+    firstName?: string;
+    lastName?: string;
+    username?: string;
+    role?: AppRole;
+    permissions?: AppPermission[];
+  }) {
+    const data: any = {};
+    if (input.email !== undefined) data.email = input.email.trim();
+    if (input.firstName !== undefined) data.firstName = input.firstName.trim() || null;
+    if (input.lastName !== undefined) data.lastName = input.lastName.trim() || null;
+    if (input.username !== undefined) data.username = input.username.trim() || null;
+    if (input.role) data.role = input.role;
+    if (input.permissions) data.permissions = input.permissions;
 
     if (input.password?.trim()) {
       data.password = await bcrypt.hash(input.password.trim(), 10);
@@ -123,7 +127,9 @@ export class AdminService {
     return this.prisma.user.update({
       where: { id },
       data,
-      select: { id: true, email: true, firstName: true, lastName: true, role: true, permissions: true }
+      select: {
+        id: true, email: true, firstName: true, lastName: true, role: true, permissions: true, createdAt: true, username: true
+      }
     });
   }
 

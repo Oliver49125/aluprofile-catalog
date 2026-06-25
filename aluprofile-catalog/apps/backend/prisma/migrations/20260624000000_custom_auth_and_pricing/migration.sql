@@ -6,7 +6,7 @@ DROP INDEX IF EXISTS "Supplier_clerkUserId_key";
 
 -- AlterTable - Profile: drop old column and add new columns if they don't exist
 ALTER TABLE "Profile" DROP COLUMN IF EXISTS "ownerClerkUserId";
-DO $ BEGIN
+DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='Profile' AND column_name='currencyId') THEN
     ALTER TABLE "Profile" ADD COLUMN "currencyId" INTEGER;
   END IF;
@@ -16,11 +16,11 @@ DO $ BEGIN
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='Profile' AND column_name='price') THEN
     ALTER TABLE "Profile" ADD COLUMN "price" DOUBLE PRECISION;
   END IF;
-END $;
+END $$;
 
 -- AlterTable - Supplier: drop old column and add new columns if they don't exist
 ALTER TABLE "Supplier" DROP COLUMN IF EXISTS "clerkUserId";
-DO $ BEGIN
+DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='Supplier' AND column_name='industry') THEN
     ALTER TABLE "Supplier" ADD COLUMN "industry" TEXT;
   END IF;
@@ -30,7 +30,7 @@ DO $ BEGIN
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='Supplier' AND column_name='userId') THEN
     ALTER TABLE "Supplier" ADD COLUMN "userId" INTEGER;
   END IF;
-END $;
+END $$;
 
 -- DropTable
 DROP TABLE IF EXISTS "UserAccess";
@@ -72,23 +72,23 @@ CREATE INDEX IF NOT EXISTS "Profile_ownerUserId_idx" ON "Profile"("ownerUserId")
 CREATE UNIQUE INDEX IF NOT EXISTS "Supplier_userId_key" ON "Supplier"("userId");
 
 -- AddForeignKey
-DO $ BEGIN
+DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'Profile_ownerUserId_fkey') THEN
     ALTER TABLE "Profile" ADD CONSTRAINT "Profile_ownerUserId_fkey" FOREIGN KEY ("ownerUserId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
   END IF;
-END $;
+END $$;
 
 -- AddForeignKey
-DO $ BEGIN
+DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'Profile_currencyId_fkey') THEN
     ALTER TABLE "Profile" ADD CONSTRAINT "Profile_currencyId_fkey" FOREIGN KEY ("currencyId") REFERENCES "Currency"("id") ON DELETE SET NULL ON UPDATE CASCADE;
   END IF;
-END $;
+END $$;
 
 -- AddForeignKey
-DO $ BEGIN
+DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'Supplier_userId_fkey') THEN
     ALTER TABLE "Supplier" ADD CONSTRAINT "Supplier_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
   END IF;
-END $;
+END $$;
 

@@ -438,6 +438,7 @@ function CustomerPage() {
         body: JSON.stringify({
           firstName: signUpFirstName.trim() || undefined,
           lastName: signUpLastName.trim() || undefined,
+          username: signUpUsername.trim() || undefined,
           email: signUpEmail.trim(),
           password: signUpPassword,
         }),

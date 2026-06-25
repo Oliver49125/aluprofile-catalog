@@ -76,6 +76,7 @@ type AuthContext = {
 type UserAdmin = {
   id: number;
   email: string;
+  username?: string;
   role: AppRole;
   permissions: AppPermission[];
 };
@@ -471,11 +472,13 @@ function AdminPage() {
   const [userForm, setUserForm] = useState<{
     id?: number;
     email: string;
+    username?: string;
     password?: string;
     role: AppRole;
     permissions: AppPermission[];
   }>({
     email: '',
+    username: '',
     password: '',
     role: 'USER',
     permissions: ['VIEW_ADMIN'],
@@ -675,6 +678,7 @@ function AdminPage() {
   function resetRoleForm() {
     setUserForm({
       email: '',
+      username: '',
       password: '',
       role: 'USER',
       permissions: ['VIEW_ADMIN'],
@@ -748,6 +752,7 @@ function AdminPage() {
     setUserForm({
       id: item.id,
       email: item.email,
+      username: item.username || '',
       password: '',
       role: item.role,
       permissions: item.permissions,
@@ -927,6 +932,7 @@ function AdminPage() {
         method: isEditing ? 'PUT' : 'POST',
         body: JSON.stringify({
           email: userForm.email.trim(),
+          username: userForm.username?.trim() || undefined,
           ...(userForm.password ? { password: userForm.password } : {}),
           role: userForm.role,
           permissions: userForm.permissions,
@@ -1323,6 +1329,7 @@ function AdminPage() {
                       {showRoleForm && (
                         <div className="admin-editor-grid">
                           <Input placeholder={t.email} value={userForm.email} onChange={(e) => setUserForm((f) => ({ ...f, email: e.target.value }))} disabled={!!userForm.id} />
+                          <Input placeholder={t.usernameOrEmail.replace(' or email', '').replace(' oder E-Mail', '')} value={userForm.username ?? ''} onChange={(e) => setUserForm((f) => ({ ...f, username: e.target.value }))} />
                           <Input type="password" placeholder={t.password} value={userForm.password ?? ''} onChange={(e) => setUserForm((f) => ({ ...f, password: e.target.value }))} />
                           <select value={userForm.role} onChange={(e) => setUserForm((f) => ({ ...f, role: e.target.value as AppRole }))} className="flex h-9 w-full rounded-md border border-slate-200 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50">
                             {(adminRef?.roleOptions ?? ['ADMIN', 'MANAGER', 'USER']).map((role) => <option key={role} value={role}>{role}</option>)}
@@ -1353,11 +1360,12 @@ function AdminPage() {
                       </div>
                       <div className="admin-table-wrap">
                         <table className="w-full text-sm">
-                          <thead><tr className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-[0.18em] text-slate-500"><th className="px-4 py-3">{t.email}</th><th className="px-4 py-3">{t.role}</th><th className="px-4 py-3">{t.permissions || 'Permissions'}</th><th className="px-4 py-3 text-right">{t.actions}</th></tr></thead>
+                          <thead><tr className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-[0.18em] text-slate-500"><th className="px-4 py-3">{t.email}</th><th className="px-4 py-3">{t.usernameOrEmail.replace(' or email', '').replace(' oder E-Mail', '')}</th><th className="px-4 py-3">{t.role}</th><th className="px-4 py-3">{t.permissions || 'Permissions'}</th><th className="px-4 py-3 text-right">{t.actions}</th></tr></thead>
                           <tbody>
                             {roleRows.items.map((item) => (
                               <tr key={item.id} className="material-table-row">
                                 <td className="px-4 py-3 font-medium text-slate-900">{item.email}</td>
+                                <td className="px-4 py-3 text-slate-600">{item.username || '-'}</td>
                                 <td className="px-4 py-3"><span className="material-chip bg-slate-100 text-slate-700">{item.role}</span></td>
                                 <td className="px-4 py-3 text-slate-600">{item.permissions.join(', ')}</td>
                                 <td className="px-4 py-3"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => startEditRole(item)}>{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteUser(item.id)}>{t.delete}</Button></div></td>
