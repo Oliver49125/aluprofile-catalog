@@ -214,8 +214,8 @@ export class PublicService {
         const profileName = inquiry.profile?.name || `Profile #${data.profileId}`;
         const supplierEmail = inquiry.profile?.supplier?.email;
         
-        // Ensure info@aluprofile.biz is always notified, plus the client and supplier
-        const toEmails = ['info@aluprofile.biz'];
+        // Ensure info@aluprofile.biz is always notified, plus the customer and supplier
+        const toEmails = ['info@aluprofile.biz', data.email];
         if (supplierEmail && supplierEmail.trim() !== '') {
           toEmails.push(supplierEmail.trim());
         }
