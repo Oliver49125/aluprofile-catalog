@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Status } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import * as nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 type Lang = 'en' | 'de';
 
@@ -206,33 +206,21 @@ export class PublicService {
       }
     });
 
-    // 2. Send the email using Nodemailer
-    if (process.env.SMTP_HOST) {
+    // 2. Send the email using Resend
+    if (process.env.RESEND_API_KEY) {
       try {
-        const transporter = nodemailer.createTransport({
-          host: process.env.SMTP_HOST,
-          port: Number(process.env.SMTP_PORT) || 587,
-          secure: Number(process.env.SMTP_PORT) === 465,
-          auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS,
-          },
-        });
+        const resend = new Resend(process.env.RESEND_API_KEY);
 
         const profileName = inquiry.profile?.name || `Profile #${data.profileId}`;
         const supplierEmail = inquiry.profile?.supplier?.email;
         
-        const toEmails = ['info@aluprofile.biz', data.email];
+        // Ensure info@aluprofile.biz is always notified, plus the client and supplier
+        const toEmails = ['info@aluprofile.biz'];
         if (supplierEmail && supplierEmail.trim() !== '') {
           toEmails.push(supplierEmail.trim());
         }
 
-        const mailOptions = {
-          from: `"Aluprofile Catalog" <${process.env.SMTP_USER}>`,
-          to: toEmails.join(', '),
-          replyTo: data.email,
-          subject: `New Inquiry for ${profileName}`,
-          text: `
+        const emailContent = `
 You have received a new inquiry from the Aluprofile Catalog.
 
 Profile: ${profileName}
@@ -244,16 +232,30 @@ Request to Purchase: ${data.requestPurchase ? 'Yes' : 'No'}
 
 Message:
 ${data.message}
-          `.trim(),
-        };
+        `.trim();
 
-        await transporter.sendMail(mailOptions);
-        console.log(`Inquiry email sent successfully to ${mailOptions.to}`);
+        // The default testing domain from Resend is onboarding@resend.dev
+        // In production, you would configure a custom domain on Resend and set RESEND_FROM_EMAIL
+        const fromEmail = process.env.RESEND_FROM_EMAIL || 'Aluprofile Catalog <onboarding@resend.dev>';
+
+        const response = await resend.emails.send({
+          from: fromEmail,
+          to: toEmails,
+          replyTo: data.email,
+          subject: `New Inquiry for ${profileName}`,
+          text: emailContent,
+        });
+
+        if (response.error) {
+          console.error('Failed to send inquiry email via Resend:', response.error);
+        } else {
+          console.log(`Inquiry email sent successfully to ${toEmails.join(', ')}`, response.data);
+        }
       } catch (error) {
-        console.error('Failed to send inquiry email:', error);
+        console.error('Unexpected error while sending inquiry email:', error);
       }
     } else {
-      console.warn('Email was not sent because SMTP settings are missing in environment variables.');
+      console.warn('Email was not sent because RESEND_API_KEY is missing in environment variables.');
     }
 
     return inquiry;
