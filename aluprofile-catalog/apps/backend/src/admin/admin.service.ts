@@ -493,56 +493,65 @@ export class AdminService {
     ];
 
     for (const item of profileSeed) {
-      await this.prisma.profile.upsert({
+      const existing = await this.prisma.profile.findFirst({
         where: { name: item.name },
-        update: {
-          nameDe: item.nameDe,
-          description: item.description,
-          descriptionDe: item.descriptionDe,
-          usage: item.usage,
-          usageDe: item.usageDe,
-          dimensions: item.dimensions,
-          weightPerMeter: item.weightPerMeter,
-          material: item.material,
-          materialDe: item.materialDe,
-          lengthMm: item.lengthMm,
-          drawingUrl: item.drawingUrl,
-          photoUrl: item.photoUrl,
-          logoUrl: item.logoUrl,
-          status: item.status,
-          supplier: { connect: { id: item.supplierId } },
-          applications: {
-            set: item.applicationIds.map((id) => ({ id })),
-          },
-          crossSections: {
-            set: item.crossSectionIds.map((id) => ({ id })),
-          },
-        },
-        create: {
-          name: item.name,
-          nameDe: item.nameDe,
-          description: item.description,
-          descriptionDe: item.descriptionDe,
-          usage: item.usage,
-          usageDe: item.usageDe,
-          dimensions: item.dimensions,
-          weightPerMeter: item.weightPerMeter,
-          material: item.material,
-          materialDe: item.materialDe,
-          lengthMm: item.lengthMm,
-          drawingUrl: item.drawingUrl,
-          photoUrl: item.photoUrl,
-          logoUrl: item.logoUrl,
-          status: item.status,
-          supplier: { connect: { id: item.supplierId } },
-          applications: {
-            connect: item.applicationIds.map((id) => ({ id })),
-          },
-          crossSections: {
-            connect: item.crossSectionIds.map((id) => ({ id })),
-          },
-        },
       });
+
+      if (existing) {
+        await this.prisma.profile.update({
+          where: { id: existing.id },
+          data: {
+            nameDe: item.nameDe,
+            description: item.description,
+            descriptionDe: item.descriptionDe,
+            usage: item.usage,
+            usageDe: item.usageDe,
+            dimensions: item.dimensions,
+            weightPerMeter: item.weightPerMeter,
+            material: item.material,
+            materialDe: item.materialDe,
+            lengthMm: item.lengthMm,
+            drawingUrl: item.drawingUrl,
+            photoUrl: item.photoUrl,
+            logoUrl: item.logoUrl,
+            status: item.status,
+            supplier: { connect: { id: item.supplierId } },
+            applications: {
+              set: item.applicationIds.map((id) => ({ id })),
+            },
+            crossSections: {
+              set: item.crossSectionIds.map((id) => ({ id })),
+            },
+          },
+        });
+      } else {
+        await this.prisma.profile.create({
+          data: {
+            name: item.name,
+            nameDe: item.nameDe,
+            description: item.description,
+            descriptionDe: item.descriptionDe,
+            usage: item.usage,
+            usageDe: item.usageDe,
+            dimensions: item.dimensions,
+            weightPerMeter: item.weightPerMeter,
+            material: item.material,
+            materialDe: item.materialDe,
+            lengthMm: item.lengthMm,
+            drawingUrl: item.drawingUrl,
+            photoUrl: item.photoUrl,
+            logoUrl: item.logoUrl,
+            status: item.status,
+            supplier: { connect: { id: item.supplierId } },
+            applications: {
+              connect: item.applicationIds.map((id) => ({ id })),
+            },
+            crossSections: {
+              connect: item.crossSectionIds.map((id) => ({ id })),
+            },
+          },
+        });
+      }
     }
 
     const [profileCount, supplierCount, applicationCount, crossSectionCount] =
