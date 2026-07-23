@@ -40,6 +40,17 @@ type Profile = {
   price?: number;
   currencyId?: number;
   currency?: { id: number; code: string; symbol: string };
+  slotSize?: string;
+  momentOfInertiaIx?: number;
+  momentOfInertiaIy?: number;
+  sectionModulusWx?: number;
+  sectionModulusWy?: number;
+  outerSurfaceArea?: number;
+  crossSectionalArea?: number;
+  color?: string;
+  stepUrl?: string;
+  dxfUrl?: string;
+  pdfUrl?: string;
 };
 
 const API_BASE = (import.meta.env.VITE_API_BASE ?? 'http://localhost:3000/api').replace(/\/+$/, '');

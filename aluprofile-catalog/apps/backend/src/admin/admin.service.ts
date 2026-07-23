@@ -20,6 +20,18 @@ export type ProfileInput = {
   lengthMm?: number;
   status?: Status;
 
+  slotSize?: string;
+  momentOfInertiaIx?: number;
+  momentOfInertiaIy?: number;
+  sectionModulusWx?: number;
+  sectionModulusWy?: number;
+  outerSurfaceArea?: number;
+  crossSectionalArea?: number;
+  color?: string;
+  stepUrl?: string;
+  dxfUrl?: string;
+  pdfUrl?: string;
+
   applicationIds?: number[];
   crossSectionIds?: number[];
   supplierId?: number;
@@ -288,6 +300,17 @@ export class AdminService {
         status: input.status ?? Status.AVAILABLE,
         price: input.price,
         currencyId: input.currencyId || null,
+        slotSize: input.slotSize,
+        momentOfInertiaIx: input.momentOfInertiaIx,
+        momentOfInertiaIy: input.momentOfInertiaIy,
+        sectionModulusWx: input.sectionModulusWx,
+        sectionModulusWy: input.sectionModulusWy,
+        outerSurfaceArea: input.outerSurfaceArea,
+        crossSectionalArea: input.crossSectionalArea,
+        color: input.color,
+        stepUrl: input.stepUrl,
+        dxfUrl: input.dxfUrl,
+        pdfUrl: input.pdfUrl,
         applications: {
           connect: (input.applicationIds ?? []).map((id) => ({ id })),
         },
@@ -333,6 +356,17 @@ export class AdminService {
         status: input.status,
         price: input.price,
         currencyId: input.currencyId || null,
+        slotSize: input.slotSize,
+        momentOfInertiaIx: input.momentOfInertiaIx,
+        momentOfInertiaIy: input.momentOfInertiaIy,
+        sectionModulusWx: input.sectionModulusWx,
+        sectionModulusWy: input.sectionModulusWy,
+        outerSurfaceArea: input.outerSurfaceArea,
+        crossSectionalArea: input.crossSectionalArea,
+        color: input.color,
+        stepUrl: input.stepUrl,
+        dxfUrl: input.dxfUrl,
+        pdfUrl: input.pdfUrl,
 
         applications: input.applicationIds
           ? {

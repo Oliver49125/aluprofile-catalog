@@ -58,7 +58,18 @@ type Profile = {
   crossSections: RefOption[];
   price?: number;
   currencyId?: number;
-  currency?: CurrencyOption;
+  currency?: { id: number; code: string; symbol: string };
+  slotSize?: string;
+  momentOfInertiaIx?: number;
+  momentOfInertiaIy?: number;
+  sectionModulusWx?: number;
+  sectionModulusWy?: number;
+  outerSurfaceArea?: number;
+  crossSectionalArea?: number;
+  color?: string;
+  stepUrl?: string;
+  dxfUrl?: string;
+  pdfUrl?: string;
 };
 type AppRole = 'ADMIN' | 'MANAGER' | 'USER';
 type AppPermission =

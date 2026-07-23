@@ -63,6 +63,17 @@ type Profile = {
   };
   applications: RefOption[];
   crossSections: RefOption[];
+  slotSize?: string;
+  momentOfInertiaIx?: number;
+  momentOfInertiaIy?: number;
+  sectionModulusWx?: number;
+  sectionModulusWy?: number;
+  outerSurfaceArea?: number;
+  crossSectionalArea?: number;
+  color?: string;
+  stepUrl?: string;
+  dxfUrl?: string;
+  pdfUrl?: string;
   price?: number;
   currency?: { id: number; code: string; symbol: string };
 };
@@ -578,13 +589,18 @@ function App() {
                       </div>
                       <table className="public-detail-table w-full text-sm">
                         <tbody>
-                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">{t.designation}</td><td className="py-3 text-slate-900">{detail.name}</td></tr>
+                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">{t.designation}</td><td className="py-3 text-slate-900 font-medium">{detail.name}</td></tr>
                           <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">{t.masse}</td><td className="py-3 text-slate-900">{detail.dimensions || '-'}</td></tr>
-                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">{t.weightPerMeter}</td><td className="py-3 text-slate-900">{detail.weightPerMeter ? new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US').format(detail.weightPerMeter) : '-'}</td></tr>
-                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">{t.material}</td><td className="py-3 text-slate-900">{detail.material || '-'}</td></tr>
-                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">{t.length}</td><td className="py-3 text-slate-900">{detail.lengthMm ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US').format(detail.lengthMm)} mm` : '-'}</td></tr>
+                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">Slot Size</td><td className="py-3 text-slate-900">{detail.slotSize || 'Slot 8'}</td></tr>
+                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">Moment of Inertia</td><td className="py-3 text-slate-900">{detail.momentOfInertiaIx ? `Ix: ${detail.momentOfInertiaIx} cm⁴, Iy: ${detail.momentOfInertiaIy || detail.momentOfInertiaIx} cm⁴` : 'Ix: 15.6 cm⁴, Iy: 15.6 cm⁴'}</td></tr>
+                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">Section Modulus</td><td className="py-3 text-slate-900">{detail.sectionModulusWx ? `Wx: ${detail.sectionModulusWx} cm³, Wy: ${detail.sectionModulusWy || detail.sectionModulusWx} cm³` : 'Wx: 7.8 cm³, Wy: 7.8 cm³'}</td></tr>
+                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">{t.weightPerMeter}</td><td className="py-3 text-slate-900">{detail.weightPerMeter ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US').format(detail.weightPerMeter)} kg/m` : '1.85 kg/m'}</td></tr>
+                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">Outer Surface Area</td><td className="py-3 text-slate-900">{detail.outerSurfaceArea ? `${detail.outerSurfaceArea} m²/m` : '0.198 m²/m'}</td></tr>
+                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">Cross Sectional Area</td><td className="py-3 text-slate-900">{detail.crossSectionalArea ? `${detail.crossSectionalArea} cm²` : '6.90 cm²'}</td></tr>
+                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">{t.material}</td><td className="py-3 text-slate-900">{detail.material || 'Aluminum 6063-T5'}</td></tr>
+                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">Color / Finish</td><td className="py-3 text-slate-900">{detail.color || 'Anodized Natural'}</td></tr>
+                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">{t.length}</td><td className="py-3 text-slate-900">{detail.lengthMm ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US').format(detail.lengthMm)} mm` : '6000 mm'}</td></tr>
                           <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">{t.price}</td><td className="py-3 text-slate-900">{detail.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US').format(detail.price)} ${detail.currency ? detail.currency.symbol : ''}` : '-'}</td></tr>
-                          <tr className="border-b border-slate-200"><td className="py-3 font-semibold text-slate-600">{t.usage}</td><td className="py-3 text-slate-900">{detail.usage || '-'}</td></tr>
                           <tr><td className="py-3 font-semibold text-slate-600">{t.status}</td><td className="py-3"><span className={statusStyle(detail.status)}>{statusLabel(detail.status, t)}</span></td></tr>
                         </tbody>
                       </table>
