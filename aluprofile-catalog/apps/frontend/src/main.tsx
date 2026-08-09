@@ -9,11 +9,13 @@ import CustomerPage from './CustomerPage.tsx';
 import { initSentry } from './monitoring/sentry.ts';
 import CookieConsentBanner, { initGA } from './components/CookieConsentBanner.tsx';
 
+import SearchPortalPage from './SearchPortalPage.tsx';
+
 initSentry();
 initGA();
 
 const pathname = window.location.pathname;
-const page = pathname === '/admin' ? <AdminPage /> : pathname === '/customer' ? <CustomerPage /> : <App />;
+const page = pathname === '/admin' ? <AdminPage /> : pathname === '/customer' ? <CustomerPage /> : pathname === '/search' ? <SearchPortalPage /> : <App />;
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
