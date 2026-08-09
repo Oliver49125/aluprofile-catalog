@@ -13,6 +13,17 @@ out/
 .env.*
 !.env.example
 
+# Service account secrets
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!tsconfig.*.json
+!nest-cli.json
+!components.json
+!vercel.json
+credentials/
+
 # OS / Editor files
 .DS_Store
 *.log
