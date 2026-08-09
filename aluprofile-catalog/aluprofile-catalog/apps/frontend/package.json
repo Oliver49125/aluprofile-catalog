@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "dev": "node \"../../node_modules/vite/bin/vite.js\" --config vite.config.mjs --configLoader runner",
+    "build": "node \"../../node_modules/typescript/bin/tsc\" -b && node \"../../node_modules/vite/bin/vite.js\" build --config vite.config.mjs --configLoader runner",
+    "lint": "node \"../../node_modules/eslint/bin/eslint.js\" .",
+    "preview": "node \"../../node_modules/vite/bin/vite.js\" preview --config vite.config.mjs --configLoader runner"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.60.1",

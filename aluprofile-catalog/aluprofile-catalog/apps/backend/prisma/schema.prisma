@@ -1,0 +1,146 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Profile {
+  id               Int            @id @default(autoincrement())
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  name             String
+  nameDe           String?
+  description      String?
+  descriptionDe    String?
+  usage            String?
+  usageDe          String?
+  drawingUrl       String?
+  photoUrl         String?
+  logoUrl          String?
+  dimensions       String?
+  weightPerMeter   Float?
+  material         String?
+  materialDe       String?
+  lengthMm         Int?
+  status           Status         @default(AVAILABLE)
+  ownerUserId      Int?
+  owner            User?          @relation(fields: [ownerUserId], references: [id])
+  supplierId       Int?
+  supplier         Supplier?      @relation(fields: [supplierId], references: [id])
+  price            Float?
+  currencyId       Int?
+  currency         Currency?      @relation(fields: [currencyId], references: [id])
+  slotSize            String?
+  momentOfInertiaIx   Float?
+  momentOfInertiaIy   Float?
+  sectionModulusWx    Float?
+  sectionModulusWy    Float?
+  outerSurfaceArea    Float?
+  crossSectionalArea  Float?
+  color               String?
+  stepUrl             String?
+  dxfUrl              String?
+  pdfUrl              String?
+  applications     Application[]  @relation("ApplicationToProfile")
+  crossSections    CrossSection[] @relation("CrossSectionToProfile")
+  inquiries        Inquiry[]
+
+  @@index([ownerUserId])
+}
+
+model Currency {
+  id       Int       @id @default(autoincrement())
+  code     String    @unique
+  symbol   String
+  profiles Profile[]
+}
+
+model Supplier {
+  id            Int       @id @default(autoincrement())
+  userId        Int?      @unique
+  user          User?     @relation(fields: [userId], references: [id])
+  name          String
+  nameDe        String?
+  industry      String?
+  address       String?
+  contactPerson String?
+  email         String?
+  phone         String?
+  website       String?
+  uid           String?
+  profiles      Profile[]
+}
+
+model Application {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  nameDe   String?
+  profiles Profile[] @relation("ApplicationToProfile")
+}
+
+model CrossSection {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  nameDe   String?
+  profiles Profile[] @relation("CrossSectionToProfile")
+}
+
+model User {
+  id          Int             @id @default(autoincrement())
+  email       String          @unique
+  username    String?         @unique
+  password    String
+  firstName   String?
+  lastName    String?
+  role        AppRole         @default(USER)
+  permissions AppPermission[] @default([VIEW_ADMIN])
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  supplier    Supplier?
+  profiles    Profile[]
+}
+
+enum Status {
+  AVAILABLE
+  IN_DEVELOPMENT
+  NOT_AVAILABLE
+}
+
+enum AppRole {
+  ADMIN
+  MANAGER
+  USER
+}
+
+enum AppPermission {
+  VIEW_ADMIN
+  PROFILES_MANAGE
+  SUPPLIERS_MANAGE
+  CATEGORIES_MANAGE
+  USERS_MANAGE
+}
+
+model Inquiry {
+  id             Int      @id @default(autoincrement())
+  profileId      Int
+  firstName      String
+  lastName       String
+  company        String?
+  email          String
+  phone          String?
+  message        String
+  requestPurchase Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  profile        Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model SiteMetric {
+  id          Int      @id @default(autoincrement())
+  key         String   @unique
+  value       Int      @default(0)
+  updatedAt   DateTime @updatedAt
+}

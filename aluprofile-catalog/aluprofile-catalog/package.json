@@ -1,0 +1,23 @@
+{
+  "name": "aluprofile-catalog-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Aluprofile Search & Catalog System",
+  "scripts": {
+    "backend:dev": "npm --workspace apps/backend run start:dev",
+    "frontend:dev": "npm --workspace apps/frontend run dev",
+    "backend:build": "npm --workspace apps/backend run build",
+    "frontend:build": "npm --workspace apps/frontend run build",
+    "build": "npm run frontend:build && npm run backend:build",
+    "start": "npm --workspace apps/backend run start:prod",
+    "start:dev": "npm --workspace apps/backend run start:dev",
+    "prisma:generate": "npm --workspace apps/backend run prisma:generate",
+    "prisma:migrate": "npm --workspace apps/backend run prisma:migrate"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "workspaces": [
+    "apps/*"
+  ]
+}
