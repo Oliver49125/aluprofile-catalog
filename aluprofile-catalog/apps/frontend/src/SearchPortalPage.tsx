@@ -240,10 +240,10 @@ export default function SearchPortalPage() {
                     <label className="text-[11px] font-medium text-slate-400 block mb-1">Height (mm)</label>
                     <input
                       type="number"
-                      placeholder=""
+                      placeholder="e.g. 40"
                       value={heightMm}
                       onChange={(e) => setHeightMm(e.target.value)}
-                      className="w-full rounded-xl bg-[#222b3a] border border-slate-700/80 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+                      className="w-full rounded-xl bg-[#222b3a] border border-slate-700/80 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none transition-all"
                     />
                   </div>
 
@@ -251,10 +251,10 @@ export default function SearchPortalPage() {
                     <label className="text-[11px] font-medium text-slate-400 block mb-1">Width (mm)</label>
                     <input
                       type="number"
-                      placeholder=""
+                      placeholder="e.g. 40"
                       value={widthMm}
                       onChange={(e) => setWidthMm(e.target.value)}
-                      className="w-full rounded-xl bg-[#222b3a] border border-slate-700/80 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+                      className="w-full rounded-xl bg-[#222b3a] border border-slate-700/80 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none transition-all"
                     />
                   </div>
 
@@ -262,10 +262,10 @@ export default function SearchPortalPage() {
                     <label className="text-[11px] font-medium text-slate-400 block mb-1">Slot size (mm)</label>
                     <input
                       type="number"
-                      placeholder=""
+                      placeholder="e.g. 8"
                       value={slotSizeMm}
                       onChange={(e) => setSlotSizeMm(e.target.value)}
-                      className="w-full rounded-xl bg-[#222b3a] border border-slate-700/80 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+                      className="w-full rounded-xl bg-[#222b3a] border border-slate-700/80 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none transition-all"
                     />
                   </div>
                 </div>
@@ -380,8 +380,8 @@ export default function SearchPortalPage() {
               )}
             </div>
 
-            {/* Right Controls: Sort & Back to Home */}
-            <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+            {/* Right Controls: Sort & Quick Portal Links */}
+            <div className="flex items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-end">
               <label className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm">
                 <span>Sort by:</span>
                 <select
@@ -400,9 +400,15 @@ export default function SearchPortalPage() {
                 </select>
               </label>
 
-              <a href="/">
+              <a href="/customer">
                 <Button size="sm" variant="outline" className="rounded-xl text-xs font-bold border-slate-200 hover:bg-slate-50 text-slate-700 shadow-sm">
-                  Back to Home
+                  Customer Login
+                </Button>
+              </a>
+
+              <a href="/admin">
+                <Button size="sm" className="rounded-xl text-xs font-extrabold bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/20">
+                  Admin Panel
                 </Button>
               </a>
             </div>
