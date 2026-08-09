@@ -17,13 +17,13 @@ initSentry();
 initGA();
 
 const pathname = window.location.pathname;
-let page = <SearchPortalPage />;
+let page = <App />;
 if (pathname === '/admin') page = <AdminPage />;
 else if (pathname === '/customer') page = <CustomerPage />;
+else if (pathname === '/search') page = <SearchPortalPage />;
 else if (pathname === '/privacy') page = <PrivacyPage />;
 else if (pathname === '/imprint') page = <ImprintPage />;
 else if (pathname === '/terms') page = <TermsPage />;
-else if (pathname === '/legacy') page = <App />;
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
