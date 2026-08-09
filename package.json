@@ -1,0 +1,11 @@
+{
+  "name": "aluprofile-catalog-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "npm --workspace aluprofile-catalog/apps/frontend run build"
+  },
+  "workspaces": [
+    "aluprofile-catalog/apps/*"
+  ]
+}
