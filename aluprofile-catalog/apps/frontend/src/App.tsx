@@ -729,182 +729,77 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f1f5f9] font-sans antialiased text-slate-800">
-      {/* TOP NAVIGATION BAR - EXACT MATCH TO USER MOCKUP */}
-      <header className="w-full bg-white border-b border-slate-200/90 px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-50">
-        {/* Logo Brand Header */}
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-700 via-blue-600 to-cyan-400 text-white shadow-md shadow-blue-600/30">
-            <Boxes className="h-5 w-5" />
-          </div>
-          <span className="text-xl font-black text-slate-900 tracking-tight">
-            Alu<span className="text-blue-600">Catalog</span>
-          </span>
-        </div>
-
-        {/* Navigation Links */}
-        <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
-          <a href="#catalog" className="hover:text-blue-600 transition-colors">Catalog</a>
-          <a href="#solutions" className="hover:text-blue-600 transition-colors">Solutions</a>
-          <a href="#about" className="hover:text-blue-600 transition-colors">About</a>
-        </nav>
-
-        {/* Actions Right */}
-        <div className="flex items-center gap-3">
-          <a href="/customer">
-            <Button className="rounded-xl bg-[#202936] hover:bg-slate-800 text-white font-bold text-xs px-5 py-2.5 shadow-sm transition-all">
-              Customer Portal
-            </Button>
-          </a>
-
-          <label className="inline-flex items-center gap-1 text-xs font-bold text-slate-700 cursor-pointer bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-xl transition-all border border-slate-200">
-            <Globe className="h-4 w-4 text-slate-500" />
-            <select value={lang} onChange={(e) => setLang(e.target.value as Lang)} className="bg-transparent border-0 font-extrabold focus:outline-none cursor-pointer">
-              <option value="en">EN</option>
-              <option value="de">DE</option>
-            </select>
-          </label>
-
-          {!!token && (
-            <a href="/admin">
-              <Button size="sm" className="rounded-xl text-xs font-extrabold bg-blue-600 hover:bg-blue-500 text-white shadow-md">
-                {t.adminPanel}
-              </Button>
-            </a>
-          )}
-          {!!token && (
-            <button onClick={() => logout()} title="Logout" className="p-2 text-slate-500 hover:text-slate-900 transition-colors">
-              <LogOut className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-      </header>
-
-      <div className="max-w-[1550px] mx-auto p-4 sm:p-6 space-y-6">
-        {/* DARK SLATE HERO BANNER - EXACT MATCH TO USER MOCKUP */}
-        <div className="rounded-3xl bg-[#394553] text-white p-8 lg:p-12 shadow-xl border border-slate-700/60 overflow-hidden relative">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            
-            {/* Left Hero Copy & Search Input */}
-            <div className="lg:col-span-6 space-y-6">
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-[1.15]">
-                Industrial Aluminum Extrusions, Found Instantly.
-              </h1>
-              <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-xl font-normal">
-                Search and access detailed specifications, technical data, and instant downloads for standard and custom aluminum profiles.
-              </p>
-
-              {/* Glassmorphism Hero Search Box */}
-              <div className="relative max-w-lg">
-                <input
-                  type="text"
-                  placeholder="Search by ID, dimensions, or material..."
-                  value={filters.q}
-                  onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
-                  className="w-full rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 pl-4 pr-11 py-3.5 text-sm text-white placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 shadow-inner transition-all"
-                />
-                <Search className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300" />
+    <div className="min-h-screen">
+      <div className="material-shell">
+        <header className="material-hero public-hero mb-6 p-6 md:p-8">
+          <div className="relative z-10 grid gap-8 lg:grid-cols-[1.3fr_0.7fr] lg:items-start">
+            <div className="max-w-4xl">
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/10 bg-primary/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-primary">
+                <Sparkles className="h-3.5 w-3.5" />
+                {t.catalogLabel}
+              </div>
+              <h1 className="mt-5 max-w-3xl text-4xl font-black tracking-[-0.045em] text-slate-950 md:text-6xl">{t.title}</h1>
+              <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 md:text-lg">{t.subtitle}</p>
+              <div className="mt-6 flex flex-wrap items-center gap-3 text-sm text-slate-600">
+                <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.35)]">
+                  <SlidersHorizontal className="h-4 w-4 text-primary" />
+                  {t.heroNote}
+                </span>
               </div>
             </div>
 
-            {/* Right Hero Image & Stats Card Stack */}
-            <div className="lg:col-span-6 flex flex-col sm:flex-row items-center gap-4">
-              {/* 3D Profile Extrusion Render */}
-              <div className="flex-1 w-full flex items-center justify-center rounded-2xl bg-[#2a3442]/60 p-4 border border-slate-600/40">
-                <img
-                  src="/hero-3d-profile.png"
-                  alt="3D Extrusion Profile"
-                  className="max-h-64 object-contain filter drop-shadow-[0_20px_30px_rgba(0,0,0,0.4)]"
-                />
+            <div className="public-hero-side">
+              <div className="public-action-cluster">
+                <a href="/customer">
+                  <Button className="h-12 rounded-full px-6" variant="secondary">{t.customerLogin}</Button>
+                </a>
+                {!!token && (
+                  <a href="/admin">
+                    <Button className="h-12 rounded-full px-6" variant="secondary">{t.adminPanel}</Button>
+                  </a>
+                )}
+                <label className="public-language-pill">
+                  <span>{t.language}</span>
+                  <select value={lang} onChange={(e) => setLang(e.target.value as Lang)} className="public-language-select">
+                    <option value="en">EN</option>
+                    <option value="de">DE</option>
+                  </select>
+                </label>
+                {!!token && (
+                  <div className="rounded-full border border-white/70 bg-white/90 p-1.5 shadow-[0_16px_36px_-28px_rgba(15,23,42,0.4)]">
+                    <button onClick={() => logout()} title="Logout" className="flex items-center justify-center p-2 text-slate-600 hover:text-slate-900"><LogOut className="h-5 w-5" /></button>
+                  </div>
+                )}
               </div>
 
-              {/* Right Statistics Box */}
-              <div className="w-full sm:w-64 shrink-0 space-y-3">
-                <div className="rounded-2xl bg-[#1c2430]/90 border border-cyan-500/30 p-4 shadow-lg shadow-cyan-950/40 space-y-1">
-                  <p className="text-xl font-black text-cyan-400 tracking-tight">{overview?.totals?.profiles ? `${overview.totals.profiles}+ Profiles` : '150+ Profiles'}</p>
-                  <p className="text-[11px] font-semibold text-slate-400">Standard & Custom</p>
+              <div className="public-hero-panel mt-6">
+                <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+                  <div className="material-stat public-stat-card">
+                    <p className="public-stat-label text-[0.62rem] tracking-[0.12em]">{t.totalProfiles}</p>
+                    <p className="public-stat-value">
+                      <span className="public-stat-icon"><Boxes className="h-5 w-5" /></span>
+                      {overview?.totals?.profiles ?? 0}
+                    </p>
+                  </div>
+                  <div className="material-stat public-stat-card">
+                    <p className="public-stat-label text-[0.62rem] tracking-[0.12em]">{t.applications}</p>
+                    <p className="public-stat-value">
+                      <span className="public-stat-icon"><LayoutGrid className="h-5 w-5" /></span>
+                      {overview?.applications.length ?? 0}
+                    </p>
+                  </div>
+                  <div className="material-stat public-stat-card">
+                    <p className="public-stat-label text-[0.62rem] tracking-[0.12em]">{t.crossSections}</p>
+                    <p className="public-stat-value">
+                      <span className="public-stat-icon"><Ruler className="h-5 w-5" /></span>
+                      {overview?.crossSections.length ?? 0}
+                    </p>
+                  </div>
                 </div>
-
-                <div className="rounded-2xl bg-[#1c2430]/90 border border-blue-500/30 p-4 shadow-lg shadow-blue-950/40 space-y-1">
-                  <p className="text-xl font-black text-blue-400 tracking-tight">{overview?.applications?.length ? `${overview.applications.length}+ Partners` : '12 Partners'}</p>
-                  <p className="text-[11px] font-semibold text-slate-400">Global Manufacturing Network</p>
-                </div>
-
-                <div className="rounded-2xl bg-[#1c2430]/90 border border-indigo-500/30 p-4 shadow-lg shadow-indigo-950/40 space-y-1">
-                  <p className="text-xl font-black text-indigo-400 tracking-tight">9,850+ Downloads</p>
-                  <p className="text-[11px] font-semibold text-slate-400">Technical Data Sheets</p>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        {/* FEATURED PROFILES GRID SECTION - EXACT MATCH TO USER MOCKUP */}
-        <div className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-sm space-y-5">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Featured Aluminum Profiles</h2>
-            <span className="text-xs font-semibold text-slate-500">Highlighting Top Engineering Cross-Sections</span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {/* Featured Card 1 */}
-            <div className="bg-[#f0f3f6] rounded-2xl p-5 border border-slate-200/80 shadow-sm flex justify-between items-start group hover:border-blue-400 hover:bg-white transition-all cursor-pointer">
-              <div className="space-y-2">
-                <h3 className="font-extrabold text-slate-900 text-sm">20x40 T-Slot Profile</h3>
-                <div className="space-y-0.5 text-xs text-slate-600 font-medium">
-                  <p><span className="text-slate-400">Code:</span> 20x40</p>
-                  <p><span className="text-slate-400">Dimensions:</span> 20 x 40</p>
-                  <p><span className="text-slate-400">Alloy:</span> 6063</p>
-                </div>
-              </div>
-              <img src="/hero-3d-profile.png" alt="20x40" className="h-16 w-16 object-contain filter drop-shadow-sm group-hover:scale-105 transition-transform shrink-0" />
-            </div>
-
-            {/* Featured Card 2 */}
-            <div className="bg-[#f0f3f6] rounded-2xl p-5 border border-slate-200/80 shadow-sm flex justify-between items-start group hover:border-blue-400 hover:bg-white transition-all cursor-pointer">
-              <div className="space-y-2">
-                <h3 className="font-extrabold text-slate-900 text-sm">40x80 Base Profile</h3>
-                <div className="space-y-0.5 text-xs text-slate-600 font-medium">
-                  <p><span className="text-slate-400">Code:</span> 40x80</p>
-                  <p><span className="text-slate-400">Dimensions:</span> 40 x 80</p>
-                  <p><span className="text-slate-400">Alloy:</span> 6063</p>
-                </div>
-              </div>
-              <img src="/hero-3d-profile.png" alt="40x80" className="h-16 w-16 object-contain filter drop-shadow-sm group-hover:scale-105 transition-transform shrink-0" />
-            </div>
-
-            {/* Featured Card 3 */}
-            <div className="bg-[#f0f3f6] rounded-2xl p-5 border border-slate-200/80 shadow-sm flex justify-between items-start group hover:border-blue-400 hover:bg-white transition-all cursor-pointer">
-              <div className="space-y-2">
-                <h3 className="font-extrabold text-slate-900 text-sm">Angle Profile 30x30</h3>
-                <div className="space-y-0.5 text-xs text-slate-600 font-medium">
-                  <p><span className="text-slate-400">Code:</span> 30x30</p>
-                  <p><span className="text-slate-400">Dimensions:</span> 30 x 30</p>
-                  <p><span className="text-slate-400">Alloy:</span> 6063</p>
-                </div>
-              </div>
-              <div className="h-14 w-14 bg-slate-200/80 rounded-xl flex items-center justify-center text-slate-500 shrink-0">
-                <Ruler className="h-7 w-7" />
-              </div>
-            </div>
-
-            {/* Featured Card 4 */}
-            <div className="bg-[#f0f3f6] rounded-2xl p-5 border border-slate-200/80 shadow-sm flex justify-between items-start group hover:border-blue-400 hover:bg-white transition-all cursor-pointer">
-              <div className="space-y-2">
-                <h3 className="font-extrabold text-slate-900 text-sm">U-Channel 15x15</h3>
-                <div className="space-y-0.5 text-xs text-slate-600 font-medium">
-                  <p><span className="text-slate-400">Code:</span> 15x15</p>
-                  <p><span className="text-slate-400">Dimensions:</span> 15 x 15</p>
-                  <p><span className="text-slate-400">Alloy:</span> 6063</p>
-                </div>
-              </div>
-              <div className="h-14 w-14 bg-slate-200/80 rounded-xl flex items-center justify-center text-slate-500 shrink-0">
-                <Boxes className="h-7 w-7" />
               </div>
             </div>
           </div>
-        </div>
+        </header>
 
 
         <Card className="material-panel mb-6 overflow-hidden">
