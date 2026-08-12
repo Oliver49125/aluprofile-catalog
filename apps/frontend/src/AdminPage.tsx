@@ -1218,27 +1218,44 @@ function AdminPage() {
 
         <main className="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
           {!token && (
-            <Card className="material-panel lg:col-span-3">
-              <CardContent className="flex min-h-[60vh] items-center justify-center rounded-2xl bg-gradient-to-b from-white to-teal-50/40 p-6">
+            <Card className="border-0 shadow-2xl bg-gradient-to-b from-[#0f172a] via-[#0b1320] to-[#080d16] min-h-[75vh] flex items-center justify-center p-4 sm:p-8 rounded-3xl relative overflow-hidden lg:col-span-3">
+              {/* Ambient Background Glows */}
+              <div className="absolute top-1/4 left-1/4 h-80 w-80 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
+              <div className="absolute bottom-1/4 right-1/4 h-80 w-80 rounded-full bg-blue-600/10 blur-3xl pointer-events-none" />
+
+              <CardContent className="w-full max-w-md p-0 z-10">
                 {!forgotPasswordMode ? (
-                  <form onSubmit={handleLogin} className="w-full max-w-md rounded-[1.75rem] border border-white/80 bg-white/95 p-7 shadow-[0_30px_70px_-34px_rgba(15,23,42,0.35)] backdrop-blur-sm"><div className="mb-6 text-center space-y-2"><p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">catalog system</p><h2 className="text-3xl font-black tracking-[-0.03em] text-slate-950">{t.login}</h2></div>
-                    <div className="space-y-4">
-                      <label className="block text-sm font-medium text-slate-700">
-                        {t.usernameOrEmail}
+                  <form onSubmit={handleLogin} className="w-full rounded-3xl border border-slate-700/80 bg-[#131c2a]/95 p-8 shadow-2xl backdrop-blur-xl space-y-5">
+                    <div className="text-center space-y-2">
+                      <div className="inline-flex items-center gap-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 px-3.5 py-1 text-[11px] font-extrabold uppercase tracking-[0.24em] text-cyan-400 shadow-sm">
+                        <Boxes className="h-3.5 w-3.5" /> AluProfile Admin
+                      </div>
+                      <h2 className="text-3xl font-extrabold text-white tracking-tight">{t.login}</h2>
+                      <p className="text-xs text-slate-400 leading-relaxed max-w-xs mx-auto">Manage users, permissions, and aluminum profile master data</p>
+                    </div>
+
+                    <div className="space-y-4 pt-2">
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-300">
+                          {t.usernameOrEmail}
+                        </label>
                         <Input
-                          className="mt-1"
+                          className="rounded-2xl border-slate-700 bg-[#1e293b] text-white placeholder:text-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 text-xs py-2.5"
                           autoComplete="username"
                           autoFocus
                           value={identifier}
                           onChange={(e) => setIdentifier(e.target.value)}
-                          placeholder={t.usernameOrEmail}
+                          placeholder="admin@aluprofile.com"
                         />
-                      </label>
-                      <label className="block text-sm font-medium text-slate-700">
-                        {t.password}
-                        <div className="relative mt-1">
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-300">
+                          {t.password}
+                        </label>
+                        <div className="relative">
                           <Input
-                            className="pr-16"
+                            className="rounded-2xl border-slate-700 bg-[#1e293b] text-white placeholder:text-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 text-xs py-2.5 pr-16"
                             type={showPassword ? 'text' : 'password'}
                             autoComplete="current-password"
                             value={password}
@@ -1247,45 +1264,48 @@ function AdminPage() {
                           />
                           <button
                             type="button"
-                            className="absolute inset-y-0 right-0 flex items-center gap-1 px-3 text-xs font-medium text-slate-500"
+                            className="absolute inset-y-0 right-0 flex items-center gap-1 px-3 text-xs font-bold text-slate-400 hover:text-white cursor-pointer"
                             onClick={() => setShowPassword((value: boolean) => !value)}
                           >
-                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            {showPassword ? <EyeOff className="h-4 w-4 text-cyan-400" /> : <Eye className="h-4 w-4" />}
                             {showPassword ? t.hidePassword : t.showPassword}
                           </button>
                         </div>
-                      </label>
+                      </div>
                     </div>
-                    <div className="mt-4 flex items-center justify-between gap-3">
-                      <button type="button" className="text-sm font-medium text-teal-700 hover:text-teal-800" onClick={openForgotPassword}>
+
+                    <div className="flex items-center justify-between gap-3 text-xs pt-1">
+                      <button type="button" className="text-cyan-400 hover:text-cyan-300 font-bold transition-colors cursor-pointer" onClick={openForgotPassword}>
                         {t.forgotPassword}
                       </button>
                     </div>
-                    <Button className="mt-4 w-full" type="submit" disabled={loginLoading}>
+
+                    <Button className="w-full rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 hover:from-cyan-400 hover:to-blue-500 text-white font-extrabold text-xs py-3 shadow-lg shadow-cyan-500/20 cursor-pointer" type="submit" disabled={loginLoading}>
                       {loginLoading ? t.signingIn : t.signIn}
                     </Button>
-                    <div className="mt-5 pt-4 border-t border-slate-200/80 space-y-2">
-                      <p className="text-center text-[11px] font-extrabold uppercase tracking-wider text-slate-400">⚡ 1-Click Fast Auto-Fill Login</p>
-                      <div className="grid grid-cols-2 gap-2">
+
+                    <div className="pt-4 border-t border-slate-800 space-y-2.5">
+                      <p className="text-center text-[10px] font-extrabold uppercase tracking-widest text-slate-400">⚡ 1-Click Fast Auto-Fill Login</p>
+                      <div className="grid grid-cols-2 gap-2.5">
                         <button
                           type="button"
                           onClick={() => {
-                            setIdentifier('admin@alucatalog.com');
+                            setIdentifier('admin@aluprofile.com');
                             setPassword('admin123');
                             toast.success('Admin credentials auto-filled!');
                           }}
-                          className="py-2 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-extrabold text-xs border border-blue-200 transition-all flex items-center justify-center gap-1.5 shadow-sm"
+                          className="py-2.5 px-3 rounded-2xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 font-extrabold text-xs border border-cyan-500/20 transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
                         >
                           <span>🔑 Admin Login</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => {
-                            setIdentifier('customer@alucatalog.com');
+                            setIdentifier('customer@aluprofile.com');
                             setPassword('customer123');
                             toast.success('Customer credentials auto-filled!');
                           }}
-                          className="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs border border-slate-300 transition-all flex items-center justify-center gap-1.5 shadow-sm"
+                          className="py-2.5 px-3 rounded-2xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 font-extrabold text-xs border border-blue-500/20 transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
                         >
                           <span>👤 Customer Login</span>
                         </button>
@@ -1294,29 +1314,41 @@ function AdminPage() {
                   </form>
 
                 ) : forgotPasswordStep === 'request' ? (
-                  <form onSubmit={handleForgotPasswordRequest} className="w-full max-w-md rounded-[1.75rem] border border-white/80 bg-white/95 p-7 shadow-[0_30px_70px_-34px_rgba(15,23,42,0.35)] backdrop-blur-sm"><div className="mb-6 text-center space-y-2"><p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">catalog system</p><h2 className="text-3xl font-black tracking-[-0.03em] text-slate-950">{t.forgotPassword}</h2></div>
-                    <p className="mb-4 text-sm text-slate-600">{t.resetPasswordHelp}</p>
-                    <label className="block text-sm font-medium text-slate-700">
-                      {t.usernameOrEmail}
+                  <form onSubmit={handleForgotPasswordRequest} className="w-full rounded-3xl border border-slate-700/80 bg-[#131c2a]/95 p-8 shadow-2xl backdrop-blur-xl space-y-5">
+                    <div className="text-center space-y-2">
+                      <div className="inline-flex items-center gap-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 px-3.5 py-1 text-[11px] font-extrabold uppercase tracking-[0.24em] text-cyan-400 shadow-sm">
+                        <Boxes className="h-3.5 w-3.5" /> AluProfile Admin
+                      </div>
+                      <h2 className="text-3xl font-extrabold text-white tracking-tight">{t.forgotPassword}</h2>
+                      <p className="text-xs text-slate-400 leading-relaxed max-w-xs mx-auto">{t.resetPasswordHelp}</p>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-300">
+                        {t.usernameOrEmail}
+                      </label>
                       <Input
-                        className="mt-1"
+                        className="rounded-2xl border-slate-700 bg-[#1e293b] text-white text-xs py-2.5"
                         autoComplete="username"
                         autoFocus
                         value={identifier}
                         onChange={(e) => setIdentifier(e.target.value)}
-                        placeholder={t.usernameOrEmail}
+                        placeholder="admin@aluprofile.com"
                       />
-                    </label>
-                    <div className="mt-4 flex items-center justify-between gap-3">
-                      <button type="button" className="text-sm font-medium text-teal-700 hover:text-teal-800" onClick={backToLogin}>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs pt-1">
+                      <button type="button" className="text-cyan-400 hover:text-cyan-300 font-bold transition-colors cursor-pointer" onClick={backToLogin}>
                         {t.backToLogin}
                       </button>
                     </div>
-                    <Button className="mt-4 w-full" type="submit" disabled={forgotPasswordLoading}>
+
+                    <Button className="w-full rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 text-white font-extrabold text-xs py-3 shadow-lg shadow-cyan-500/20 cursor-pointer" type="submit" disabled={forgotPasswordLoading}>
                       {forgotPasswordLoading ? t.sendingResetCode : t.sendResetCode}
                     </Button>
                   </form>
                 ) : (
+
                   <form onSubmit={handleForgotPasswordReset} className="w-full max-w-md rounded-[1.75rem] border border-white/80 bg-white/95 p-7 shadow-[0_30px_70px_-34px_rgba(15,23,42,0.35)] backdrop-blur-sm"><div className="mb-6 text-center space-y-2"><p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">catalog system</p><h2 className="text-3xl font-black tracking-[-0.03em] text-slate-950">{t.forgotPassword}</h2></div>
                     <div className="space-y-4">
                       <label className="block text-sm font-medium text-slate-700">
