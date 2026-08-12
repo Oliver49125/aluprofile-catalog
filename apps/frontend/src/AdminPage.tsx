@@ -150,7 +150,7 @@ const TXT = {
     clerkUserId: 'User ID (user_xxx)',
     saveUserAdmin: 'Save User Access',
     backendEnforced: 'Admin role plus permissions are enforced by backend for all /admin endpoints.',
-    login: 'Catalog System Login',
+    login: 'Catalog System Admin Login',
     accessDenied: 'Access denied',
     accessDeniedText: 'you do not have VIEW_ADMIN permission for this page.',
     quickActions: 'Quick Actions',
@@ -259,7 +259,7 @@ const TXT = {
     clerkUserId: 'Benutzer-ID (user_xxx)',
     saveUserAdmin: 'Benutzerzugriff speichern',
     backendEnforced: 'Admin-Rolle und Berechtigungen werden fur alle /admin-Endpunkte im Backend erzwungen.',
-    login: 'Katalogsystem-Anmeldung',
+    login: 'Katalogsystem Admin-Anmeldung',
     accessDenied: 'Zugriff verweigert',
     accessDeniedText: 'Sie haben keine VIEW_ADMIN-Berechtigung fur diese Seite.',
     quickActions: 'Schnellaktionen',
@@ -1228,9 +1228,10 @@ function AdminPage() {
                   <form onSubmit={handleLogin} className="w-full rounded-3xl border border-slate-700/80 bg-[#131c2a]/95 p-8 shadow-2xl backdrop-blur-xl space-y-5">
                     <div className="text-center space-y-2">
                       <div className="inline-flex items-center gap-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 px-3.5 py-1 text-[11px] font-extrabold uppercase tracking-[0.24em] text-cyan-400 shadow-sm">
-                        <Boxes className="h-3.5 w-3.5" /> AluProfile Admin
+                        <Boxes className="h-3.5 w-3.5" /> Catalog System
                       </div>
                       <h2 className="text-3xl font-extrabold text-white tracking-tight">{t.login}</h2>
+
                       <p className="text-xs text-slate-400 leading-relaxed max-w-xs mx-auto">Manage users, permissions, and aluminum profile master data</p>
                     </div>
 
