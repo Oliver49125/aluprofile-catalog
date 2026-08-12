@@ -38,7 +38,7 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
 
   const handleCatalogClick = (e: React.MouseEvent) => {
     if (window.location.pathname !== '/') {
-      window.location.href = '/?tab=catalog';
+      window.location.href = '/catalog';
       return;
     }
     e.preventDefault();
@@ -89,7 +89,7 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
           <div className="hidden md:flex items-center gap-2 text-sm font-semibold">
             <button
               onClick={handleHomeClick}
-              className={`rounded-xl px-4 py-2 transition-all ${
+              className={`rounded-xl px-4 py-2 transition-all cursor-pointer ${
                 activeTab === 'home'
                   ? 'bg-slate-900 text-white shadow-sm'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
@@ -99,7 +99,7 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
             </button>
             <button
               onClick={handleCatalogClick}
-              className={`rounded-xl px-4 py-2 transition-all ${
+              className={`rounded-xl px-4 py-2 transition-all cursor-pointer ${
                 activeTab === 'catalog'
                   ? 'bg-slate-900 text-white shadow-sm'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
@@ -125,23 +125,22 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
         {/* Right Side Desktop Actions */}
         <div className="hidden md:flex items-center gap-3.5">
           <a href="/search">
-            <Button className="h-10 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md transition-all hover:scale-105 flex items-center gap-1.5">
+            <Button className="h-10 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md transition-all hover:scale-105 flex items-center gap-1.5 cursor-pointer">
               <Search className="h-3.5 w-3.5" />
               <span>Search Portal</span>
             </Button>
           </a>
           <a href="/customer">
-            <Button className="h-10 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs shadow-md hover:shadow-lg transition-all hover:scale-105">
+            <Button className="h-10 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs shadow-md hover:shadow-lg transition-all hover:scale-105 cursor-pointer">
               Customer Portal
             </Button>
           </a>
-          {!!token && (
-            <a href="/admin">
-              <Button className="h-10 px-5 rounded-xl bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-500 hover:to-sky-500 text-white font-medium text-xs shadow-md hover:scale-105 transition-all">
-                {lang === 'de' ? 'Admin-Panel' : 'Admin Panel'}
-              </Button>
-            </a>
-          )}
+          <a href="/admin">
+            <Button className="h-10 px-5 rounded-xl bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-500 hover:to-sky-500 text-white font-medium text-xs shadow-md hover:scale-105 transition-all cursor-pointer">
+              {lang === 'de' ? 'Admin-Panel' : 'Admin Panel'}
+            </Button>
+          </a>
+
           <label className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700 cursor-pointer hover:bg-slate-100 transition-all">
             <Globe className="h-3.5 w-3.5 text-slate-400" />
             <select

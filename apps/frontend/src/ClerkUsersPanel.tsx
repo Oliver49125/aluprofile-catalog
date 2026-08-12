@@ -359,86 +359,124 @@ export default function ClerkUsersPanel({ canManageUsers, lang }: Props) {
     exportTablePdf(t.title, headers, rows);
   }
 
+
   if (!canManageUsers) return null;
 
   return (
     <Card id="admin-users" className="material-panel">
-      <CardHeader className="border-b border-slate-100 bg-gradient-to-r from-white via-white to-slate-50/70">
-        <CardTitle className="flex items-center gap-3 text-2xl font-semibold tracking-[-0.02em] text-slate-950">
-          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary"><Users className="h-5 w-5" /></span>
+      <CardHeader className="border-b border-slate-800/80">
+        <CardTitle className="flex items-center gap-3 text-xl font-extrabold text-white">
+          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"><Users className="h-5 w-5" /></span>
           {t.title}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-5 pt-6">
         
         {confirmAction && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={() => setConfirmAction(null)}>
-            <div className="w-full max-w-sm rounded-[1.5rem] bg-white shadow-2xl p-6 text-center" onClick={e => e.stopPropagation()}>
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-md" onClick={() => setConfirmAction(null)}>
+            <div className="w-full max-w-sm rounded-3xl border border-slate-700 bg-[#131c2a] p-6 text-center text-white shadow-2xl" onClick={e => e.stopPropagation()}>
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-500/20 text-red-400 border border-red-500/30">
                 <ShieldAlert className="h-6 w-6" />
               </div>
-              <h3 className="mb-2 text-lg font-semibold text-slate-900">{t.delete}</h3>
-              <p className="mb-6 text-sm text-slate-500">{confirmAction.message}</p>
+              <h3 className="mb-2 text-lg font-bold text-white">{t.delete}</h3>
+              <p className="mb-6 text-xs text-slate-300">{confirmAction.message}</p>
               <div className="flex gap-3 justify-center">
-                <Button variant="outline" onClick={() => setConfirmAction(null)}>{lang === 'de' ? 'Abbrechen' : 'Cancel'}</Button>
-                <Button variant="destructive" onClick={confirmAction.onConfirm}>{t.delete}</Button>
+                <Button variant="outline" onClick={() => setConfirmAction(null)} className="border-slate-700 text-slate-300 hover:bg-slate-800 text-xs">{lang === 'de' ? 'Abbrechen' : 'Cancel'}</Button>
+                <Button variant="destructive" onClick={confirmAction.onConfirm} className="bg-red-600 hover:bg-red-500 text-white font-bold text-xs">{t.delete}</Button>
               </div>
             </div>
           </div>
         )}
 
-        <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50/80 p-4">
-          <div className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
-            <Search className="h-4 w-4 text-primary" /> {t.directory}
+        <div className="rounded-2xl border border-slate-700/80 bg-[#131c2a]/90 p-5">
+          <div className="mb-4 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-cyan-400">
+            <Search className="h-4 w-4 text-cyan-400" /> {t.directory}
           </div>
           <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_auto_auto_auto]">
-            <Input placeholder={t.search} value={query} onChange={(e) => setQuery(e.target.value)} />
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value as 'name-asc' | 'email-asc')}>
-              <option value="name-asc">{t.nameAsc}</option>
-              <option value="email-asc">{t.emailAsc}</option>
+            <Input placeholder={t.search} value={query} onChange={(e) => setQuery(e.target.value)} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white placeholder:text-slate-400 text-xs" />
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value as 'name-asc' | 'email-asc')} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white text-xs px-3 py-2">
+              <option value="name-asc" className="bg-slate-900 text-white">{t.nameAsc}</option>
+              <option value="email-asc" className="bg-slate-900 text-white">{t.emailAsc}</option>
             </select>
-            <Button variant="outline" onClick={() => exportUsers('excel')}>{t.exportExcel}</Button>
-            <Button variant="outline" onClick={() => exportUsers('pdf')}>{t.exportPdf}</Button>
-            <Button variant="secondary" onClick={() => { setForm({ userId: '', email: '', password: '', firstName: '', lastName: '', role: 'USER' }); loadUsers().catch((err) => showToast(parseApiError(err), 'error')); }}>{t.searchBtn}</Button>
+            <Button variant="outline" onClick={() => exportUsers('excel')} className="border-slate-700 text-slate-200 hover:bg-slate-800 text-xs">{t.exportExcel}</Button>
+            <Button variant="outline" onClick={() => exportUsers('pdf')} className="border-slate-700 text-slate-200 hover:bg-slate-800 text-xs">{t.exportPdf}</Button>
+            <Button variant="secondary" onClick={() => { setForm({ userId: '', email: '', password: '', firstName: '', lastName: '', role: 'USER' }); loadUsers().catch((err) => showToast(parseApiError(err), 'error')); }} className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30 font-bold text-xs">{t.searchBtn}</Button>
           </div>
           <div className="mt-4 admin-table-wrap">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                  <th className="px-4 py-3">{t.nameAsc.replace(' A-Z', '')}</th>
-                  <th className="px-4 py-3">{t.email}</th>
-                  <th className="px-4 py-3">{t.userId}</th>
-                  <th className="px-4 py-3 text-right">{t.actions}</th>
+                <tr className="bg-[#1e293b] text-left text-xs font-bold uppercase tracking-[0.18em] text-cyan-400 border-b border-slate-700">
+                  <th className="px-4 py-3.5">{t.nameAsc.replace(' A-Z', '')}</th>
+                  <th className="px-4 py-3.5">{t.email}</th>
+                  <th className="px-4 py-3.5">{t.userId}</th>
+                  <th className="px-4 py-3.5 text-right">{t.actions}</th>
                 </tr>
               </thead>
               <tbody>
                 {pagedUsers.items.map((item) => (
                   <tr key={item.id} className="material-table-row">
-                    <td className="px-4 py-3 font-medium text-slate-950">{[item.firstName, item.lastName].filter(Boolean).join(' ') || '-'}</td>
-                    <td className="px-4 py-3 text-slate-600"><span className="inline-flex items-center gap-1"><Mail className="h-3.5 w-3.5 text-primary" /> {item.email}</span></td>
-                    <td className="px-4 py-3 text-xs text-slate-500">{item.id}</td>
-                    <td className="px-4 py-3"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => editUser(item)}>{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteUser(item.id)}>{t.delete}</Button></div></td>
+                    <td className="px-4 py-3.5 font-bold text-white">{[item.firstName, item.lastName].filter(Boolean).join(' ') || '-'}</td>
+                    <td className="px-4 py-3.5 font-medium text-slate-300"><span className="inline-flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-cyan-400" /> {item.email}</span></td>
+                    <td className="px-4 py-3.5 text-xs font-mono text-slate-400">{item.id}</td>
+                    <td className="px-4 py-3.5"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => editUser(item)} className="text-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 font-bold">{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteUser(item.id)} className="bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/30 font-bold">{t.delete}</Button></div></td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <div className="mt-4 admin-pagination"><span>{t.showing} {pagedUsers.start}-{pagedUsers.end} / {pagedUsers.total} {t.records}</span><div className="flex items-center gap-2"><Button size="sm" variant="outline" disabled={pagedUsers.page <= 1} onClick={() => setPage((value) => value - 1)}>{t.previous}</Button><span>{t.pageLabel} {pagedUsers.page} {t.ofLabel} {pagedUsers.totalPages}</span><Button size="sm" variant="outline" disabled={pagedUsers.page >= pagedUsers.totalPages} onClick={() => setPage((value) => value + 1)}>{t.next}</Button></div></div>
+          <div className="mt-4 admin-pagination text-slate-300">
+            <span>{t.showing} {pagedUsers.start}-{pagedUsers.end} / {pagedUsers.total} {t.records}</span>
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="outline" disabled={pagedUsers.page <= 1} onClick={() => setPage((p) => p - 1)} className="border-slate-700 text-slate-200 hover:bg-slate-800">{t.previous}</Button>
+              <span>{t.pageLabel} {pagedUsers.page} {t.ofLabel} {pagedUsers.totalPages}</span>
+              <Button size="sm" variant="outline" disabled={pagedUsers.page >= pagedUsers.totalPages} onClick={() => setPage((p) => p + 1)} className="border-slate-700 text-slate-200 hover:bg-slate-800">{t.next}</Button>
+            </div>
+          </div>
         </div>
 
-        <div className="rounded-[1.4rem] border border-primary/10 bg-primary/[0.04] p-4">
-          <div className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
-            <ShieldCheck className="h-4 w-4 text-primary" /> {form.userId ? t.update : t.newForm}
-          </div>
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            <Input placeholder={t.email} value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
-            <Input type="password" placeholder={t.password} value={form.password} onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))} />
-            <Input placeholder={t.firstName} value={form.firstName} onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))} />
-            <Input placeholder={t.lastName} value={form.lastName} onChange={(e) => setForm((f) => ({ ...f, lastName: e.target.value }))} />
-            <Button onClick={saveUser}>{form.userId ? t.update : t.create}</Button>
-          </div>
-        </div>
+        <Card className="border border-slate-700/80 bg-[#131c2a]/95 text-white">
+          <CardHeader className="border-b border-slate-800">
+            <CardTitle className="flex items-center gap-2 text-base font-bold text-white">
+              <ShieldCheck className="h-4 w-4 text-cyan-400" />
+              {form.userId ? t.update : t.newForm}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 pt-6">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">{t.email}</label>
+                <Input value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} placeholder="user@aluprofile.com" className="rounded-2xl border-slate-700 bg-[#1e293b] text-white text-xs" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">{t.password}</label>
+                <Input type="password" value={form.password} onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))} placeholder="••••••••" className="rounded-2xl border-slate-700 bg-[#1e293b] text-white text-xs" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">{t.firstName}</label>
+                <Input value={form.firstName} onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white text-xs" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">{t.lastName}</label>
+                <Input value={form.lastName} onChange={(e) => setForm((f) => ({ ...f, lastName: e.target.value }))} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white text-xs" />
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <Button onClick={saveUser} className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs">
+                {form.userId ? t.update : t.create}
+              </Button>
+              {form.userId && (
+                <Button variant="outline" onClick={() => setForm({ userId: '', email: '', password: '', firstName: '', lastName: '', role: 'USER' })} className="border-slate-700 text-slate-300 hover:bg-slate-800 text-xs">
+                  Cancel Edit
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
       </CardContent>
     </Card>
   );
 }
+
+

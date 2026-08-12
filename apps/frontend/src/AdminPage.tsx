@@ -5,6 +5,7 @@ import { parseApiError } from './utils/apiError';
 import { useAuth } from './AuthContext';
 import {
   BadgeCheck,
+  BarChart3,
   Boxes,
   Building2,
   ChevronRight,
@@ -23,6 +24,7 @@ import { Button } from './components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { Input } from './components/ui/input';
 import ClerkUsersPanel from './ClerkUsersPanel';
+import AnalyticsPanel from './components/AnalyticsPanel';
 
 type CurrencyOption = { id: number; code: string; symbol: string; _count?: { profiles: number } };
 type RefOption = { id: number; name: string; nameDe?: string; profilesCount?: number };
@@ -114,8 +116,9 @@ function paginateItems<T>(items: T[], page: number, pageSize = PAGE_SIZE) {
 type Lang = 'en' | 'de';
 const TXT = {
   en: {
-    adminPanel: 'Admin Panel',
+    adminPanel: 'Catalog System Admin Panel',
     adminSubtitle: 'Manage users, permissions, and catalog master data',
+    analytics: 'Visitor Analytics',
     backToCatalog: 'Back to Catalog',
     language: 'Language',
     profiles: 'Profiles',
@@ -223,8 +226,9 @@ const TXT = {
     filterRoles: 'Filter roles & permissions',
   },
   de: {
-    adminPanel: 'Admin-Panel',
+    adminPanel: 'Katalogsystem Admin-Panel',
     adminSubtitle: 'Benutzer, Berechtigungen und Katalog-Stammdaten verwalten',
+    analytics: 'Besucher-Analysen',
     backToCatalog: 'Zuruck zum Katalog',
     language: 'Sprache',
     profiles: 'Profile',
@@ -440,7 +444,7 @@ function AdminPage() {
   const [resetCode, setResetCode] = useState('');
   const [resetPassword, setResetPassword] = useState('');
   const [showResetPassword, setShowResetPassword] = useState(false);
-  const [activeSection, setActiveSection] = useState<'overview' | 'landing' | 'profiles' | 'categories' | 'currencies' | 'suppliers' | 'users' | 'roles'>('overview');
+  const [activeSection, setActiveSection] = useState<'overview' | 'landing' | 'analytics' | 'profiles' | 'categories' | 'currencies' | 'suppliers' | 'users' | 'roles'>('overview');
 
   const [siteSettingsForm, setSiteSettingsForm] = useState<Record<string, string>>({
     heroTitle: 'Industrial Aluminum Extrusions, Found Instantly.',
@@ -578,15 +582,15 @@ function AdminPage() {
     const nextSection =
       canManageProfiles ? 'profiles' : canManageCategories ? 'categories' : canManageCategories ? 'currencies' : canManageSuppliers ? 'suppliers' : canManageUsers ? 'users' : 'overview';
 
-    if (activeSection === 'overview') return;
+    if (activeSection === 'overview' || activeSection === 'landing' || activeSection === 'analytics') return;
     if (activeSection === 'profiles' && canManageProfiles) return;
     if (activeSection === 'suppliers' && canManageSuppliers) return;
     if (activeSection === 'categories' && canManageCategories) return;
     if (activeSection === 'currencies' && canManageCategories) return;
-    if (activeSection === 'currencies' && canManageCategories) return;
     if ((activeSection === 'users' || activeSection === 'roles') && canManageUsers) return;
 
     setActiveSection(nextSection);
+
   }, [activeSection, canManageCategories, canManageProfiles, canManageUsers, canManageSuppliers]);
 
   
@@ -1429,10 +1433,11 @@ function AdminPage() {
               <>
                 <aside className="admin-sidebar">
                   <p className="text-xs font-semibold uppercase tracking-[0.26em] text-slate-400">catalog system</p>
-                  <p className="mt-3 text-2xl font-black tracking-[-0.03em] text-white">{t.adminPanel} (V2)</p>
+                  <p className="mt-3 text-2xl font-black tracking-tight text-white">{t.adminPanel}</p>
                   <p className="mt-3 text-sm leading-6 text-slate-300">{t.adminSubtitle}</p>
                   <div className="mt-6 space-y-2">
                     <button type="button" className={`admin-nav-link ${activeSection === 'overview' ? 'bg-white/14 text-white shadow-[0_16px_30px_-22px_rgba(15,23,42,0.8)]' : ''}`} onClick={() => setActiveSection('overview')}><span>{t.quickActions}</span><ChevronRight className="h-4 w-4" /></button>
+                    <button type="button" className={`admin-nav-link ${activeSection === 'analytics' ? 'bg-white/14 text-white shadow-[0_16px_30px_-22px_rgba(15,23,42,0.8)]' : ''}`} onClick={() => setActiveSection('analytics')}><span>{t.analytics || 'Visitor Analytics'}</span><ChevronRight className="h-4 w-4" /></button>
                     <button type="button" className={`admin-nav-link ${activeSection === 'landing' ? 'bg-white/14 text-white shadow-[0_16px_30px_-22px_rgba(15,23,42,0.8)]' : ''}`} onClick={() => setActiveSection('landing')}><span>Landing Page UI</span><ChevronRight className="h-4 w-4" /></button>
                     {canManageProfiles && <button type="button" className={`admin-nav-link ${activeSection === 'profiles' ? 'bg-white/14 text-white shadow-[0_16px_30px_-22px_rgba(15,23,42,0.8)]' : ''}`} onClick={() => setActiveSection('profiles')}><span>{t.profileControls}</span><ChevronRight className="h-4 w-4" /></button>}
 
@@ -1508,43 +1513,43 @@ function AdminPage() {
                   )}
 
                   {activeSection === 'landing' && (
-                    <Card id="admin-landing" className="material-panel">
-                      <CardHeader className="border-b border-slate-200/80">
+                    <Card id="admin-landing" className="material-panel bg-white shadow-sm border border-slate-200">
+                      <CardHeader className="border-b border-slate-200/80 bg-slate-50/50">
                         <div className="flex items-center justify-between">
-                          <CardTitle className="flex items-center gap-3 text-slate-950 font-extrabold text-xl"><Boxes className="h-5 w-5 text-blue-600" /> Landing Page Settings & Controls</CardTitle>
-                          <Button onClick={saveSiteSettings} disabled={isSavingSettings} className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs">
+                          <CardTitle className="flex items-center gap-3 text-slate-900 font-black text-xl"><Boxes className="h-5 w-5 text-blue-600" /> Landing Page Settings & Controls</CardTitle>
+                          <Button onClick={saveSiteSettings} disabled={isSavingSettings} className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-sm rounded-xl">
                             {isSavingSettings ? 'Saving...' : 'Save Settings'}
                           </Button>
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-6 pt-6">
                         <div className="space-y-4">
-                          <h4 className="font-extrabold text-slate-900 text-sm border-b pb-2">Hero Banner Configuration</h4>
+                          <h4 className="font-extrabold text-[#0284c7] text-xs uppercase tracking-wider border-b border-slate-200 pb-2">Hero Banner Configuration</h4>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <label className="block text-xs font-bold text-slate-700">
                               Hero Title
-                              <Input className="mt-1" value={siteSettingsForm.heroTitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, heroTitle: e.target.value }))} />
+                              <Input className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20" value={siteSettingsForm.heroTitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, heroTitle: e.target.value }))} />
                             </label>
                             <label className="block text-xs font-bold text-slate-700">
                               Hero Background Color
                               <div className="flex items-center gap-2 mt-1">
-                                <input type="color" className="h-9 w-12 rounded border p-1 cursor-pointer" value={siteSettingsForm.heroBgColor || '#3c4a5c'} onChange={e => setSiteSettingsForm(f => ({ ...f, heroBgColor: e.target.value }))} />
-                                <Input value={siteSettingsForm.heroBgColor || '#3c4a5c'} onChange={e => setSiteSettingsForm(f => ({ ...f, heroBgColor: e.target.value }))} />
+                                <input type="color" className="h-9 w-12 rounded-xl border border-slate-200 bg-white p-1 cursor-pointer" value={siteSettingsForm.heroBgColor || '#3c4a5c'} onChange={e => setSiteSettingsForm(f => ({ ...f, heroBgColor: e.target.value }))} />
+                                <Input className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20" value={siteSettingsForm.heroBgColor || '#3c4a5c'} onChange={e => setSiteSettingsForm(f => ({ ...f, heroBgColor: e.target.value }))} />
                               </div>
                             </label>
                           </div>
 
                           <label className="block text-xs font-bold text-slate-700">
                             Hero Subtitle
-                            <textarea className="mt-1 block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:border-primary focus:outline-none" rows={2} value={siteSettingsForm.heroSubtitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, heroSubtitle: e.target.value }))} />
+                            <textarea className="mt-1 block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:ring-2 focus:ring-blue-500/20 focus:outline-none" rows={2} value={siteSettingsForm.heroSubtitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, heroSubtitle: e.target.value }))} />
                           </label>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <label className="block text-xs font-bold text-slate-700">
                               Hero Image URL / File Upload
                               <div className="flex items-center gap-2 mt-1">
-                                <Input value={siteSettingsForm.heroImageUrl || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, heroImageUrl: e.target.value }))} placeholder="/hero-3d-profile.png" />
-                                <label className="cursor-pointer bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-xl text-xs font-bold shrink-0 border border-slate-300">
+                                <Input className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20" value={siteSettingsForm.heroImageUrl || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, heroImageUrl: e.target.value }))} placeholder="/hero-3d-profile.png" />
+                                <label className="cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-3.5 py-2 rounded-xl text-xs font-bold shrink-0">
                                   Upload
                                   <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
                                     const file = e.target.files?.[0];
@@ -1564,66 +1569,65 @@ function AdminPage() {
 
                             <label className="block text-xs font-bold text-slate-700">
                               Search Box Placeholder Text
-                              <Input className="mt-1" value={siteSettingsForm.heroSearchPlaceholder || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, heroSearchPlaceholder: e.target.value }))} />
+                              <Input className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20" value={siteSettingsForm.heroSearchPlaceholder || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, heroSearchPlaceholder: e.target.value }))} />
                             </label>
                           </div>
                         </div>
 
-                        <div className="space-y-4 pt-4 border-t">
-                          <h4 className="font-extrabold text-slate-900 text-sm border-b pb-2">Stats Cards Settings</h4>
+                        <div className="space-y-4 pt-4 border-t border-slate-200">
+                          <h4 className="font-extrabold text-[#0284c7] text-xs uppercase tracking-wider border-b border-slate-200 pb-2">Stats Cards Settings</h4>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="space-y-2 p-3 bg-slate-50 rounded-xl border">
-                              <span className="text-xs font-bold text-slate-700">Stat Card 1</span>
-                              <Input placeholder="Main label (e.g. 150+ Profiles)" value={siteSettingsForm.stat1Label || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat1Label: e.target.value }))} />
-                              <Input placeholder="Subtitle (e.g. Standard & Custom)" value={siteSettingsForm.stat1Sub || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat1Sub: e.target.value }))} />
+                            <div className="space-y-2 p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                              <span className="text-xs font-bold text-slate-800">Stat Card 1</span>
+                              <Input placeholder="Main label (e.g. 150+ Profiles)" className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs" value={siteSettingsForm.stat1Label || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat1Label: e.target.value }))} />
+                              <Input placeholder="Subtitle (e.g. Standard & Custom)" className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs" value={siteSettingsForm.stat1Sub || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat1Sub: e.target.value }))} />
                             </div>
 
-                            <div className="space-y-2 p-3 bg-slate-50 rounded-xl border">
-                              <span className="text-xs font-bold text-slate-700">Stat Card 2</span>
-                              <Input placeholder="Main label (e.g. 12+ Partners)" value={siteSettingsForm.stat2Label || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat2Label: e.target.value }))} />
-                              <Input placeholder="Subtitle (e.g. Global Network)" value={siteSettingsForm.stat2Sub || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat2Sub: e.target.value }))} />
+                            <div className="space-y-2 p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                              <span className="text-xs font-bold text-slate-800">Stat Card 2</span>
+                              <Input placeholder="Main label (e.g. 12+ Partners)" className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs" value={siteSettingsForm.stat2Label || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat2Label: e.target.value }))} />
+                              <Input placeholder="Subtitle (e.g. Global Network)" className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs" value={siteSettingsForm.stat2Sub || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat2Sub: e.target.value }))} />
                             </div>
 
-                            <div className="space-y-2 p-3 bg-slate-50 rounded-xl border">
-                              <span className="text-xs font-bold text-slate-700">Stat Card 3</span>
-                              <Input placeholder="Main label (e.g. 9,850+ Downloads)" value={siteSettingsForm.stat3Label || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat3Label: e.target.value }))} />
-                              <Input placeholder="Subtitle (e.g. Datasheets)" value={siteSettingsForm.stat3Sub || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat3Sub: e.target.value }))} />
+                            <div className="space-y-2 p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                              <span className="text-xs font-bold text-slate-800">Stat Card 3</span>
+                              <Input placeholder="Main label (e.g. 9,850+ Downloads)" className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs" value={siteSettingsForm.stat3Label || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat3Label: e.target.value }))} />
+                              <Input placeholder="Subtitle (e.g. Datasheets)" className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs" value={siteSettingsForm.stat3Sub || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat3Sub: e.target.value }))} />
                             </div>
                           </div>
                         </div>
 
-                        <div className="space-y-4 pt-4 border-t">
-                          <h4 className="font-extrabold text-slate-900 text-sm border-b pb-2">Section Titles & Content</h4>
+                        <div className="space-y-4 pt-4 border-t border-slate-200">
+                          <h4 className="font-extrabold text-[#0284c7] text-xs uppercase tracking-wider border-b border-slate-200 pb-2">Section Titles & Content</h4>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <label className="block text-xs font-bold text-slate-700">
                               Featured Section Title
-                              <Input className="mt-1" value={siteSettingsForm.featuredTitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, featuredTitle: e.target.value }))} />
+                              <Input className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20" value={siteSettingsForm.featuredTitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, featuredTitle: e.target.value }))} />
                             </label>
                             <label className="block text-xs font-bold text-slate-700">
                               How It Works Title
-                              <Input className="mt-1" value={siteSettingsForm.howItWorksTitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, howItWorksTitle: e.target.value }))} />
+                              <Input className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20" value={siteSettingsForm.howItWorksTitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, howItWorksTitle: e.target.value }))} />
                             </label>
                           </div>
                           <label className="block text-xs font-bold text-slate-700">
                             How It Works Subtitle
-                            <Input className="mt-1" value={siteSettingsForm.howItWorksSubtitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, howItWorksSubtitle: e.target.value }))} />
+                            <Input className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20" value={siteSettingsForm.howItWorksSubtitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, howItWorksSubtitle: e.target.value }))} />
                           </label>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                             <label className="block text-xs font-bold text-slate-700">
                               About Section Title
-                              <Input className="mt-1" value={siteSettingsForm.aboutTitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, aboutTitle: e.target.value }))} />
+                              <Input className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20" value={siteSettingsForm.aboutTitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, aboutTitle: e.target.value }))} />
                             </label>
                             <label className="block text-xs font-bold text-slate-700">
                               About Section Subtitle / Description
-                              <textarea className="mt-1 block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:border-primary focus:outline-none" rows={2} value={siteSettingsForm.aboutSubtitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, aboutSubtitle: e.target.value }))} />
+                              <textarea className="mt-1 block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:ring-2 focus:ring-blue-500/20 focus:outline-none" rows={2} value={siteSettingsForm.aboutSubtitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, aboutSubtitle: e.target.value }))} />
                             </label>
                           </div>
                         </div>
 
-
                         <div className="pt-4 flex justify-end">
-                          <Button onClick={saveSiteSettings} disabled={isSavingSettings} className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-2">
+                          <Button onClick={saveSiteSettings} disabled={isSavingSettings} className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-2 text-xs shadow-sm rounded-xl">
                             {isSavingSettings ? 'Saving Settings...' : 'Save All Settings'}
                           </Button>
                         </div>
@@ -1631,114 +1635,116 @@ function AdminPage() {
                     </Card>
                   )}
 
+                  {activeSection === 'analytics' && <div id="admin-analytics"><AnalyticsPanel lang={lang} /></div>}
 
                 {activeSection === 'users' && <div id="admin-users"><ClerkUsersPanel canManageUsers={canManageUsers} lang={lang} /></div>}
 
                 {activeSection === 'roles' && canManageUsers && (
-                  <Card id="admin-roles" className="material-panel">
-                    <CardHeader className="border-b border-slate-200/80">
+                  <Card id="admin-roles" className="material-panel bg-white shadow-sm border border-slate-200">
+                    <CardHeader className="border-b border-slate-200/80 bg-slate-50/50">
                       <div className="admin-section-toolbar">
-                        <CardTitle className="flex items-center gap-3"><UserCog className="h-5 w-5 text-teal-700" /> {t.appRolePermissions}</CardTitle>
-                        <Button variant={showRoleForm ? 'secondary' : 'default'} onClick={() => showRoleForm ? resetRoleForm() : setShowRoleForm(true)}>{showRoleForm ? t.closeEditor : t.addAccessRule}</Button>
+                        <CardTitle className="flex items-center gap-3 text-slate-900 font-extrabold text-xl"><UserCog className="h-5 w-5 text-purple-600" /> {t.appRolePermissions}</CardTitle>
+                        <Button variant={showRoleForm ? 'secondary' : 'default'} onClick={() => showRoleForm ? resetRoleForm() : setShowRoleForm(true)} className="bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-xl shadow-sm">{showRoleForm ? t.closeEditor : t.addAccessRule}</Button>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-5 pt-6">
                       {showRoleForm && (
-                        <div className="admin-editor-grid">
-                          <Input placeholder={t.email} value={userForm.email} onChange={(e) => setUserForm((f) => ({ ...f, email: e.target.value }))} disabled={!!userForm.id} />
-                          <Input placeholder={t.usernameOrEmail.replace(' or email', '').replace(' oder E-Mail', '')} value={userForm.username ?? ''} onChange={(e) => setUserForm((f) => ({ ...f, username: e.target.value }))} />
-                          <Input type="password" placeholder={t.password} value={userForm.password ?? ''} onChange={(e) => setUserForm((f) => ({ ...f, password: e.target.value }))} />
-                          <select value={userForm.role} onChange={(e) => setUserForm((f) => ({ ...f, role: e.target.value as AppRole }))} className="flex h-9 w-full rounded-md border border-slate-200 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50">
+                        <div className="admin-editor-grid p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                          <Input placeholder={t.email} value={userForm.email} onChange={(e) => setUserForm((f) => ({ ...f, email: e.target.value }))} disabled={!!userForm.id} className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs" />
+                          <Input placeholder={t.usernameOrEmail.replace(' or email', '').replace(' oder E-Mail', '')} value={userForm.username ?? ''} onChange={(e) => setUserForm((f) => ({ ...f, username: e.target.value }))} className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs" />
+                          <Input type="password" placeholder={t.password} value={userForm.password ?? ''} onChange={(e) => setUserForm((f) => ({ ...f, password: e.target.value }))} className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs" />
+                          <select value={userForm.role} onChange={(e) => setUserForm((f) => ({ ...f, role: e.target.value as AppRole }))} className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs px-3 py-2">
                             {(adminRef?.roleOptions ?? ['ADMIN', 'MANAGER', 'USER']).map((role) => <option key={role} value={role}>{role}</option>)}
                           </select>
                           <div className="md:col-span-2 grid gap-3 md:grid-cols-2">
                             {(adminRef?.permissionOptions ?? ['VIEW_ADMIN', 'PROFILES_MANAGE', 'CATEGORIES_MANAGE', 'USERS_MANAGE', 'SUPPLIERS_MANAGE'] as AppPermission[]).map((permission) => (
-                              <label key={permission} className="flex items-center gap-2 rounded-[1rem] border border-slate-200 bg-slate-50/80 p-3">
-                                <input type="checkbox" checked={userForm.permissions.includes(permission)} onChange={(e) => setUserForm((f) => ({ ...f, permissions: e.target.checked ? [...new Set([...f.permissions, permission])] : f.permissions.filter((item) => item !== permission) }))} className="rounded border-slate-300 text-teal-600 focus:ring-teal-600" />
-                                <KeyRound className="h-4 w-4 text-teal-700" />
-                                <span className="text-sm">{permission}</span>
+                              <label key={permission} className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 text-slate-800 cursor-pointer hover:bg-slate-100">
+                                <input type="checkbox" checked={userForm.permissions.includes(permission)} onChange={(e) => setUserForm((f) => ({ ...f, permissions: e.target.checked ? [...new Set([...f.permissions, permission])] : f.permissions.filter((item) => item !== permission) }))} className="rounded border-slate-300 text-purple-600 focus:ring-purple-500" />
+                                <KeyRound className="h-4 w-4 text-purple-600" />
+                                <span className="text-xs font-bold">{permission}</span>
                               </label>
                             ))}
                           </div>
                           <div className="admin-editor-actions md:col-span-2">
-                            <Button onClick={saveUser}>{t.save}</Button>
-                            <Button variant="outline" onClick={resetRoleForm}>{t.cancel}</Button>
+                            <Button onClick={saveUser} className="bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-xl">{t.save}</Button>
+                            <Button variant="outline" onClick={resetRoleForm} className="border-slate-300 text-slate-700 hover:bg-slate-100 text-xs rounded-xl">{t.cancel}</Button>
                           </div>
                         </div>
                       )}
                       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_auto_auto]">
-                        <Input placeholder={t.filterRoles} value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} />
-                        <select value={roleSort} onChange={(e) => setRoleSort(e.target.value as 'user-asc' | 'role-asc')} className="flex h-9 w-full rounded-md border border-slate-200 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50">
+                        <Input placeholder={t.filterRoles} value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} className="rounded-xl border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 text-xs" />
+                        <select value={roleSort} onChange={(e) => setRoleSort(e.target.value as 'user-asc' | 'role-asc')} className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs px-3 py-2">
                           <option value="user-asc">{t.nameAsc || 'Email A-Z'}</option>
                           <option value="role-asc">{t.roleAsc || 'Role A-Z'}</option>
                         </select>
-                        <Button variant="outline" onClick={() => exportAdminSection('excel', t.appRolePermissions, [t.email, t.role, t.permissions || 'Permissions'], filteredRoles.map((item) => [item.email, item.role, item.permissions.join(', ')]))}>{t.exportExcel}</Button>
-                        <Button variant="outline" onClick={() => exportAdminSection('pdf', t.appRolePermissions, [t.email, t.role, t.permissions || 'Permissions'], filteredRoles.map((item) => [item.email, item.role, item.permissions.join(', ')]))}>{t.exportPdf}</Button>
+                        <Button variant="outline" onClick={() => exportAdminSection('excel', t.appRolePermissions, [t.email, t.role, t.permissions || 'Permissions'], filteredRoles.map((item) => [item.email, item.role, item.permissions.join(', ')]))} className="border-slate-200 text-slate-700 hover:bg-slate-100 text-xs rounded-xl">{t.exportExcel}</Button>
+                        <Button variant="outline" onClick={() => exportAdminSection('pdf', t.appRolePermissions, [t.email, t.role, t.permissions || 'Permissions'], filteredRoles.map((item) => [item.email, item.role, item.permissions.join(', ')]))} className="border-slate-200 text-slate-700 hover:bg-slate-100 text-xs rounded-xl">{t.exportPdf}</Button>
                       </div>
                       <div className="admin-table-wrap">
                         <table className="w-full text-sm">
-                          <thead><tr className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-[0.18em] text-slate-500"><th className="px-4 py-3">{t.email}</th><th className="px-4 py-3">{t.usernameOrEmail.replace(' or email', '').replace(' oder E-Mail', '')}</th><th className="px-4 py-3">{t.role}</th><th className="px-4 py-3">{t.permissions || 'Permissions'}</th><th className="px-4 py-3 text-right">{t.actions}</th></tr></thead>
+                          <thead><tr className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 border-b border-slate-200"><th className="px-4 py-3.5">{t.email}</th><th className="px-4 py-3.5">{t.usernameOrEmail.replace(' or email', '').replace(' oder E-Mail', '')}</th><th className="px-4 py-3.5">{t.role}</th><th className="px-4 py-3.5">{t.permissions || 'Permissions'}</th><th className="px-4 py-3.5 text-right">{t.actions}</th></tr></thead>
                           <tbody>
                             {roleRows.items.map((item) => (
                               <tr key={item.id} className="material-table-row">
-                                <td className="px-4 py-3 font-medium text-slate-900">{item.email}</td>
-                                <td className="px-4 py-3 text-slate-600">{item.username || '-'}</td>
-                                <td className="px-4 py-3"><span className="material-chip bg-slate-100 text-slate-700">{item.role}</span></td>
-                                <td className="px-4 py-3 text-slate-600">{item.permissions.join(', ')}</td>
-                                <td className="px-4 py-3"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => startEditRole(item)}>{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteUser(item.id)}>{t.delete}</Button></div></td>
+                                <td className="px-4 py-3.5 font-bold text-slate-900">{item.email}</td>
+                                <td className="px-4 py-3.5 font-medium text-slate-600">{item.username || '-'}</td>
+                                <td className="px-4 py-3.5"><span className="px-2.5 py-1 rounded-full text-xs font-extrabold bg-purple-100 text-purple-700 border border-purple-200">{item.role}</span></td>
+                                <td className="px-4 py-3.5 font-medium text-slate-600">{item.permissions.join(', ')}</td>
+                                <td className="px-4 py-3.5"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => startEditRole(item)} className="text-blue-600 hover:bg-blue-50 font-bold">{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteUser(item.id)} className="bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 font-bold">{t.delete}</Button></div></td>
                               </tr>
                             ))}
                           </tbody>
                         </table>
                       </div>
-                      <div className="admin-pagination"><span>{t.showing} {roleRows.start}-{roleRows.end} / {roleRows.total} {t.records}</span><div className="flex items-center gap-2"><Button size="sm" variant="outline" disabled={roleRows.page <= 1} onClick={() => setRolePage((page) => page - 1)}>{t.previous}</Button><span>{t.pageLabel} {roleRows.page} {t.ofLabel} {roleRows.totalPages}</span><Button size="sm" variant="outline" disabled={roleRows.page >= roleRows.totalPages} onClick={() => setRolePage((page) => page + 1)}>{t.next}</Button></div></div>
-                      <p className="mt-3 flex items-center gap-1 text-xs text-slate-500"><BadgeCheck className="h-3 w-3" /> {t.backendEnforced || 'Backend Enforced'}</p>
+                      <div className="admin-pagination text-slate-600"><span>{t.showing} {roleRows.start}-{roleRows.end} / {roleRows.total} {t.records}</span><div className="flex items-center gap-2"><Button size="sm" variant="outline" disabled={roleRows.page <= 1} onClick={() => setRolePage((page) => page - 1)} className="border-slate-200 text-slate-700 hover:bg-slate-100">{t.previous}</Button><span>{t.pageLabel} {roleRows.page} {t.ofLabel} {roleRows.totalPages}</span><Button size="sm" variant="outline" disabled={roleRows.page >= roleRows.totalPages} onClick={() => setRolePage((page) => page + 1)} className="border-slate-200 text-slate-700 hover:bg-slate-100">{t.next}</Button></div></div>
+                      <p className="mt-3 flex items-center gap-1 text-xs text-slate-500"><BadgeCheck className="h-3.5 w-3.5 text-blue-600" /> {t.backendEnforced || 'Backend Enforced'}</p>
                     </CardContent>
                   </Card>
                 )}
-                
-            {activeSection === 'currencies' && canManageCategories && (
+
+
+                    {activeSection === 'currencies' && canManageCategories && (
               <div id="admin-currencies" className="space-y-6">
-                <Card className="material-panel ">
-                    <CardHeader className="border-b border-slate-200/80">
+                <Card className="material-panel">
+                    <CardHeader className="border-b border-slate-800/80">
                       <div className="admin-section-toolbar">
-                        <CardTitle className="flex items-center gap-3"><BadgeCheck className="h-5 w-5 text-teal-700" /> {t.currencies}</CardTitle>
-                        <Button variant={showCurrencyForm ? 'secondary' : 'default'} onClick={() => showCurrencyForm ? resetCurrencyForm() : setShowCurrencyForm(true)}>{showCurrencyForm ? t.closeEditor : t.addCurrency}</Button>
+                        <CardTitle className="flex items-center gap-3 text-white font-extrabold text-xl"><BadgeCheck className="h-5 w-5 text-emerald-400" /> {t.currencies}</CardTitle>
+                        <Button variant={showCurrencyForm ? 'secondary' : 'default'} onClick={() => showCurrencyForm ? resetCurrencyForm() : setShowCurrencyForm(true)} className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-xs shadow-md">{showCurrencyForm ? t.closeEditor : t.addCurrency}</Button>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-5 pt-6">
                       {showCurrencyForm && (
                         <div className="admin-editor-grid">
-                          <Input placeholder={t.currencyCode} value={currencyCode} onChange={(e) => setCurrencyCode(e.target.value)} />
-                          <Input placeholder={t.currencySymbol} value={currencySymbol} onChange={(e) => setCurrencySymbol(e.target.value)} />
+                          <Input placeholder={t.currencyCode} value={currencyCode} onChange={(e) => setCurrencyCode(e.target.value)} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white text-xs" />
+                          <Input placeholder={t.currencySymbol} value={currencySymbol} onChange={(e) => setCurrencySymbol(e.target.value)} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white text-xs" />
                           <div className="admin-editor-actions md:col-span-2">
-                            <Button onClick={saveCurrency}>{t.saveCurrency}</Button>
-                            <Button variant="outline" onClick={resetCurrencyForm}>{t.cancel}</Button>
+                            <Button onClick={saveCurrency} className="bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs">{t.saveCurrency}</Button>
+                            <Button variant="outline" onClick={resetCurrencyForm} className="border-slate-700 text-slate-300 hover:bg-slate-800 text-xs">{t.cancel}</Button>
                           </div>
                         </div>
                       )}
                       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_auto_auto]">
-                        <Input placeholder={t.filterCurrencies} value={currencyFilter} onChange={(e) => setCurrencyFilter(e.target.value)} />
-                        <select value={currencySort} onChange={(e) => setCurrencySort(e.target.value as 'code-asc' | 'code-desc')}>
-                          <option value="code-asc">{t.nameAsc}</option>
-                          <option value="code-desc">{t.nameDesc}</option>
+                        <Input placeholder={t.filterCurrencies} value={currencyFilter} onChange={(e) => setCurrencyFilter(e.target.value)} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white placeholder:text-slate-400 text-xs" />
+                        <select value={currencySort} onChange={(e) => setCurrencySort(e.target.value as 'code-asc' | 'code-desc')} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white text-xs px-3 py-2">
+                          <option value="code-asc" className="bg-slate-900 text-white">{t.nameAsc}</option>
+                          <option value="code-desc" className="bg-slate-900 text-white">{t.nameDesc}</option>
                         </select>
                       </div>
                       <div className="admin-table-wrap">
                         <table className="w-full text-sm">
-                          <thead><tr className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-[0.18em] text-slate-500"><th className="px-4 py-3">{t.currencyCode}</th><th className="px-4 py-3">{t.currencySymbol}</th><th className="px-4 py-3 text-right">{t.actions}</th></tr></thead>
+                          <thead><tr className="bg-[#1e293b] text-left text-xs font-bold uppercase tracking-[0.18em] text-emerald-400 border-b border-slate-700"><th className="px-4 py-3.5">{t.currencyCode}</th><th className="px-4 py-3.5">{t.currencySymbol}</th><th className="px-4 py-3.5 text-right">{t.actions}</th></tr></thead>
                           <tbody>
                             {currencyRows.items.map((item) => (
                               <tr key={item.id} className="material-table-row">
-                                <td className="px-4 py-3 font-medium text-slate-900">{item.code}</td>
-                                <td className="px-4 py-3 text-slate-600">{item.symbol}</td>
-                                <td className="px-4 py-3"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => startEditCurrency(item)}>{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteItem('/admin/currencies/' + item.id)}>{t.delete}</Button></div></td>
+                                <td className="px-4 py-3.5 font-bold text-white">{item.code}</td>
+                                <td className="px-4 py-3.5 font-semibold text-slate-300">{item.symbol}</td>
+                                <td className="px-4 py-3.5"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => startEditCurrency(item)} className="text-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 font-bold">{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteItem('/admin/currencies/' + item.id)} className="bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/30 font-bold">{t.delete}</Button></div></td>
                               </tr>
                             ))}
                           </tbody>
                         </table>
                       </div>
-                      <div className="admin-pagination"><span>{t.showing} {currencyRows.start}-{currencyRows.end} / {currencyRows.total} {t.records}</span><div className="flex items-center gap-2"><Button size="sm" variant="outline" disabled={currencyRows.page <= 1} onClick={() => setCurrencyPage((page) => page - 1)}>{t.previous}</Button><span>{t.pageLabel} {currencyRows.page} {t.ofLabel} {currencyRows.totalPages}</span><Button size="sm" variant="outline" disabled={currencyRows.page >= currencyRows.totalPages} onClick={() => setCurrencyPage((page) => page + 1)}>{t.next}</Button></div></div>
+                      <div className="admin-pagination text-slate-300"><span>{t.showing} {currencyRows.start}-{currencyRows.end} / {currencyRows.total} {t.records}</span><div className="flex items-center gap-2"><Button size="sm" variant="outline" disabled={currencyRows.page <= 1} onClick={() => setCurrencyPage((page) => page - 1)} className="border-slate-700 text-slate-200 hover:bg-slate-800">{t.previous}</Button><span>{t.pageLabel} {currencyRows.page} {t.ofLabel} {currencyRows.totalPages}</span><Button size="sm" variant="outline" disabled={currencyRows.page >= currencyRows.totalPages} onClick={() => setCurrencyPage((page) => page + 1)} className="border-slate-700 text-slate-200 hover:bg-slate-800">{t.next}</Button></div></div>
                     </CardContent>
                   </Card>
               </div>
@@ -1746,46 +1752,49 @@ function AdminPage() {
 
             {activeSection === 'suppliers' && canManageSuppliers && (
               <div className="space-y-6">
-                <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-                  <h2 className="text-xl font-bold text-slate-900">{t.supplierControls}</h2>
-                  <Button onClick={() => { resetSupplierForm(); setShowSupplierForm(true); }} className="gap-2">
-                    <span className="text-lg leading-none">+</span> {t.addSupplier}
-                  </Button>
-                </div>
-
-                <Card className="border-slate-200 bg-white/50 backdrop-blur-sm">
-                  <CardContent className="p-4 sm:p-6">
-                    <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center">
+                <Card className="material-panel">
+                  <CardHeader className="border-b border-slate-800/80">
+                    <div className="admin-section-toolbar">
+                      <CardTitle className="flex items-center gap-3 text-white font-extrabold text-xl"><Building2 className="h-5 w-5 text-emerald-400" /> {t.supplierControls}</CardTitle>
+                      <Button onClick={() => { resetSupplierForm(); setShowSupplierForm(true); }} className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-xs shadow-md gap-1.5">
+                        <span className="text-base font-bold">+</span> {t.addSupplier}
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-5 pt-6">
+                    <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center">
                       <Input
                         placeholder={t.filterSuppliers}
                         value={supplierFilter}
                         onChange={(e) => { setSupplierFilter(e.target.value); setSupplierPage(1); }}
-                        className="max-w-xs"
+                        className="max-w-xs rounded-2xl border-slate-700 bg-[#1e293b] text-white placeholder:text-slate-400 text-xs"
                       />
                     </div>
-                    <div className="overflow-x-auto">
+                    <div className="admin-table-wrap">
                       <table className="w-full text-left text-sm">
-                        <thead className="bg-slate-50 text-slate-600">
-                          <tr>
-                            <th className="p-4 font-semibold">{t.name}</th>
-                            <th className="p-4 font-semibold">{t.contactPerson}</th>
-                            <th className="p-4 font-semibold">{t.email}</th>
-                            <th className="p-4 font-semibold text-right">{t.actions}</th>
+                        <thead>
+                          <tr className="bg-[#1e293b] text-left text-xs font-bold uppercase tracking-[0.18em] text-emerald-400 border-b border-slate-700">
+                            <th className="p-4">{t.name}</th>
+                            <th className="p-4">{t.contactPerson}</th>
+                            <th className="p-4">{t.email}</th>
+                            <th className="p-4 text-right">{t.actions}</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody>
                           {(adminRef?.suppliers || []).filter(s => normalizeForSearch(s.name).includes(normalizeForSearch(supplierFilter))).slice((supplierPage - 1) * PAGE_SIZE, supplierPage * PAGE_SIZE).map((item) => (
-                            <tr key={item.id} className="transition-colors hover:bg-slate-50/50">
-                              <td className="p-4 font-medium text-slate-900">{item.name}</td>
-                              <td className="p-4 text-slate-600">{item.contactPerson || '-'}</td>
-                              <td className="p-4 text-slate-600">{item.email || '-'}</td>
+                            <tr key={item.id} className="material-table-row">
+                              <td className="p-4 font-bold text-white">{item.name}</td>
+                              <td className="p-4 font-semibold text-slate-300">{item.contactPerson || '-'}</td>
+                              <td className="p-4 font-semibold text-slate-300">{item.email || '-'}</td>
                               <td className="p-4 text-right">
-                                <Button variant="ghost" size="sm" onClick={() => startEditSupplier(item)} className="text-primary hover:bg-primary/10 hover:text-primary">
-                                  {t.edit}
-                                </Button>
-                                <Button variant="ghost" size="sm" onClick={() => deleteItem('/admin/suppliers/' + item.id)} className="text-red-600 hover:bg-red-50 hover:text-red-700">
-                                  {t.delete}
-                                </Button>
+                                <div className="flex justify-end gap-2">
+                                  <Button variant="ghost" size="sm" onClick={() => startEditSupplier(item)} className="text-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 font-bold">
+                                    {t.edit}
+                                  </Button>
+                                  <Button variant="destructive" size="sm" onClick={() => deleteItem('/admin/suppliers/' + item.id)} className="bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/30 font-bold">
+                                    {t.delete}
+                                  </Button>
+                                </div>
                               </td>
                             </tr>
                           ))}
@@ -1821,96 +1830,97 @@ function AdminPage() {
             {activeSection === 'categories' && canManageCategories && (
                 <div id="admin-categories" className="space-y-6">
                   <Card className="material-panel">
-                    <CardHeader className="border-b border-slate-200/80">
+                    <CardHeader className="border-b border-slate-800/80">
                       <div className="admin-section-toolbar">
-                        <CardTitle className="flex items-center gap-3"><Layers className="h-5 w-5 text-teal-700" /> {t.application}</CardTitle>
-                        <Button variant={showApplicationForm ? 'secondary' : 'default'} onClick={() => showApplicationForm ? resetApplicationForm() : setShowApplicationForm(true)}>{showApplicationForm ? t.closeEditor : t.addApplication}</Button>
+                        <CardTitle className="flex items-center gap-3 text-white font-extrabold text-xl"><Layers className="h-5 w-5 text-cyan-400" /> {t.application}</CardTitle>
+                        <Button variant={showApplicationForm ? 'secondary' : 'default'} onClick={() => showApplicationForm ? resetApplicationForm() : setShowApplicationForm(true)} className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-md">{showApplicationForm ? t.closeEditor : t.addApplication}</Button>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-5 pt-6">
                       {showApplicationForm && (
                         <div className="admin-editor-grid">
-                          <Input placeholder={t.appName + ' (EN)'} value={applicationName} onChange={(e) => setApplicationName(e.target.value)} />
-                          <Input placeholder={t.appName + ' (DE)'} value={applicationNameDe} onChange={(e) => setApplicationNameDe(e.target.value)} />
+                          <Input placeholder={t.appName + ' (EN)'} value={applicationName} onChange={(e) => setApplicationName(e.target.value)} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white text-xs" />
+                          <Input placeholder={t.appName + ' (DE)'} value={applicationNameDe} onChange={(e) => setApplicationNameDe(e.target.value)} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white text-xs" />
                           <div className="admin-editor-actions md:col-span-2">
-                            <Button onClick={saveApplication}>{t.saveApplication}</Button>
-                            <Button variant="outline" onClick={resetApplicationForm}>{t.cancel}</Button>
+                            <Button onClick={saveApplication} className="bg-cyan-500 hover:bg-cyan-400 text-white font-bold text-xs">{t.saveApplication}</Button>
+                            <Button variant="outline" onClick={resetApplicationForm} className="border-slate-700 text-slate-300 hover:bg-slate-800 text-xs">{t.cancel}</Button>
                           </div>
                         </div>
                       )}
                       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_auto_auto]">
-                        <Input placeholder={t.filterApplications} value={applicationFilter} onChange={(e) => setApplicationFilter(e.target.value)} />
-                        <select value={applicationSort} onChange={(e) => setApplicationSort(e.target.value as 'name-asc' | 'name-desc' | 'count-desc')}>
-                          <option value="name-asc">{t.nameAsc}</option>
-                          <option value="name-desc">{t.nameDesc}</option>
-                          <option value="count-desc">{t.countDesc}</option>
+                        <Input placeholder={t.filterApplications} value={applicationFilter} onChange={(e) => setApplicationFilter(e.target.value)} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white placeholder:text-slate-400 text-xs" />
+                        <select value={applicationSort} onChange={(e) => setApplicationSort(e.target.value as 'name-asc' | 'name-desc' | 'count-desc')} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white text-xs px-3 py-2">
+                          <option value="name-asc" className="bg-slate-900 text-white">{t.nameAsc}</option>
+                          <option value="name-desc" className="bg-slate-900 text-white">{t.nameDesc}</option>
+                          <option value="count-desc" className="bg-slate-900 text-white">{t.countDesc}</option>
                         </select>
-                        <Button variant="outline" onClick={() => exportAdminSection('excel', t.application, [t.name, t.profileCount], filteredApplications.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.profilesCount ?? 0]))}>{t.exportExcel}</Button>
-                        <Button variant="outline" onClick={() => exportAdminSection('pdf', t.application, [t.name, t.profileCount], filteredApplications.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.profilesCount ?? 0]))}>{t.exportPdf}</Button>
+                        <Button variant="outline" onClick={() => exportAdminSection('excel', t.application, [t.name, t.profileCount], filteredApplications.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.profilesCount ?? 0]))} className="border-slate-700 text-slate-200 hover:bg-slate-800 text-xs">{t.exportExcel}</Button>
+                        <Button variant="outline" onClick={() => exportAdminSection('pdf', t.application, [t.name, t.profileCount], filteredApplications.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.profilesCount ?? 0]))} className="border-slate-700 text-slate-200 hover:bg-slate-800 text-xs">{t.exportPdf}</Button>
                       </div>
                       <div className="admin-table-wrap">
                         <table className="w-full text-sm">
-                          <thead><tr className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-[0.18em] text-slate-500"><th className="px-4 py-3">{t.name}</th><th className="px-4 py-3">{t.profileCount}</th><th className="px-4 py-3 text-right">{t.actions}</th></tr></thead>
+                          <thead><tr className="bg-[#1e293b] text-left text-xs font-bold uppercase tracking-[0.18em] text-cyan-400 border-b border-slate-700"><th className="px-4 py-3.5">{t.name}</th><th className="px-4 py-3.5">{t.profileCount}</th><th className="px-4 py-3.5 text-right">{t.actions}</th></tr></thead>
                           <tbody>
                             {applicationRows.items.map((item) => (
                               <tr key={item.id} className="material-table-row">
-                                <td className="px-4 py-3 font-medium text-slate-900">{item.name}{item.nameDe ? ' / ' + item.nameDe : ''}</td>
-                                <td className="px-4 py-3 text-slate-600">{item.profilesCount ?? 0}</td>
-                                <td className="px-4 py-3"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => startEditApplication(item)}>{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteItem('/admin/applications/' + item.id)}>{t.delete}</Button></div></td>
+                                <td className="px-4 py-3.5 font-bold text-white">{item.name}{item.nameDe ? ' / ' + item.nameDe : ''}</td>
+                                <td className="px-4 py-3.5 font-semibold text-slate-300">{item.profilesCount ?? 0}</td>
+                                <td className="px-4 py-3.5"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => startEditApplication(item)} className="text-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 font-bold">{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteItem('/admin/applications/' + item.id)} className="bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/30 font-bold">{t.delete}</Button></div></td>
                               </tr>
                             ))}
                           </tbody>
                         </table>
                       </div>
-                      <div className="admin-pagination"><span>{t.showing} {applicationRows.start}-{applicationRows.end} / {applicationRows.total} {t.records}</span><div className="flex items-center gap-2"><Button size="sm" variant="outline" disabled={applicationRows.page <= 1} onClick={() => setApplicationPage((page) => page - 1)}>{t.previous}</Button><span>{t.pageLabel} {applicationRows.page} {t.ofLabel} {applicationRows.totalPages}</span><Button size="sm" variant="outline" disabled={applicationRows.page >= applicationRows.totalPages} onClick={() => setApplicationPage((page) => page + 1)}>{t.next}</Button></div></div>
+                      <div className="admin-pagination text-slate-300"><span>{t.showing} {applicationRows.start}-{applicationRows.end} / {applicationRows.total} {t.records}</span><div className="flex items-center gap-2"><Button size="sm" variant="outline" disabled={applicationRows.page <= 1} onClick={() => setApplicationPage((page) => page - 1)} className="border-slate-700 text-slate-200 hover:bg-slate-800">{t.previous}</Button><span>{t.pageLabel} {applicationRows.page} {t.ofLabel} {applicationRows.totalPages}</span><Button size="sm" variant="outline" disabled={applicationRows.page >= applicationRows.totalPages} onClick={() => setApplicationPage((page) => page + 1)} className="border-slate-700 text-slate-200 hover:bg-slate-800">{t.next}</Button></div></div>
                     </CardContent>
                   </Card>
 
                   <Card className="material-panel">
-                    <CardHeader className="border-b border-slate-200/80">
+                    <CardHeader className="border-b border-slate-800/80">
                       <div className="admin-section-toolbar">
-                        <CardTitle className="flex items-center gap-3"><Layers className="h-5 w-5 text-teal-700" /> {t.crossSection}</CardTitle>
-                        <Button variant={showCrossSectionForm ? 'secondary' : 'default'} onClick={() => showCrossSectionForm ? resetCrossSectionForm() : setShowCrossSectionForm(true)}>{showCrossSectionForm ? t.closeEditor : t.addCrossSection}</Button>
+                        <CardTitle className="flex items-center gap-3 text-white font-extrabold text-xl"><Layers className="h-5 w-5 text-blue-400" /> {t.crossSection}</CardTitle>
+                        <Button variant={showCrossSectionForm ? 'secondary' : 'default'} onClick={() => showCrossSectionForm ? resetCrossSectionForm() : setShowCrossSectionForm(true)} className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white font-bold text-xs shadow-md">{showCrossSectionForm ? t.closeEditor : t.addCrossSection}</Button>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-5 pt-6">
                       {showCrossSectionForm && (
                         <div className="admin-editor-grid">
-                          <Input placeholder={t.crossSectionName + ' (EN)'} value={crossSectionName} onChange={(e) => setCrossSectionName(e.target.value)} />
-                          <Input placeholder={t.crossSectionName + ' (DE)'} value={crossSectionNameDe} onChange={(e) => setCrossSectionNameDe(e.target.value)} />
+                          <Input placeholder={t.crossSectionName + ' (EN)'} value={crossSectionName} onChange={(e) => setCrossSectionName(e.target.value)} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white text-xs" />
+                          <Input placeholder={t.crossSectionName + ' (DE)'} value={crossSectionNameDe} onChange={(e) => setCrossSectionNameDe(e.target.value)} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white text-xs" />
                           <div className="admin-editor-actions md:col-span-2">
-                            <Button onClick={saveCrossSection}>{t.saveCrossSection}</Button>
-                            <Button variant="outline" onClick={resetCrossSectionForm}>{t.cancel}</Button>
+                            <Button onClick={saveCrossSection} className="bg-blue-500 hover:bg-blue-400 text-white font-bold text-xs">{t.saveCrossSection}</Button>
+                            <Button variant="outline" onClick={resetCrossSectionForm} className="border-slate-700 text-slate-300 hover:bg-slate-800 text-xs">{t.cancel}</Button>
                           </div>
                         </div>
                       )}
                       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_auto_auto]">
-                        <Input placeholder={t.filterCrossSections} value={crossSectionFilter} onChange={(e) => setCrossSectionFilter(e.target.value)} />
-                        <select value={crossSectionSort} onChange={(e) => setCrossSectionSort(e.target.value as 'name-asc' | 'name-desc' | 'count-desc')}>
-                          <option value="name-asc">{t.nameAsc}</option>
-                          <option value="name-desc">{t.nameDesc}</option>
-                          <option value="count-desc">{t.countDesc}</option>
+                        <Input placeholder={t.filterCrossSections} value={crossSectionFilter} onChange={(e) => setCrossSectionFilter(e.target.value)} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white placeholder:text-slate-400 text-xs" />
+                        <select value={crossSectionSort} onChange={(e) => setCrossSectionSort(e.target.value as 'name-asc' | 'name-desc' | 'count-desc')} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white text-xs px-3 py-2">
+                          <option value="name-asc" className="bg-slate-900 text-white">{t.nameAsc}</option>
+                          <option value="name-desc" className="bg-slate-900 text-white">{t.nameDesc}</option>
+                          <option value="count-desc" className="bg-slate-900 text-white">{t.countDesc}</option>
                         </select>
-                        <Button variant="outline" onClick={() => exportAdminSection('excel', t.crossSection, [t.name, t.profileCount], filteredCrossSections.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.profilesCount ?? 0]))}>{t.exportExcel}</Button>
-                        <Button variant="outline" onClick={() => exportAdminSection('pdf', t.crossSection, [t.name, t.profileCount], filteredCrossSections.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.profilesCount ?? 0]))}>{t.exportPdf}</Button>
+                        <Button variant="outline" onClick={() => exportAdminSection('excel', t.crossSection, [t.name, t.profileCount], filteredCrossSections.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.profilesCount ?? 0]))} className="border-slate-700 text-slate-200 hover:bg-slate-800 text-xs">{t.exportExcel}</Button>
+                        <Button variant="outline" onClick={() => exportAdminSection('pdf', t.crossSection, [t.name, t.profileCount], filteredCrossSections.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.profilesCount ?? 0]))} className="border-slate-700 text-slate-200 hover:bg-slate-800 text-xs">{t.exportPdf}</Button>
                       </div>
                       <div className="admin-table-wrap">
                         <table className="w-full text-sm">
-                          <thead><tr className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-[0.18em] text-slate-500"><th className="px-4 py-3">{t.name}</th><th className="px-4 py-3">{t.profileCount}</th><th className="px-4 py-3 text-right">{t.actions}</th></tr></thead>
+                          <thead><tr className="bg-[#1e293b] text-left text-xs font-bold uppercase tracking-[0.18em] text-blue-400 border-b border-slate-700"><th className="px-4 py-3.5">{t.name}</th><th className="px-4 py-3.5">{t.profileCount}</th><th className="px-4 py-3.5 text-right">{t.actions}</th></tr></thead>
                           <tbody>
                             {crossSectionRows.items.map((item) => (
                               <tr key={item.id} className="material-table-row">
-                                <td className="px-4 py-3 font-medium text-slate-900">{item.name}{item.nameDe ? ' / ' + item.nameDe : ''}</td>
-                                <td className="px-4 py-3 text-slate-600">{item.profilesCount ?? 0}</td>
-                                <td className="px-4 py-3"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => startEditCrossSection(item)}>{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteItem('/admin/cross-sections/' + item.id)}>{t.delete}</Button></div></td>
+                                <td className="px-4 py-3.5 font-bold text-white">{item.name}{item.nameDe ? ' / ' + item.nameDe : ''}</td>
+                                <td className="px-4 py-3.5 font-semibold text-slate-300">{item.profilesCount ?? 0}</td>
+                                <td className="px-4 py-3.5"><div className="flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => startEditCrossSection(item)} className="text-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 font-bold">{t.edit}</Button><Button size="sm" variant="destructive" onClick={() => deleteItem('/admin/cross-sections/' + item.id)} className="bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/30 font-bold">{t.delete}</Button></div></td>
                               </tr>
                             ))}
                           </tbody>
                         </table>
                       </div>
-                      <div className="admin-pagination"><span>{t.showing} {crossSectionRows.start}-{crossSectionRows.end} / {crossSectionRows.total} {t.records}</span><div className="flex items-center gap-2"><Button size="sm" variant="outline" disabled={crossSectionRows.page <= 1} onClick={() => setCrossSectionPage((page) => page - 1)}>{t.previous}</Button><span>{t.pageLabel} {crossSectionRows.page} {t.ofLabel} {crossSectionRows.totalPages}</span><Button size="sm" variant="outline" disabled={crossSectionRows.page >= crossSectionRows.totalPages} onClick={() => setCrossSectionPage((page) => page + 1)}>{t.next}</Button></div></div>
+                      <div className="admin-pagination text-slate-300"><span>{t.showing} {crossSectionRows.start}-{crossSectionRows.end} / {crossSectionRows.total} {t.records}</span><div className="flex items-center gap-2"><Button size="sm" variant="outline" disabled={crossSectionRows.page <= 1} onClick={() => setCrossSectionPage((page) => page - 1)} className="border-slate-700 text-slate-200 hover:bg-slate-800">{t.previous}</Button><span>{t.pageLabel} {crossSectionRows.page} {t.ofLabel} {crossSectionRows.totalPages}</span><Button size="sm" variant="outline" disabled={crossSectionRows.page >= crossSectionRows.totalPages} onClick={() => setCrossSectionPage((page) => page + 1)} className="border-slate-700 text-slate-200 hover:bg-slate-800">{t.next}</Button></div></div>
                     </CardContent>
                   </Card>
+
 
                   
                 </div>
