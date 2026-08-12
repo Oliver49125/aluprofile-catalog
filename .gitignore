@@ -1,45 +1,29 @@
 # Dependencies
 node_modules/
-**/node_modules/
+.pnpm-store/
 
-# Build output
+# Build outputs
 dist/
 build/
-coverage/
-**/dist/
-**/build/
-**/coverage/
-*.tsbuildinfo
+.next/
+out/
 
-# Environment / secrets
+# Environment files
 .env
 .env.*
 !.env.example
-!.env.local.example
 
-# Runtime / logs
-logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
+# Service account secrets
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!tsconfig.*.json
+!nest-cli.json
+!components.json
+!vercel.json
+credentials/
 
-# Uploads and generated local assets
-uploads/
-**/uploads/
-
-# IDE / OS files
-.vscode/
-.idea/
-*.swp
-*.swo
+# OS / Editor files
 .DS_Store
-Thumbs.db
-
-# Python cache (if local scripts are used)
-__pycache__/
-*.pyc
-
-# Optional archives
-*.zip
+*.log
