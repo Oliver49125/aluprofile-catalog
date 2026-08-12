@@ -1132,11 +1132,24 @@ function AdminPage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
+                <Link to="/">
+                  <button type="button" className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold transition-all shadow-sm cursor-pointer">
+                    Home
+                  </button>
+                </Link>
+
                 <Link to="/catalog">
                   <button type="button" className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold transition-all shadow-sm cursor-pointer">
                     {t.backToCatalog}
                   </button>
                 </Link>
+
+                <Link to="/customer">
+                  <button type="button" className="px-4 py-2.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30 text-xs font-extrabold transition-all shadow-sm cursor-pointer">
+                    Customer Portal
+                  </button>
+                </Link>
+
 
                 <label className="inline-flex items-center gap-2 rounded-xl bg-white/10 border border-white/20 px-3.5 py-2 text-xs font-bold text-slate-200">
                   <span>{t.language}:</span>
@@ -1425,7 +1438,9 @@ function AdminPage() {
 
 
                     {canManageCategories && <button type="button" className={`admin-nav-link ${activeSection === 'categories' ? 'bg-white/14 text-white shadow-[0_16px_30px_-22px_rgba(15,23,42,0.8)]' : ''}`} onClick={() => setActiveSection('categories')}><span>{t.categoryControls}</span><ChevronRight className="h-4 w-4" /></button>}
+                    {canManageSuppliers && <button type="button" className={`admin-nav-link ${activeSection === 'suppliers' ? 'bg-white/14 text-white shadow-[0_16px_30px_-22px_rgba(15,23,42,0.8)]' : ''}`} onClick={() => setActiveSection('suppliers')}><span>{t.supplierControls}</span><ChevronRight className="h-4 w-4" /></button>}
                     {canManageCategories && <button type="button" className={`admin-nav-link ${activeSection === 'currencies' ? 'bg-white/14 text-white shadow-[0_16px_30px_-22px_rgba(15,23,42,0.8)]' : ''}`} onClick={() => setActiveSection('currencies')}><span>{t.currencies}</span><ChevronRight className="h-4 w-4" /></button>}
+
                     {canManageUsers && <button type="button" className={`admin-nav-link ${activeSection === 'users' ? 'bg-white/14 text-white shadow-[0_16px_30px_-22px_rgba(15,23,42,0.8)]' : ''}`} onClick={() => setActiveSection('users')}><span>{t.clerkUsers}</span><ChevronRight className="h-4 w-4" /></button>}
                     {canManageUsers && <button type="button" className={`admin-nav-link ${activeSection === 'roles' ? 'bg-white/14 text-white shadow-[0_16px_30px_-22px_rgba(15,23,42,0.8)]' : ''}`} onClick={() => setActiveSection('roles')}><span>{t.appRolePermissions}</span><ChevronRight className="h-4 w-4" /></button>}
                   </div>
