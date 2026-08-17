@@ -1,4 +1,4 @@
-import { AppPermission, AppRole } from '../../node_modules/.prisma/client';
+import { AppPermission, AppRole } from '@prisma/client';
 
 export type AuthContext = {
   userId: number;

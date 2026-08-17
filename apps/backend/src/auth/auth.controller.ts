@@ -5,7 +5,7 @@ import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
-import { AppRole } from '../../node_modules/.prisma/client';
+import { AppRole } from '@prisma/client';
 
 @Controller('auth')
 export class AuthController {
