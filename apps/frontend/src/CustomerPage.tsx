@@ -2,6 +2,7 @@ import toast from 'react-hot-toast';
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from './AuthContext';
 import { useLanguage } from './LanguageContext';
+import { API_BASE } from './utils/apiBase';
 import {
   Boxes,
   Eye,
@@ -64,8 +65,6 @@ type Profile = {
   dxfUrl?: string;
   pdfUrl?: string;
 };
-
-const API_BASE = (import.meta.env.VITE_API_BASE ?? 'http://localhost:3000/api').replace(/\/+$/, '');
 
 const TXT = {
   en: {

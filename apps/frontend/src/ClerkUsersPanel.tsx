@@ -1,4 +1,5 @@
 import { parseApiError } from './utils/apiError';
+import { API_BASE } from './utils/apiBase';
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from './AuthContext';
 import { Mail, Search, ShieldCheck, Users, ShieldAlert } from 'lucide-react';
@@ -24,7 +25,6 @@ type Props = {
 };
 
 
-const API_BASE = (import.meta.env.VITE_API_BASE ?? 'http://localhost:3000/api').replace(/\/+$/, '');
 const PAGE_SIZE = 5;
 
 const TXT = {

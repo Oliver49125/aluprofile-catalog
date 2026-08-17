@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useLanguage } from './LanguageContext';
+import { API_BASE } from './utils/apiBase';
 
 import {
   Boxes,
@@ -82,9 +83,6 @@ type Profile = {
     address?: string;
   };
 };
-
-
-const API_BASE = (import.meta.env.VITE_API_BASE ?? 'http://localhost:3000/api').replace(/\/+$/, '');
 
 export default function SearchPortalPage() {
   const [activeTab, setActiveTab] = useState<'search' | 'dashboard' | 'projects' | 'settings'>('search');

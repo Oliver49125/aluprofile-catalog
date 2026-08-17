@@ -20,13 +20,26 @@ async function bootstrap() {
   mkdirSync(uploadsDir, { recursive: true });
 
   app.enableCors({
-    origin: true,
+    origin: [
+      'https://www.aluprofile.biz',
+      'https://aluprofile.biz',
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://localhost:4173',
+      /^https:\/\/.*\.aluprofile\.biz$/,
+      /^https:\/\/.*\.vercel\.app$/,
+      /^https:\/\/.*\.railway\.app$/,
+    ],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With', 'sentry-trace', 'baggage'],
+    exposedHeaders: ['Content-Range', 'X-Total-Count'],
     credentials: true,
   });
   app.setGlobalPrefix('api');
   app.useGlobalFilters(new PrismaExceptionFilter());
   app.useStaticAssets(uploadsDir, { prefix: '/uploads/' });
 
-  await app.listen(process.env.PORT ?? 3000);
+  const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+  await app.listen(port, '0.0.0.0');
 }
 bootstrap();

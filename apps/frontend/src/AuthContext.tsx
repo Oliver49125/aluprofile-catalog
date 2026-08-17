@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
+import { API_BASE } from './utils/apiBase';
 
 export type User = {
   id: number;
@@ -41,7 +42,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } else {
             setToken(storedToken);
             // Fetch real user details
-            const API_BASE = (import.meta.env.VITE_API_BASE ?? 'http://localhost:3000/api').replace(/\/+$/, '');
             const res = await fetch(`${API_BASE}/auth/me`, {
               headers: { Authorization: `Bearer ${storedToken}` }
             });

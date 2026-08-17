@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { parseApiError } from './utils/apiError';
 import { useAuth } from './AuthContext';
 import { useLanguage } from './LanguageContext';
+import { API_BASE } from './utils/apiBase';
 import {
   Activity,
   ArrowUpRight,
@@ -100,7 +101,6 @@ type UserAdmin = {
   permissions: AppPermission[];
 };
 
-const API_BASE = (import.meta.env.VITE_API_BASE ?? 'http://localhost:3000/api').replace(/\/+$/, '');
 const PAGE_SIZE = 5;
 
 function paginateItems<T>(items: T[], page: number, pageSize = PAGE_SIZE) {

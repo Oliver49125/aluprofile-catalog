@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useLanguage } from './LanguageContext';
+import { API_BASE } from './utils/apiBase';
 
 import {
   Boxes,
@@ -62,7 +63,6 @@ type Profile = {
   currency?: { symbol: string };
 };
 
-const API_BASE = (import.meta.env.VITE_API_BASE ?? 'http://localhost:3000/api').replace(/\/+$/, '');
 const PAGE_SIZE = 10;
 
 function isImage(url?: string) {
