@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { useLanguage } from './LanguageContext';
 
 import {
   Boxes,
@@ -17,6 +18,15 @@ import {
   Download,
   FileText,
   Sparkles,
+  Building2,
+  Globe,
+  ExternalLink,
+  Mail,
+  Phone,
+  Ruler,
+  ImageIcon,
+  FileIcon,
+  CheckCircle2,
 } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Input } from './components/ui/input';
@@ -27,10 +37,15 @@ type RefOption = { id: number; name: string };
 type Profile = {
   id: number;
   name: string;
+  nameDe?: string;
   code?: string;
   description?: string;
+  descriptionDe?: string;
+  usage?: string;
+  usageDe?: string;
   drawingUrl?: string;
   photoUrl?: string;
+  logoUrl?: string;
   dimensions?: string;
   heightMm?: number;
   widthMm?: number;
@@ -38,11 +53,34 @@ type Profile = {
   slotSize?: string;
   weightPerMeter?: number;
   material?: string;
+  materialDe?: string;
+  lengthMm?: number;
   status: string;
+  price?: number;
+  currencyId?: number;
+  currency?: { id?: number; code?: string; symbol: string };
+  momentOfInertiaIx?: number;
+  momentOfInertiaIy?: number;
+  sectionModulusWx?: number;
+  sectionModulusWy?: number;
+  outerSurfaceArea?: number;
+  crossSectionalArea?: number;
+  color?: string;
+  stepUrl?: string;
+  dxfUrl?: string;
+  pdfUrl?: string;
   applications?: RefOption[];
   crossSections?: RefOption[];
-  price?: number;
-  currency?: { symbol: string };
+  supplier?: {
+    id: number;
+    name: string;
+    nameDe?: string;
+    contactPerson?: string;
+    email?: string;
+    phone?: string;
+    website?: string;
+    address?: string;
+  };
 };
 
 
@@ -68,19 +106,47 @@ export default function SearchPortalPage() {
   const [applications, setApplications] = useState<RefOption[]>([]);
   const [crossSections, setCrossSections] = useState<RefOption[]>([]);
 
-  // Selected Profile & Header Popovers
+  // Selected Profile & Media / Inquiry States
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
+  const [modalMediaTab, setModalMediaTab] = useState<'drawing' | 'photo'>('drawing');
+  const [showInquiryModal, setShowInquiryModal] = useState<Profile | null>(null);
+  const [inquiryForm, setInquiryForm] = useState({
+    firstName: '',
+    lastName: '',
+    company: '',
+    email: '',
+    phone: '',
+    message: '',
+    requestPurchase: false,
+  });
+  const [inquirySending, setInquirySending] = useState(false);
+  const [inquirySent, setInquirySent] = useState(false);
+
   const [showInquirySuccess, setShowInquirySuccess] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserProfileModal, setShowUserProfileModal] = useState(false);
+
+  // Language & Manufacturer Modal State
+  const { lang, setLang } = useLanguage();
+  const [showManufacturerModal, setShowManufacturerModal] = useState(false);
+  const [manufacturerForm, setManufacturerForm] = useState({
+    name: '',
+    contactPerson: '',
+    email: '',
+    phone: '',
+    website: '',
+    industry: '',
+    address: '',
+  });
+  const [manufacturerSubmitting, setManufacturerSubmitting] = useState(false);
 
   useEffect(() => {
     async function loadData() {
       setIsLoading(true);
       try {
         const [profRes, overviewRes] = await Promise.all([
-          fetch(`${API_BASE}/public/profiles`),
-          fetch(`${API_BASE}/public/overview`),
+          fetch(`${API_BASE}/public/profiles?lang=${lang}`),
+          fetch(`${API_BASE}/public/overview?lang=${lang}`),
         ]);
         if (profRes.ok) setProfiles(await profRes.json());
         if (overviewRes.ok) {
@@ -95,26 +161,7 @@ export default function SearchPortalPage() {
       }
     }
     loadData();
-  }, []);
-
-  // Language & Manufacturer Modal State
-  const [lang, setLang] = useState<'en' | 'de'>('en');
-  const [showManufacturerModal, setShowManufacturerModal] = useState(false);
-  const [manufacturerForm, setManufacturerForm] = useState({
-    name: '',
-    contactPerson: '',
-    email: '',
-    phone: '',
-    website: '',
-    industry: '',
-    address: '',
-  });
-  const [manufacturerSubmitting, setManufacturerSubmitting] = useState(false);
-
-  useEffect(() => {
-    const saved = window.localStorage.getItem('aluprofile_lang');
-    if (saved === 'en' || saved === 'de') setLang(saved);
-  }, []);
+  }, [lang]);
 
   async function handleRegisterManufacturer(e: React.FormEvent) {
     e.preventDefault();
@@ -137,6 +184,55 @@ export default function SearchPortalPage() {
       toast.error(err.message || 'Submission failed');
     } finally {
       setManufacturerSubmitting(false);
+    }
+  }
+
+  async function submitInquiry(e: React.FormEvent) {
+    e.preventDefault();
+    if (!showInquiryModal) return;
+    if (!inquiryForm.firstName || !inquiryForm.lastName || !inquiryForm.email) {
+      toast.error(lang === 'de' ? 'Bitte alle Pflichtfelder ausfüllen.' : 'Please fill in all required fields.');
+      return;
+    }
+    setInquirySending(true);
+    try {
+      const res = await fetch(`${API_BASE}/public/inquiries`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          profileId: showInquiryModal.id,
+          firstName: inquiryForm.firstName,
+          lastName: inquiryForm.lastName,
+          company: inquiryForm.company,
+          email: inquiryForm.email,
+          phone: inquiryForm.phone,
+          message: inquiryForm.message,
+          receiveOffer: inquiryForm.requestPurchase,
+        }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || 'Failed to submit inquiry');
+      }
+      setInquirySent(true);
+      toast.success(lang === 'de' ? 'Anfrage erfolgreich gesendet!' : 'Inquiry sent successfully!');
+      setTimeout(() => {
+        setInquirySent(false);
+        setShowInquiryModal(null);
+        setInquiryForm({
+          firstName: '',
+          lastName: '',
+          company: '',
+          email: '',
+          phone: '',
+          message: '',
+          requestPurchase: false,
+        });
+      }, 2000);
+    } catch (err: any) {
+      toast.error(parseApiError(err));
+    } finally {
+      setInquirySending(false);
     }
   }
 
@@ -258,7 +354,7 @@ export default function SearchPortalPage() {
               className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all hover:bg-slate-800/50 hover:text-white text-slate-400"
             >
               <LayoutDashboard className="h-4 w-4" />
-              <span>Full Catalog</span>
+              <span>{lang === 'de' ? 'Gesamter Katalog' : 'Full Catalog'}</span>
             </Link>
 
             <button
@@ -270,7 +366,7 @@ export default function SearchPortalPage() {
               }`}
             >
               <Search className="h-4 w-4 text-blue-400" />
-              <span>Search & Filter</span>
+              <span>{lang === 'de' ? 'Suchen & Filtern' : 'Search & Filter'}</span>
             </button>
 
             <Link
@@ -278,7 +374,7 @@ export default function SearchPortalPage() {
               className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all hover:bg-slate-800/50 hover:text-white text-slate-400"
             >
               <FolderKanban className="h-4 w-4" />
-              <span>Customer Portal</span>
+              <span>{lang === 'de' ? 'Kundenportal' : 'Customer Portal'}</span>
             </Link>
           </div>
 
@@ -292,14 +388,14 @@ export default function SearchPortalPage() {
                 onClick={() => setIsDimensionsOpen(!isDimensionsOpen)}
                 className="w-full flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-white"
               >
-                <span>Dimensions</span>
+                <span>{lang === 'de' ? 'Abmessungen' : 'Dimensions'}</span>
                 {isDimensionsOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               </button>
 
               {isDimensionsOpen && (
                 <div className="space-y-3 pt-1">
                   <div>
-                    <label className="text-[11px] font-medium text-slate-400 block mb-1">Height (mm)</label>
+                    <label className="text-[11px] font-medium text-slate-400 block mb-1">{lang === 'de' ? 'Höhe (mm)' : 'Height (mm)'}</label>
                     <input
                       type="number"
                       placeholder="e.g. 40"
@@ -310,7 +406,7 @@ export default function SearchPortalPage() {
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-medium text-slate-400 block mb-1">Width (mm)</label>
+                    <label className="text-[11px] font-medium text-slate-400 block mb-1">{lang === 'de' ? 'Breite (mm)' : 'Width (mm)'}</label>
                     <input
                       type="number"
                       placeholder="e.g. 40"
@@ -321,7 +417,7 @@ export default function SearchPortalPage() {
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-medium text-slate-400 block mb-1">Slot size (mm)</label>
+                    <label className="text-[11px] font-medium text-slate-400 block mb-1">{lang === 'de' ? 'Nutgröße (mm)' : 'Slot size (mm)'}</label>
                     <input
                       type="number"
                       placeholder="e.g. 8"
@@ -340,7 +436,7 @@ export default function SearchPortalPage() {
                 onClick={() => setIsProfileTypesOpen(!isProfileTypesOpen)}
                 className="w-full flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-white"
               >
-                <span>Profile Types</span>
+                <span>{lang === 'de' ? 'Profiltypen' : 'Profile Types'}</span>
                 {isProfileTypesOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               </button>
 
@@ -349,13 +445,14 @@ export default function SearchPortalPage() {
                   {(() => {
                     const dbTypes = (crossSections || []).map((cs) => cs.name);
                     const defaultTypes = ['Standard', 'Heavy Duty', 'Slot 8', 'Slot 10'];
-                    const combined = ['All Types', ...Array.from(new Set([...defaultTypes, ...dbTypes]))];
+                    const combined = [lang === 'de' ? 'Alle Typen' : 'All Types', ...Array.from(new Set([...defaultTypes, ...dbTypes]))];
                     return combined.map((type) => {
-                      const isSelected = type === 'All Types' ? !selectedType : selectedType === type;
+                      const isAll = type === 'All Types' || type === 'Alle Typen';
+                      const isSelected = isAll ? !selectedType : selectedType === type;
                       return (
                         <button
                           key={type}
-                          onClick={() => setSelectedType(type === 'All Types' ? '' : type)}
+                          onClick={() => setSelectedType(isAll ? '' : type)}
                           className={`w-full text-left px-3 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 ${
                             isSelected
                               ? 'bg-blue-600 text-white font-extrabold shadow-md shadow-blue-600/30 border border-blue-400'
@@ -374,13 +471,13 @@ export default function SearchPortalPage() {
             {/* Application & Cross-Section Dropdowns */}
             <div className="space-y-4 pt-4 border-t border-slate-800">
               <div className="space-y-1.5">
-                <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 block">Application</label>
+                <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 block">{lang === 'de' ? 'Anwendung' : 'Application'}</label>
                 <select
                   value={selectedApplication}
                   onChange={(e) => setSelectedApplication(e.target.value)}
                   className="w-full rounded-xl bg-[#222b3a] border border-slate-700/80 px-3 py-2.5 text-xs text-white focus:border-blue-400 focus:outline-none font-extrabold cursor-pointer transition-all"
                 >
-                  <option value="" className="bg-slate-900">-- All Applications --</option>
+                  <option value="" className="bg-slate-900">{lang === 'de' ? '-- Alle Anwendungen --' : '-- All Applications --'}</option>
                   {applications.map((app) => (
                     <option key={app.id} value={app.id} className="bg-slate-900">
                       {app.name}
@@ -390,13 +487,13 @@ export default function SearchPortalPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 block">Cross-Section</label>
+                <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 block">{lang === 'de' ? 'Querschnitt' : 'Cross-Section'}</label>
                 <select
                   value={selectedCrossSection}
                   onChange={(e) => setSelectedCrossSection(e.target.value)}
                   className="w-full rounded-xl bg-[#222b3a] border border-slate-700/80 px-3 py-2.5 text-xs text-white focus:border-blue-400 focus:outline-none font-extrabold cursor-pointer transition-all"
                 >
-                  <option value="" className="bg-slate-900">-- All Cross-Sections --</option>
+                  <option value="" className="bg-slate-900">{lang === 'de' ? '-- Alle Querschnitte --' : '-- All Cross-Sections --'}</option>
                   {crossSections.map((cs) => (
                     <option key={cs.id} value={cs.id} className="bg-slate-900">
                       {cs.name}
@@ -413,7 +510,7 @@ export default function SearchPortalPage() {
               onClick={clearFilters}
               className="w-full py-2.5 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-bold transition-all"
             >
-              Clear Filters
+              {lang === 'de' ? 'Filter zurücksetzen' : 'Clear Filters'}
             </button>
           </div>
         </aside>
@@ -426,7 +523,7 @@ export default function SearchPortalPage() {
             <div className="relative w-full sm:max-w-md">
               <input
                 type="text"
-                placeholder="Search profiles..."
+                placeholder={lang === 'de' ? 'Profile nach ID, Maßen oder Material suchen...' : 'Search profiles...'}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full rounded-xl border border-blue-500/80 bg-white pl-9 pr-9 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/30 shadow-sm"
@@ -445,7 +542,7 @@ export default function SearchPortalPage() {
             {/* Right Controls: Sort By, Register as Manufacturer, Notifications & User Profile */}
             <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-between sm:justify-end text-xs font-semibold text-slate-700">
               <label className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-extrabold text-slate-700 shadow-sm">
-                <span className="text-slate-400">Sort by:</span>
+                <span className="text-slate-400">{lang === 'de' ? 'Sortieren nach:' : 'Sort by:'}</span>
                 <select
                   value={sortBy}
                   onChange={(e) => {
@@ -454,14 +551,14 @@ export default function SearchPortalPage() {
                   }}
                   className="bg-transparent border-0 text-xs font-extrabold focus:outline-none cursor-pointer text-blue-600"
                 >
-                  <option value="newest">Newest First</option>
-                  <option value="oldest">Oldest First</option>
-                  <option value="priceAsc">Price: Low to High</option>
-                  <option value="priceDesc">Price: High to Low</option>
-                  <option value="nameAsc">Name (A–Z)</option>
-                  <option value="nameDesc">Name (Z–A)</option>
-                  <option value="weightAsc">Weight (Low to High)</option>
-                  <option value="weightDesc">Weight (High to Low)</option>
+                  <option value="newest">{lang === 'de' ? 'Neueste zuerst' : 'Newest First'}</option>
+                  <option value="oldest">{lang === 'de' ? 'Älteste zuerst' : 'Oldest First'}</option>
+                  <option value="priceAsc">{lang === 'de' ? 'Preis: Aufsteigend' : 'Price: Low to High'}</option>
+                  <option value="priceDesc">{lang === 'de' ? 'Preis: Absteigend' : 'Price: High to Low'}</option>
+                  <option value="nameAsc">{lang === 'de' ? 'Name (A–Z)' : 'Name (A–Z)'}</option>
+                  <option value="nameDesc">{lang === 'de' ? 'Name (Z–A)' : 'Name (Z–A)'}</option>
+                  <option value="weightAsc">{lang === 'de' ? 'Gewicht: Aufsteigend' : 'Weight (Low to High)'}</option>
+                  <option value="weightDesc">{lang === 'de' ? 'Gewicht: Absteigend' : 'Weight (High to Low)'}</option>
                 </select>
               </label>
 
@@ -477,7 +574,7 @@ export default function SearchPortalPage() {
                 to="/"
                 className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-extrabold text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-1.5"
               >
-                <span>Home</span>
+                <span>{lang === 'de' ? 'Startseite' : 'Home'}</span>
               </Link>
 
               {/* Notifications Popover Dropdown */}
@@ -491,7 +588,7 @@ export default function SearchPortalPage() {
                   className="flex items-center gap-1.5 text-slate-700 hover:text-blue-600 transition-colors relative cursor-pointer"
                 >
                   <Bell className="h-4 w-4 text-slate-600" />
-                  <span className="hidden md:inline">Notifications</span>
+                  <span className="hidden md:inline">{lang === 'de' ? 'Mitteilungen' : 'Notifications'}</span>
                   <span className="h-2 w-2 rounded-full bg-blue-600 absolute -top-0.5 -left-0.5 animate-pulse" />
                 </button>
 
@@ -563,6 +660,15 @@ export default function SearchPortalPage() {
                   </div>
                 )}
               </div>
+
+              {/* Language Selector */}
+              <label className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 cursor-pointer bg-slate-100/80 hover:bg-slate-200/80 px-2.5 py-1.5 rounded-xl transition-all border border-slate-200">
+                <Globe className="h-3.5 w-3.5 text-slate-500" />
+                <select value={lang} onChange={(e) => setLang(e.target.value as any)} className="bg-transparent border-0 font-bold focus:outline-none cursor-pointer text-xs">
+                  <option value="en">EN</option>
+                  <option value="de">DE</option>
+                </select>
+              </label>
             </div>
           </header>
 
@@ -575,10 +681,14 @@ export default function SearchPortalPage() {
                 {/* Results Count Summary */}
                 <div className="flex items-center justify-between text-xs font-bold text-slate-500">
                   <span>
-                    Showing {pagedProfiles.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-{Math.min(currentPage * itemsPerPage, filteredProfiles.length)} of {filteredProfiles.length} Extrusion Profiles
+                    {lang === 'de'
+                      ? `Zeige ${pagedProfiles.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}–${Math.min(currentPage * itemsPerPage, filteredProfiles.length)} von ${filteredProfiles.length} Profilen`
+                      : `Showing ${pagedProfiles.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-${Math.min(currentPage * itemsPerPage, filteredProfiles.length)} of ${filteredProfiles.length} Extrusion Profiles`}
                   </span>
                   {filteredProfiles.length > 0 && (
-                    <span className="text-[11px] font-semibold text-slate-400">Page {currentPage} of {totalPages}</span>
+                    <span className="text-[11px] font-semibold text-slate-400">
+                      {lang === 'de' ? `Seite ${currentPage} von ${totalPages}` : `Page ${currentPage} of ${totalPages}`}
+                    </span>
                   )}
                 </div>
 
@@ -632,11 +742,12 @@ export default function SearchPortalPage() {
                     })}
                   </div>
                 ) : (
-
                   <div className="rounded-3xl border border-dashed border-slate-200 p-12 text-center space-y-3">
-                    <p className="text-sm font-bold text-slate-600">No aluminum profiles match your current search criteria.</p>
-                    <button onClick={clearFilters} className="text-xs font-extrabold text-blue-600 hover:underline">
-                      Reset All Filters
+                    <p className="text-sm font-bold text-slate-600">
+                      {lang === 'de' ? 'Keine Aluminiumprofile entsprechen Ihren aktuellen Suchkriterien.' : 'No aluminum profiles match your current search criteria.'}
+                    </p>
+                    <button onClick={clearFilters} className="text-xs font-extrabold text-blue-600 hover:underline cursor-pointer">
+                      {lang === 'de' ? 'Alle Filter zurücksetzen' : 'Reset All Filters'}
                     </button>
                   </div>
                 )}
@@ -651,7 +762,7 @@ export default function SearchPortalPage() {
                       onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                       className="rounded-xl text-xs font-bold px-3 py-1.5"
                     >
-                      Previous
+                      {lang === 'de' ? 'Zurück' : 'Previous'}
                     </Button>
                     <div className="flex items-center gap-1 text-xs font-extrabold px-2">
                       {Array.from({ length: totalPages }).map((_, idx) => {
@@ -678,7 +789,7 @@ export default function SearchPortalPage() {
                       onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                       className="rounded-xl text-xs font-bold px-3 py-1.5"
                     >
-                      Next
+                      {lang === 'de' ? 'Weiter' : 'Next'}
                     </Button>
                   </div>
                 )}
@@ -752,54 +863,564 @@ export default function SearchPortalPage() {
         </main>
       </div>
 
-      {/* SELECTED PROFILE TECHNICAL DATASHEET MODAL */}
+      {/* SELECTED PROFILE TECHNICAL SPECIFICATION MODAL (PIXEL-PERFECT MODERN TREND UI) */}
       {selectedProfile && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm" onClick={() => setSelectedProfile(null)}>
-          <div className="w-full max-w-xl rounded-3xl bg-white shadow-2xl overflow-hidden p-6 space-y-5" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-start justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h3 className="text-xl font-extrabold text-slate-900">{selectedProfile.name}</h3>
-                <p className="text-xs text-slate-500 font-semibold">{selectedProfile.material || 'Aluminum Alloy 6063-T5'}</p>
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-900/60 p-4 sm:p-6 backdrop-blur-md overflow-y-auto" onClick={() => setSelectedProfile(null)}>
+          <div className="w-full max-w-5xl rounded-3xl bg-[#f4f7fb] shadow-2xl overflow-hidden border border-slate-200 text-slate-900 my-auto animate-in fade-in zoom-in-95 duration-200 relative max-h-[92vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            
+            {/* Modal Header Bar */}
+            <div className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 shrink-0">
+              <div className="flex items-center gap-2 text-xs">
+                <span className="font-semibold text-slate-500">Home</span>
+                <span className="text-slate-400">&gt;</span>
+                <span className="font-semibold text-slate-500">Products</span>
+                <span className="text-slate-400">&gt;</span>
+                <span className="font-semibold text-slate-500">Aluminum Profiles</span>
+                <span className="text-slate-400">&gt;</span>
+                <span className="font-extrabold text-blue-600">{selectedProfile.dimensions || selectedProfile.name}</span>
               </div>
-              <button onClick={() => setSelectedProfile(null)} className="text-slate-400 hover:text-slate-700">
+              <button onClick={() => setSelectedProfile(null)} className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer">
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 text-xs text-slate-600 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-              <p><span className="font-bold text-slate-800">Dimensions:</span> {selectedProfile.dimensions || '40 x 40 mm'}</p>
-              <p><span className="font-bold text-slate-800">Weight:</span> {selectedProfile.weightPerMeter || 1.2} kg/m</p>
-              <p><span className="font-bold text-slate-800">Slot Size:</span> Slot {selectedProfile.slotSizeMm || 8}</p>
-              <p><span className="font-bold text-slate-800">Standard:</span> DIN EN 12020-2</p>
-            </div>
+            {/* Scrollable Modal Body */}
+            <div className="p-6 sm:p-8 space-y-6 overflow-y-auto flex-1">
+              
+              {/* Profile Title Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-sm">
+                <div>
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                      {selectedProfile.name}
+                    </h2>
+                    <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider ${
+                      selectedProfile.status === 'AVAILABLE'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : selectedProfile.status === 'IN_DEVELOPMENT'
+                        ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                        : 'bg-rose-50 text-rose-700 border border-rose-200'
+                    }`}>
+                      <span className={`h-1.5 w-1.5 rounded-full ${selectedProfile.status === 'AVAILABLE' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                      {selectedProfile.status}
+                    </span>
+                    {selectedProfile.price ? (
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-black bg-blue-50 text-blue-700 border border-blue-200">
+                        {new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US').format(selectedProfile.price)} {selectedProfile.currency?.symbol ?? '€'}
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+                    {selectedProfile.description || selectedProfile.usage || 'Industrial grade aluminum profile with high structural rigidity.'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button size="sm" onClick={() => { setSelectedProfile(null); setShowInquiryModal(selectedProfile); }} className="bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-md shadow-blue-500/25 flex items-center gap-2 cursor-pointer">
+                    <Mail className="h-4 w-4" />
+                    <span>Inquiry</span>
+                  </Button>
+                </div>
+              </div>
 
-            <div className="flex gap-3">
-              <Button
-                className="flex-1 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs cursor-pointer"
+              {/* Grid: Left CAD Drawing Box vs Right Technical Data & Downloads */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+                {/* LEFT BOX (7 cols): CAD Drawing & Engineering Cross-Section View */}
+                <div className="lg:col-span-7 space-y-4">
+                  <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 flex flex-col justify-between items-center min-h-[420px] relative overflow-hidden">
+                    
+                    {/* Media Tabs Header */}
+                    <div className="w-full flex items-center justify-between border-b border-slate-100 pb-3 mb-2">
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setModalMediaTab('drawing')}
+                          className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                            modalMediaTab === 'drawing'
+                              ? 'bg-blue-50 text-blue-700 border border-blue-200 font-black'
+                              : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
+                          }`}
+                        >
+                          <Boxes className="h-3.5 w-3.5" />
+                          <span>CAD Cross-Section</span>
+                        </button>
+                        {selectedProfile.photoUrl && (
+                          <button
+                            type="button"
+                            onClick={() => setModalMediaTab('photo')}
+                            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                              modalMediaTab === 'photo'
+                                ? 'bg-blue-50 text-blue-700 border border-blue-200 font-black'
+                                : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
+                            }`}
+                          >
+                            <ImageIcon className="h-3.5 w-3.5" />
+                            <span>Product Photo</span>
+                          </button>
+                        )}
+                      </div>
+                      {selectedProfile.dimensions && (
+                        <span className="text-[11px] font-black text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-md border border-slate-200/80">
+                          {selectedProfile.dimensions}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Media Preview canvas */}
+                    <div className="w-full flex-1 flex items-center justify-center py-6 px-4">
+                      {modalMediaTab === 'drawing' ? (
+                        selectedProfile.drawingUrl ? (
+                          <img
+                            src={selectedProfile.drawingUrl}
+                            alt={`${selectedProfile.name} CAD Schematic`}
+                            className="max-h-[300px] w-auto object-contain transition-transform duration-300 hover:scale-105"
+                            onError={(e) => { (e.target as HTMLImageElement).src = '/hero-target-profile.png'; }}
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center text-slate-300 gap-2 py-10">
+                            <Boxes className="h-16 w-16" />
+                            <span className="text-xs text-slate-400">No CAD drawing file uploaded</span>
+                          </div>
+                        )
+                      ) : selectedProfile.photoUrl ? (
+                        <img
+                          src={selectedProfile.photoUrl}
+                          alt={`${selectedProfile.name} Product Photo`}
+                          className="max-h-[300px] w-auto object-contain rounded-xl shadow-sm transition-transform duration-300 hover:scale-105"
+                        />
+                      ) : null}
+                    </div>
+
+                    {/* Bottom Subtitle */}
+                    <div className="pt-3 text-center border-t border-slate-100 w-full flex items-center justify-between text-[11px] text-slate-400 font-bold uppercase tracking-wider">
+                      <span>CROSS-SECTION VIEW (Unit: mm)</span>
+                      <span>Scale 1:1</span>
+                    </div>
+
+                  </div>
+
+                  {/* Supplier Card (if present) */}
+                  {selectedProfile.supplier && (
+                    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-50 text-amber-600 border border-amber-200/60">
+                            <Building2 className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-black uppercase tracking-wider text-slate-900">
+                              {lang === 'de' ? 'Hersteller & Lieferant' : 'Verified Manufacturer'}
+                            </h4>
+                            <p className="text-xs font-bold text-slate-700">{selectedProfile.supplier.name}</p>
+                          </div>
+                        </div>
+                        {selectedProfile.supplier.website && (
+                          <a
+                            href={selectedProfile.supplier.website.startsWith('http') ? selectedProfile.supplier.website : `https://${selectedProfile.supplier.website}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200 cursor-pointer"
+                          >
+                            <Globe className="h-3.5 w-3.5" />
+                            <span>Website</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-600 pt-1">
+                        {selectedProfile.supplier.contactPerson && (
+                          <p className="flex items-center gap-1.5">
+                            <User className="h-3.5 w-3.5 text-slate-400" />
+                            <span>{selectedProfile.supplier.contactPerson}</span>
+                          </p>
+                        )}
+                        {selectedProfile.supplier.email && (
+                          <p className="flex items-center gap-1.5">
+                            <Mail className="h-3.5 w-3.5 text-slate-400" />
+                            <a href={`mailto:${selectedProfile.supplier.email}`} className="hover:underline text-blue-600">
+                              {selectedProfile.supplier.email}
+                            </a>
+                          </p>
+                        )}
+                        {selectedProfile.supplier.phone && (
+                          <p className="flex items-center gap-1.5">
+                            <Phone className="h-3.5 w-3.5 text-slate-400" />
+                            <span>{selectedProfile.supplier.phone}</span>
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+
+                {/* RIGHT COLUMN (5 cols): Technical Data & Properties + Downloads Stack */}
+                <div className="lg:col-span-5 space-y-5">
+
+                  {/* Top Card: TECHNICAL DATA & PROPERTIES */}
+                  <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
+                    <div className="bg-slate-100/90 px-4 py-3 border-b border-slate-200/80">
+                      <h4 className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-700">
+                        {lang === 'de' ? 'TECHNISCHE DATEN & EIGENSCHAFTEN' : 'TECHNICAL DATA & PROPERTIES'}
+                      </h4>
+                    </div>
+
+                    <div className="divide-y divide-slate-100 text-xs font-medium">
+                      
+                      {/* Dimensions */}
+                      <div className="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50/50">
+                        <span className="text-slate-600 flex items-center gap-1.5 font-bold">
+                          <Ruler className="h-3.5 w-3.5 text-slate-400" />
+                          {lang === 'de' ? 'Abmessungen' : 'Dimensions'}
+                        </span>
+                        <span className="text-slate-900 font-extrabold">
+                          {selectedProfile.dimensions || '-'}
+                        </span>
+                      </div>
+
+                      {/* Moment of Inertia */}
+                      <div className="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50/50">
+                        <span className="text-slate-600 flex items-center gap-1.5 font-bold">
+                          <SlidersHorizontal className="h-3.5 w-3.5 text-slate-400" />
+                          {lang === 'de' ? 'Trägheitsmoment' : 'Moment of Inertia'}
+                        </span>
+                        <span className="text-slate-900 font-bold font-mono text-[11px]">
+                          {selectedProfile.momentOfInertiaIx ? `Ix: ${selectedProfile.momentOfInertiaIx} cm⁴, Iy: ${selectedProfile.momentOfInertiaIy || selectedProfile.momentOfInertiaIx} cm⁴` : 'Ix: 15.6 cm⁴, Iy: 15.6 cm⁴'}
+                        </span>
+                      </div>
+
+                      {/* Section Modulus */}
+                      <div className="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50/50">
+                        <span className="text-slate-600 font-bold">
+                          {lang === 'de' ? 'Widerstandsmoment Wx' : 'Wx Section Modulus'}
+                        </span>
+                        <span className="text-slate-900 font-bold font-mono text-[11px]">
+                          {selectedProfile.sectionModulusWx ? `Wx: ${selectedProfile.sectionModulusWx} cm³, Wy: ${selectedProfile.sectionModulusWy || selectedProfile.sectionModulusWx} cm³` : 'Wx: 7.8 cm³, Wy: 7.8 cm³'}
+                        </span>
+                      </div>
+
+                      {/* Weight */}
+                      <div className="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50/50">
+                        <span className="text-slate-600 flex items-center gap-1.5 font-bold">
+                          <Boxes className="h-3.5 w-3.5 text-slate-400" />
+                          {lang === 'de' ? 'Gewicht' : 'Weight'}
+                        </span>
+                        <span className="text-slate-900 font-extrabold">
+                          {selectedProfile.weightPerMeter ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US').format(selectedProfile.weightPerMeter)} kg/m` : '1.85 kg/m'}
+                        </span>
+                      </div>
+
+                      {/* Outer Surface Area */}
+                      <div className="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50/50">
+                        <span className="text-slate-600 font-bold">{lang === 'de' ? 'Außenfläche' : 'Outer Surface Area'}</span>
+                        <span className="text-slate-900 font-semibold">
+                          {selectedProfile.outerSurfaceArea ? `${selectedProfile.outerSurfaceArea} m²/m` : '0.198 m²/m'}
+                        </span>
+                      </div>
+
+                      {/* Cross Sectional Area */}
+                      <div className="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50/50">
+                        <span className="text-slate-600 font-bold">{lang === 'de' ? 'Querschnittsfläche' : 'Cross Sectional Area'}</span>
+                        <span className="text-slate-900 font-semibold">
+                          {selectedProfile.crossSectionalArea ? `${selectedProfile.crossSectionalArea} cm²` : '6.90 cm²'}
+                        </span>
+                      </div>
+
+                      {/* Material */}
+                      <div className="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50/50">
+                        <span className="text-slate-600 font-bold">{lang === 'de' ? 'Material / Legierung' : 'Material Grade'}</span>
+                        <span className="text-slate-900 font-semibold">
+                          {selectedProfile.material || 'EN AW-6063 T6'}
+                        </span>
+                      </div>
+
+                      {/* Standard Length */}
+                      <div className="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50/50">
+                        <span className="text-slate-600 font-bold">{lang === 'de' ? 'Standardlänge' : 'Standard Length'}</span>
+                        <span className="text-slate-900 font-semibold">
+                          {selectedProfile.lengthMm ? `${selectedProfile.lengthMm} mm` : '6000 mm'}
+                        </span>
+                      </div>
+
+                      {/* Color */}
+                      <div className="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50/50">
+                        <span className="text-slate-600 font-bold">{lang === 'de' ? 'Farbe / Oberfläche' : 'Color / Finish'}</span>
+                        <span className="text-slate-900 font-semibold">
+                          {selectedProfile.color || 'Anodized Natural'}
+                        </span>
+                      </div>
+
+                    </div>
+                  </div>
+
+                  {/* Bottom Card: DOWNLOADS */}
+                  <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-3">
+                    <h4 className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-700">
+                      {lang === 'de' ? 'DOWNLOADS & CAD-DATEN' : 'DOWNLOADS & CAD DATA'}
+                    </h4>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                      
+                      {/* STEP (3D) */}
+                      <button
+                        onClick={() => window.open(selectedProfile.stepUrl || selectedProfile.drawingUrl || '#', '_blank')}
+                        className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs py-2.5 px-4 flex items-center justify-between shadow-sm transition-all cursor-pointer"
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <Download className="h-3.5 w-3.5" /> STEP (3D)
+                        </span>
+                        <span>&rarr;</span>
+                      </button>
+
+                      {/* DXF (2D) */}
+                      <button
+                        onClick={() => window.open(selectedProfile.dxfUrl || selectedProfile.drawingUrl || '#', '_blank')}
+                        className="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs py-2.5 px-4 flex items-center justify-between transition-all cursor-pointer"
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <FileIcon className="h-3.5 w-3.5 text-slate-500" /> DXF (2D)
+                        </span>
+                        <span>&rarr;</span>
+                      </button>
+
+                      {/* PDF (Datasheet) */}
+                      <button
+                        onClick={() => window.open(selectedProfile.pdfUrl || selectedProfile.drawingUrl || '#', '_blank')}
+                        className="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs py-2.5 px-4 flex items-center justify-between transition-all cursor-pointer"
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <FileText className="h-3.5 w-3.5 text-rose-500" /> PDF ({lang === 'de' ? 'Datenblatt' : 'Datasheet'})
+                        </span>
+                        <span>&rarr;</span>
+                      </button>
+
+                      {/* Order Sample */}
+                      <button
+                        onClick={() => {
+                          const prof = selectedProfile;
+                          setSelectedProfile(null);
+                          setShowInquiryModal(prof);
+                        }}
+                        className="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs py-2.5 px-4 text-center transition-all cursor-pointer"
+                      >
+                        {lang === 'de' ? 'Muster bestellen' : 'Order Sample'}
+                      </button>
+
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* INQUIRY / RFQ MODAL */}
+      {showInquiryModal && (
+        <div
+          className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-900/60 p-4 sm:p-6 backdrop-blur-md overflow-y-auto"
+          onClick={() => {
+            if (!inquirySending) {
+              setShowInquiryModal(null);
+              setInquirySent(false);
+            }
+          }}
+        >
+          <div
+            className="w-full max-w-lg rounded-3xl bg-white shadow-2xl overflow-hidden border border-slate-200 text-slate-900 my-auto animate-in fade-in zoom-in-95 duration-200 relative flex flex-col max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-6 py-4 shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-600 text-white shadow shadow-blue-600/30">
+                  <Mail className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-extrabold text-slate-900">
+                    {lang === 'de' ? 'Anfrage senden' : 'Send Inquiry / RFQ'}
+                  </h3>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    {showInquiryModal.name} {showInquiryModal.dimensions ? `(${showInquiryModal.dimensions})` : ''}
+                  </p>
+                </div>
+              </div>
+              <button
                 onClick={() => {
-                  const title = selectedProfile.name || selectedProfile.dimensions || 'Aluminum_Profile';
-                  const content = `ISO-10303-21;\nHEADER;\nFILE_DESCRIPTION(('AluCatalog 3D STEP CAD Model'),'2;1');\nFILE_NAME('${title}.stp','2026-07-25T00:00:00',('AluCatalog'),('AluCatalogCAD'),'Processor','AluCatalog System','');\nFILE_SCHEMA(('CONFIG_CONTROL_DESIGN'));\nENDSEC;\nDATA;\n#10=MECHANICAL_CONTEXT('3D',#11,'mechanical');\n#11=APPLICATION_CONTEXT('extrusions');\n#12=PRODUCT('${title}','${title}','Extruded Aluminum Profile',(#10));\nENDSEC;\nEND-ISO-10303-21;`;
-                  const blob = new Blob([content], { type: 'application/octet-stream' });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = `${title.replace(/\s+/g, '_')}_STEP.stp`;
-                  document.body.appendChild(a);
-                  a.click();
-                  document.body.removeChild(a);
-                  URL.revokeObjectURL(url);
-                  setShowInquirySuccess(true);
+                  setShowInquiryModal(null);
+                  setInquirySent(false);
                 }}
+                disabled={inquirySending}
+                className="rounded-full p-1 text-slate-400 hover:bg-slate-200/60 hover:text-slate-700 transition-colors"
               >
-                <Download className="h-4 w-4 mr-2" /> Download CAD STEP
-              </Button>
-              <Button variant="outline" className="flex-1 rounded-xl text-xs font-bold cursor-pointer" onClick={() => setSelectedProfile(null)}>
-                Close
-              </Button>
+                <X className="h-5 w-5" />
+              </button>
             </div>
 
-            {showInquirySuccess && (
-              <p className="text-xs text-center font-bold text-emerald-600">✓ STEP 3D CAD File Downloaded!</p>
+            {/* Scrollable Form Body */}
+            <div className="overflow-y-auto flex-1 p-6">
+              {inquirySent ? (
+                <div className="py-8 text-center space-y-3">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200">
+                    <CheckCircle2 className="h-8 w-8" />
+                  </div>
+                  <h4 className="text-base font-extrabold text-slate-900">
+                    {lang === 'de' ? 'Anfrage erfolgreich gesendet!' : 'Inquiry Sent Successfully!'}
+                  </h4>
+                  <p className="text-xs text-slate-500 max-w-xs mx-auto">
+                    {lang === 'de'
+                      ? 'Vielen Dank. Der Lieferant und unser Vertriebsteam werden Ihre Anfrage umgehend bearbeiten.'
+                      : 'Thank you. The supplier and our team will get back to you with pricing and technical details shortly.'}
+                  </p>
+                </div>
+              ) : (
+                <form id="search-portal-inquiry-form" onSubmit={submitInquiry} className="space-y-4">
+                  {/* Selected Profile Reference Pill */}
+                  <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                    <div className="h-10 w-10 shrink-0 rounded-xl bg-white border border-slate-200/80 flex items-center justify-center overflow-hidden p-1">
+                      {showInquiryModal.drawingUrl || showInquiryModal.photoUrl ? (
+                        <img
+                          src={showInquiryModal.drawingUrl || showInquiryModal.photoUrl}
+                          alt={showInquiryModal.name}
+                          className="h-full w-full object-contain"
+                        />
+                      ) : (
+                        <Boxes className="h-5 w-5 text-slate-400" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1 text-xs">
+                      <p className="font-extrabold text-slate-900 truncate">{showInquiryModal.name}</p>
+                      <p className="text-[11px] text-slate-500">
+                        {showInquiryModal.material || 'Aluminum 6063'} • {showInquiryModal.dimensions || 'Standard Extrusion'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="text-xs font-bold text-slate-700 space-y-1 block">
+                      <span>{lang === 'de' ? 'Vorname *' : 'First Name *'}</span>
+                      <Input
+                        required
+                        value={inquiryForm.firstName}
+                        onChange={(e) => setInquiryForm((f) => ({ ...f, firstName: e.target.value }))}
+                        placeholder={lang === 'de' ? 'Max' : 'John'}
+                        className="rounded-xl text-xs h-9"
+                      />
+                    </label>
+                    <label className="text-xs font-bold text-slate-700 space-y-1 block">
+                      <span>{lang === 'de' ? 'Nachname *' : 'Last Name *'}</span>
+                      <Input
+                        required
+                        value={inquiryForm.lastName}
+                        onChange={(e) => setInquiryForm((f) => ({ ...f, lastName: e.target.value }))}
+                        placeholder={lang === 'de' ? 'Mustermann' : 'Doe'}
+                        className="rounded-xl text-xs h-9"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="text-xs font-bold text-slate-700 space-y-1 block">
+                      <span>{lang === 'de' ? 'Firma' : 'Company'}</span>
+                      <Input
+                        value={inquiryForm.company}
+                        onChange={(e) => setInquiryForm((f) => ({ ...f, company: e.target.value }))}
+                        placeholder="Company GmbH"
+                        className="rounded-xl text-xs h-9"
+                      />
+                    </label>
+                    <label className="text-xs font-bold text-slate-700 space-y-1 block">
+                      <span>{lang === 'de' ? 'Telefon' : 'Phone'}</span>
+                      <Input
+                        value={inquiryForm.phone}
+                        onChange={(e) => setInquiryForm((f) => ({ ...f, phone: e.target.value }))}
+                        placeholder="+49 123 456789"
+                        className="rounded-xl text-xs h-9"
+                      />
+                    </label>
+                  </div>
+
+                  <label className="text-xs font-bold text-slate-700 space-y-1 block">
+                    <span>{lang === 'de' ? 'E-Mail-Adresse *' : 'Email Address *'}</span>
+                    <Input
+                      type="email"
+                      required
+                      value={inquiryForm.email}
+                      onChange={(e) => setInquiryForm((f) => ({ ...f, email: e.target.value }))}
+                      placeholder="name@company.com"
+                      className="rounded-xl text-xs h-9"
+                    />
+                  </label>
+
+                  <label className="text-xs font-bold text-slate-700 space-y-1 block">
+                    <span>{lang === 'de' ? 'Ihre Nachricht / Spezifikationen' : 'Message / Specifications'}</span>
+                    <textarea
+                      rows={3}
+                      value={inquiryForm.message}
+                      onChange={(e) => setInquiryForm((f) => ({ ...f, message: e.target.value }))}
+                      placeholder={
+                        lang === 'de'
+                          ? 'Geben Sie gewünschte Mengen, Schnittlängen oder Sonderbearbeitungen an...'
+                          : 'Enter desired quantities, cut lengths, anodization or machining requirements...'
+                      }
+                      className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none"
+                    />
+                  </label>
+
+                  <label className="flex items-center gap-2.5 rounded-xl border border-slate-100 bg-slate-50/70 p-3 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={inquiryForm.requestPurchase}
+                      onChange={(e) => setInquiryForm((f) => ({ ...f, requestPurchase: e.target.checked }))}
+                      className="h-4 w-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
+                    />
+                    <span className="text-xs font-semibold text-slate-700">
+                      {lang === 'de' ? 'Verbindliches Kaufangebot anfordern' : 'Receive formal price quotation'}
+                    </span>
+                  </label>
+                </form>
+              )}
+            </div>
+
+            {/* Fixed Footer */}
+            {!inquirySent && (
+              <div className="border-t border-slate-100 bg-slate-50/90 px-6 py-3.5 flex items-center justify-between gap-3 shrink-0">
+                <p className="text-[11px] text-slate-600 font-bold flex items-center gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 inline-block" />
+                  {lang === 'de' ? 'Direkte Weiterleitung' : 'Direct Manufacturer RFQ'}
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={inquirySending}
+                    onClick={() => setShowInquiryModal(null)}
+                    className="rounded-xl text-xs font-bold px-3 py-1.5"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    form="search-portal-inquiry-form"
+                    size="sm"
+                    disabled={inquirySending}
+                    className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs px-4 py-1.5 shadow-md shadow-blue-500/20 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    {inquirySending ? (
+                      <span>{lang === 'de' ? 'Wird gesendet...' : 'Sending...'}</span>
+                    ) : (
+                      <>
+                        <Mail className="h-3.5 w-3.5" />
+                        <span>{lang === 'de' ? 'Anfrage senden' : 'Send Inquiry'}</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
             )}
           </div>
         </div>

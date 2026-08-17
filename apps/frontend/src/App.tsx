@@ -2,6 +2,7 @@ import { parseApiError } from './utils/apiError';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import { useLanguage } from './LanguageContext';
 import { LogOut } from 'lucide-react';
 import toast from 'react-hot-toast';
 import CookieConsentModal from './components/CookieConsentModal';
@@ -335,13 +336,12 @@ function resolveOptionId(query: string, options: Array<{ id: number; name: strin
 
 function App() {
   const { token, logout } = useAuth();
-  const [lang, setLang] = useState<'en' | 'de'>('en');
+  const { lang, setLang } = useLanguage();
   const [overview, setOverview] = useState<{
     applications: RefOption[];
     crossSections: RefOption[];
     newestProfiles: Profile[];
     totals: { profiles: number; suppliers?: number };
-
   } | null>(null);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [detail, setDetail] = useState<Profile | null>(null);
@@ -349,7 +349,6 @@ function App() {
     q: '',
     applicationId: '',
     crossSectionId: '',
-
     material: '',
     dimensions: '',
   });
@@ -357,30 +356,13 @@ function App() {
   const [filterInputs, setFilterInputs] = useState({
     application: '',
     crossSection: '',
-
   });
   const [sortBy, setSortBy] = useState<SortKey>('newest');
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const [page, setPage] = useState(1);
   const [activePill, setActivePill] = useState<'all' | 't-slot' | 'base' | 'angle' | 'u-channel'>('t-slot');
   const [showFullCatalog, setShowFullCatalog] = useState(false);
-  const [siteSettings, setSiteSettings] = useState<Record<string, string>>({
-    heroTitle: 'Industrial Aluminum Extrusions, Found Instantly.',
-    heroSubtitle: 'Search and access detailed specifications, technical data, and instant downloads for standard and custom aluminum profiles.',
-    heroImageUrl: '/hero-3d-profile.png',
-    heroSearchPlaceholder: 'Search by ID, dimensions, or material...',
-    stat1Label: '',
-    stat1Sub: 'Standard & Custom',
-    stat2Label: '',
-    stat2Sub: 'Global Manufacturing Network',
-    stat3Label: '',
-    stat3Sub: 'Technical Data Sheets',
-    heroBgColor: '#3c4a5c',
-    featuredTitle: 'Featured Aluminum Profiles',
-    howItWorksTitle: 'How It Works',
-    howItWorksSubtitle: 'Seamlessly Find and Integrate Your Profiles',
-  });
-
+  const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
 
   useEffect(() => {
     api('/public/visits', { method: 'POST' })
@@ -408,16 +390,6 @@ function App() {
   const [manufacturerSuccess, setManufacturerSuccess] = useState(false);
 
   const t = useMemo(() => TXT[lang], [lang]);
-
-
-  useEffect(() => {
-    const saved = window.localStorage.getItem('aluprofile_lang');
-    if (saved === 'en' || saved === 'de') setLang(saved);
-  }, []);
-
-  useEffect(() => {
-    window.localStorage.setItem('aluprofile_lang', lang);
-  }, [lang]);
 
   useEffect(() => {
     fetch(`${API_BASE}/public/site-settings`)
@@ -572,240 +544,7 @@ function App() {
     setFilters((current) => ({ ...current, [key]: '' }));
   }
 
-  const isStandaloneTechnical = new URLSearchParams(window.location.search).get('view') === 'technical';
-
-  if (isStandaloneTechnical) {
-    return (
-      <div className="min-h-screen bg-[#f4f7fb] p-4 md:p-8 print:p-0 print:bg-white text-slate-900 font-sans">
-        <div className="mx-auto max-w-5xl space-y-6">
-          
-          {/* Header Breadcrumb */}
-          <div className="flex items-center justify-between border-b border-slate-200/80 bg-white rounded-2xl px-6 py-4 shadow-sm">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-slate-500">Home</span>
-              <span className="text-xs text-slate-400">&gt;</span>
-              <span className="text-xs font-semibold text-slate-500">Products</span>
-              <span className="text-xs text-slate-400">&gt;</span>
-              <span className="text-xs font-semibold text-slate-500">Aluminum Profiles</span>
-              <span className="text-xs text-slate-400">&gt;</span>
-              <span className="text-xs font-bold text-slate-900">{detail?.dimensions || detail?.name || 'Technical Profile'}</span>
-            </div>
-            <a href="/" className="text-xs font-extrabold text-blue-600 hover:text-blue-700">
-              &larr; Back to Catalog
-            </a>
-          </div>
-
-          {isDetailLoading ? (
-            <div className="p-8 text-center bg-white rounded-3xl border border-slate-200">
-              <p className="text-sm font-semibold text-slate-500">{t.loadingCatalog}</p>
-            </div>
-          ) : !detail ? (
-            <div className="p-8 text-center bg-white rounded-3xl border border-slate-200">
-              <p className="text-sm font-semibold text-slate-500">{t.selectProfile}</p>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              
-              {/* Profile Title Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm">
-                <div>
-                  <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                    {detail.name}
-                  </h1>
-                  <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-                    {detail.description || 'Industrial grade aluminum profile with high structural rigidity.'}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <Button size="sm" onClick={() => setShowInquiryModal(detail)} className="bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-sm">
-                    {t.inquiry}
-                  </Button>
-                </div>
-              </div>
-
-              {/* Grid: Left CAD Drawing Box vs Right Technical Data & Downloads */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-
-                {/* LEFT BOX (7 cols): CAD Drawing & Engineering Cross-Section View */}
-                <div className="lg:col-span-7 bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 flex flex-col justify-between items-center min-h-[420px] relative overflow-hidden">
-                  
-                  {/* Top-left Pill Badge */}
-                  <div className="absolute top-4 left-4 z-10">
-                    <span className="inline-flex items-center rounded-lg bg-slate-100 px-3 py-1 text-[11px] font-extrabold text-slate-700 border border-slate-200/80">
-                      CAD Drawing
-                    </span>
-                  </div>
-
-                  {/* CAD Drawing Image schematic */}
-                  <div className="w-full flex-1 flex items-center justify-center py-6 px-4">
-                    {detail.drawingUrl ? (
-                      <img
-                        src={detail.drawingUrl}
-                        alt={`${detail.name} CAD Schematic`}
-                        className="max-h-[320px] w-auto object-contain transition-transform duration-300 hover:scale-105"
-                        onError={(e) => { (e.target as HTMLImageElement).src = '/hero-target-profile.png'; }}
-                      />
-                    ) : (
-                      <img
-                        src="/hero-target-profile.png"
-                        alt="Aluminum Profile Cross Section"
-                        className="max-h-[320px] w-auto object-contain"
-                      />
-                    )}
-                  </div>
-
-                  {/* Bottom Subtitle */}
-                  <div className="pt-3 text-center border-t border-slate-100 w-full">
-                    <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">
-                      CROSS-SECTION VIEW (Unit: mm)
-                    </p>
-                  </div>
-
-                </div>
-
-                {/* RIGHT COLUMN (5 cols): Technical Data & Properties + Downloads Stack */}
-                <div className="lg:col-span-5 space-y-5">
-
-                  {/* Top Card: TECHNICAL DATA & PROPERTIES */}
-                  <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
-                    <div className="bg-slate-100/90 px-5 py-3.5 border-b border-slate-200/80">
-                      <h4 className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-700">
-                        TECHNICAL DATA & PROPERTIES
-                      </h4>
-                    </div>
-
-                    <div className="divide-y divide-slate-100 text-xs font-medium">
-                      
-                      {/* Moment of Inertia */}
-                      <div className="px-5 py-3 flex items-center justify-between hover:bg-slate-50/50">
-                        <span className="text-slate-600 flex items-center gap-1.5 font-bold">
-                          <SlidersHorizontal className="h-3.5 w-3.5 text-slate-400" />
-                          Moment of Inertia
-                        </span>
-                        <span className="text-slate-900 font-bold font-mono">
-                          {detail.momentOfInertiaIx ? `Ix: ${detail.momentOfInertiaIx} cm⁴, Iy: ${detail.momentOfInertiaIy || detail.momentOfInertiaIx} cm⁴` : 'Ix: 15.6 cm⁴, Iy: 15.6 cm⁴'}
-                        </span>
-                      </div>
-
-                      {/* Section Modulus */}
-                      <div className="px-5 py-3 flex items-center justify-between hover:bg-slate-50/50">
-                        <span className="text-slate-600 flex items-center gap-1.5 font-bold">
-                          <Ruler className="h-3.5 w-3.5 text-slate-400" />
-                          Wx Section Modulus
-                        </span>
-                        <span className="text-slate-900 font-bold font-mono">
-                          {detail.sectionModulusWx ? `Wx: ${detail.sectionModulusWx} cm³, Wy: ${detail.sectionModulusWy || detail.sectionModulusWx} cm³` : 'Wx: 7.8 cm³, Wy: 7.8 cm³'}
-                        </span>
-                      </div>
-
-                      {/* Weight */}
-                      <div className="px-5 py-3 flex items-center justify-between hover:bg-slate-50/50">
-                        <span className="text-slate-600 flex items-center gap-1.5 font-bold">
-                          <Boxes className="h-3.5 w-3.5 text-slate-400" />
-                          Weight
-                        </span>
-                        <span className="text-slate-900 font-extrabold">
-                          {detail.weightPerMeter ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US').format(detail.weightPerMeter)} kg/m` : '1.85 kg/m'}
-                        </span>
-                      </div>
-
-                      {/* Outer Surface Area */}
-                      <div className="px-5 py-3 flex items-center justify-between hover:bg-slate-50/50">
-                        <span className="text-slate-600 font-bold">Outer Surface Area</span>
-                        <span className="text-slate-900 font-semibold">
-                          {detail.outerSurfaceArea ? `${detail.outerSurfaceArea} m²/m` : '0.198 m²/m'}
-                        </span>
-                      </div>
-
-                      {/* Cross Sectional Area */}
-                      <div className="px-5 py-3 flex items-center justify-between hover:bg-slate-50/50">
-                        <span className="text-slate-600 font-bold">Cross Sectional Area</span>
-                        <span className="text-slate-900 font-semibold">
-                          {detail.crossSectionalArea ? `${detail.crossSectionalArea} cm²` : '6.90 cm²'}
-                        </span>
-                      </div>
-
-                      {/* Material */}
-                      <div className="px-5 py-3 flex items-center justify-between hover:bg-slate-50/50">
-                        <span className="text-slate-600 font-bold">{t.material}</span>
-                        <span className="text-slate-900 font-semibold">
-                          {detail.material || 'Aluminum 6063-T5'}
-                        </span>
-                      </div>
-
-                      {/* Color */}
-                      <div className="px-5 py-3 flex items-center justify-between hover:bg-slate-50/50">
-                        <span className="text-slate-600 font-bold">Color / Finish</span>
-                        <span className="text-slate-900 font-semibold">
-                          {detail.color || 'Anodized Natural'}
-                        </span>
-                      </div>
-
-                    </div>
-                  </div>
-
-                  {/* Bottom Card: DOWNLOADS */}
-                  <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-5 space-y-3">
-                    <h4 className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-700">
-                      DOWNLOADS
-                    </h4>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                      
-                      {/* STEP (3D) */}
-                      <button
-                        onClick={() => window.open(detail.stepUrl || detail.drawingUrl || '#', '_blank')}
-                        className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs py-2.5 px-4 flex items-center justify-between shadow-sm transition-all cursor-pointer"
-                      >
-                        <span className="flex items-center gap-1.5">
-                          <Download className="h-3.5 w-3.5" /> STEP (3D)
-                        </span>
-                        <span>&rarr;</span>
-                      </button>
-
-                      {/* DXF (2D) */}
-                      <button
-                        onClick={() => window.open(detail.dxfUrl || detail.drawingUrl || '#', '_blank')}
-                        className="rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs py-2.5 px-4 flex items-center justify-between transition-all cursor-pointer"
-                      >
-                        <span className="flex items-center gap-1.5">
-                          <FileIcon className="h-3.5 w-3.5 text-slate-500" /> DXF (2D)
-                        </span>
-                        <span>&rarr;</span>
-                      </button>
-
-                      {/* PDF (Datasheet) */}
-                      <button
-                        onClick={() => window.open(detail.pdfUrl || detail.drawingUrl || '#', '_blank')}
-                        className="rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs py-2.5 px-4 flex items-center justify-between transition-all cursor-pointer"
-                      >
-                        <span className="flex items-center gap-1.5">
-                          <FileText className="h-3.5 w-3.5 text-red-500" /> PDF (Datasheet)
-                        </span>
-                        <span>&rarr;</span>
-                      </button>
-
-                      {/* Order Sample */}
-                      <button
-                        onClick={() => setShowInquiryModal(detail)}
-                        className="rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs py-2.5 px-4 text-center transition-all cursor-pointer"
-                      >
-                        Order Sample
-                      </button>
-
-                    </div>
-                  </div>
-
-                </div>
-
-              </div>
-
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
+  const [modalMediaTab, setModalMediaTab] = useState<'drawing' | 'photo'>('drawing');
 
   return (
     <div className="min-h-screen bg-[#f0f2f5] font-sans antialiased text-slate-800">
@@ -824,11 +563,21 @@ function App() {
 
         {/* Nav links */}
         <nav className="hidden md:flex items-center gap-7 text-[13px] font-bold text-slate-600">
-          <Link to="/" className="hover:text-blue-600 transition-colors">Home</Link>
-          <Link to="/catalog" className="hover:text-blue-600 transition-colors">Catalog</Link>
-          <Link to="/search" className="hover:text-blue-600 transition-colors">Search Portal</Link>
-          <a href="#solutions" onClick={(e) => { e.preventDefault(); document.getElementById('solutions')?.scrollIntoView({ behavior: 'smooth' }); }} className="hover:text-blue-600 transition-colors">Solutions</a>
-          <a href="#about" onClick={(e) => { e.preventDefault(); document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' }); }} className="hover:text-blue-600 transition-colors">About</a>
+          <Link to="/" className="hover:text-blue-600 transition-colors">
+            {lang === 'de' ? 'Startseite' : 'Home'}
+          </Link>
+          <Link to="/catalog" className="hover:text-blue-600 transition-colors">
+            {lang === 'de' ? 'Katalog' : 'Catalog'}
+          </Link>
+          <Link to="/search" className="hover:text-blue-600 transition-colors">
+            {lang === 'de' ? 'Suchportal' : 'Search Portal'}
+          </Link>
+          <a href="#solutions" onClick={(e) => { e.preventDefault(); document.getElementById('solutions')?.scrollIntoView({ behavior: 'smooth' }); }} className="hover:text-blue-600 transition-colors">
+            {lang === 'de' ? 'Lösungen' : 'Solutions'}
+          </a>
+          <a href="#about" onClick={(e) => { e.preventDefault(); document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' }); }} className="hover:text-blue-600 transition-colors">
+            {lang === 'de' ? 'Über uns' : 'About'}
+          </a>
         </nav>
 
 
@@ -843,7 +592,7 @@ function App() {
 
           <Link to="/customer">
             <Button className="rounded-xl bg-[#1e2a3b] hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 shadow-sm transition-all cursor-pointer">
-              Customer Portal
+              {lang === 'de' ? 'Kundenportal' : 'Customer Portal'}
             </Button>
           </Link>
 
@@ -881,21 +630,27 @@ function App() {
             <div className="lg:col-span-5 flex flex-col justify-center space-y-6">
               <div className="inline-flex items-center gap-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 px-3.5 py-1 text-[11px] font-black uppercase tracking-[0.25em] text-cyan-400 shadow-sm w-max">
                 <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
-                Precision Extrusion Platform
+                {lang === 'de' ? 'Präzisions-Profil-Plattform' : 'Precision Extrusion Platform'}
               </div>
 
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-[1.12] tracking-tight">
-                {siteSettings.heroTitle || 'Industrial Aluminum Extrusions, Found Instantly.'}
+                {lang === 'de'
+                  ? (siteSettings.heroTitleDe || 'Industrielle Aluminiumprofile, sofort gefunden.')
+                  : (siteSettings.heroTitle || 'Industrial Aluminum Extrusions, Found Instantly.')}
               </h1>
 
               <p className="text-slate-300 text-xs sm:text-sm leading-relaxed font-medium max-w-lg">
-                {siteSettings.heroSubtitle || 'Search and access detailed specifications, technical data, and instant downloads for standard and custom aluminum profiles.'}
+                {lang === 'de' 
+                  ? (siteSettings.heroSubtitleDe || 'Detaillierte Spezifikationen, technische Daten und sofortige CAD-Downloads für Standard- und Sonderprofile.') 
+                  : (siteSettings.heroSubtitle || 'Search and access detailed specifications, technical data, and instant downloads for standard and custom aluminum profiles.')}
               </p>
 
               <div className="relative max-w-md w-full">
                 <input
                   type="text"
-                  placeholder={siteSettings.heroSearchPlaceholder || 'Search by ID, dimensions, or material...'}
+                  placeholder={lang === 'de'
+                    ? (siteSettings.heroSearchPlaceholderDe || 'Nach Profil, Abmessungen oder Material suchen...')
+                    : (siteSettings.heroSearchPlaceholder || 'Search by ID, dimensions, or material...')}
                   value={filters.q}
                   onChange={(e) => {
                     setFilters((f) => ({ ...f, q: e.target.value }));
@@ -929,36 +684,42 @@ function App() {
                   <div className="rounded-2xl bg-[#152238]/90 border border-cyan-500/30 shadow-[0_0_20px_rgba(6,182,212,0.12)] p-3.5 space-y-1 hover:border-cyan-400 hover:shadow-[0_0_25px_rgba(6,182,212,0.25)] transition-all cursor-pointer group">
                     <div className="flex items-center justify-between">
                       <p className="text-base sm:text-lg font-black text-white leading-tight">
-                        {siteSettings.stat1Label ? siteSettings.stat1Label : `${overview?.totals?.profiles ?? profiles.length ?? 0}+ Profiles`}
+                        {siteSettings.stat1Label ? siteSettings.stat1Label : `${overview?.totals?.profiles ?? profiles.length ?? 0}+ ${lang === 'de' ? 'Profile' : 'Profiles'}`}
                       </p>
                       <Boxes className="h-4 w-4 text-cyan-400 group-hover:scale-110 transition-transform" />
                     </div>
                     <p className="text-[10px] text-slate-400 font-semibold tracking-wide">
-                      {siteSettings.stat1Sub || 'Standard & Custom'}
+                      {lang === 'de'
+                        ? (siteSettings.stat1SubDe || 'Standard & Sonderprofile')
+                        : (siteSettings.stat1Sub || 'Standard & Custom')}
                     </p>
                   </div>
 
                   <div className="rounded-2xl bg-[#152238]/90 border border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.12)] p-3.5 space-y-1 hover:border-blue-400 hover:shadow-[0_0_25px_rgba(59,130,246,0.25)] transition-all cursor-pointer group">
                     <div className="flex items-center justify-between">
                       <p className="text-base sm:text-lg font-black text-white leading-tight">
-                        {siteSettings.stat2Label ? siteSettings.stat2Label : `${overview?.totals?.suppliers ?? overview?.applications?.length ?? 0}+ Partners`}
+                        {siteSettings.stat2Label ? siteSettings.stat2Label : `${overview?.totals?.suppliers ?? overview?.applications?.length ?? 0}+ ${lang === 'de' ? 'Partner' : 'Partners'}`}
                       </p>
                       <Building2 className="h-4 w-4 text-blue-400 group-hover:scale-110 transition-transform" />
                     </div>
                     <p className="text-[10px] text-slate-400 font-semibold tracking-wide">
-                      {siteSettings.stat2Sub || 'Global Manufacturing Network'}
+                      {lang === 'de'
+                        ? (siteSettings.stat2SubDe || 'Herstellernetzwerk')
+                        : (siteSettings.stat2Sub || 'Global Manufacturing Network')}
                     </p>
                   </div>
 
                   <div className="rounded-2xl bg-[#152238]/90 border border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.12)] p-3.5 space-y-1 hover:border-emerald-400 hover:shadow-[0_0_25px_rgba(16,185,129,0.25)] transition-all cursor-pointer group">
                     <div className="flex items-center justify-between">
                       <p className="text-base sm:text-lg font-black text-white leading-tight">
-                        {siteSettings.stat3Label ? siteSettings.stat3Label : `${(((overview?.totals?.profiles ?? profiles.length ?? 0) * 120) + 150).toLocaleString()}+ Downloads`}
+                        {siteSettings.stat3Label ? siteSettings.stat3Label : `${(((overview?.totals?.profiles ?? profiles.length ?? 0) * 120) + 150).toLocaleString()}+ ${lang === 'de' ? 'Downloads' : 'Downloads'}`}
                       </p>
                       <Download className="h-4 w-4 text-emerald-400 group-hover:scale-110 transition-transform" />
                     </div>
                     <p className="text-[10px] text-slate-400 font-semibold tracking-wide">
-                      {siteSettings.stat3Sub || 'Technical Data Sheets'}
+                      {lang === 'de'
+                        ? (siteSettings.stat3SubDe || 'Technische Datenblätter')
+                        : (siteSettings.stat3Sub || 'Technical Data Sheets')}
                     </p>
                   </div>
                 </div>
@@ -981,16 +742,24 @@ function App() {
         <div className="bg-white rounded-3xl p-6 lg:p-10 border border-slate-200/90 shadow-xl space-y-6" id="catalog">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
             <div>
-              <span className="text-[11px] font-black uppercase tracking-[0.22em] text-blue-600">Product Highlights</span>
+              <span className="text-[11px] font-black uppercase tracking-[0.22em] text-blue-600">
+                {lang === 'de' ? 'Produkt-Highlights' : 'Product Highlights'}
+              </span>
               <h2 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight mt-0.5">
-                {siteSettings.featuredTitle || 'Featured Aluminum Profiles'}
+                {siteSettings.featuredTitle || (lang === 'de' ? 'Ausgewählte Aluminiumprofile' : 'Featured Aluminum Profiles')}
               </h2>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
               {(['t-slot', 'base', 'angle', 'u-channel', 'all'] as const).map((pill) => {
-                const labels: Record<string, string> = { 'T-Slot': 't-slot', 'Base Profiles': 'base', 'Angles': 'angle', 'U-Channels': 'u-channel', 'All': 'all' };
-                const label = Object.entries(labels).find(([, v]) => v === pill)?.[0] ?? pill;
+                const labels: Record<string, { en: string; de: string }> = {
+                  't-slot': { en: 'T-Slot', de: 'T-Nut Profile' },
+                  'base': { en: 'Base Profiles', de: 'Basisprofile' },
+                  'angle': { en: 'Angles', de: 'Winkelprofile' },
+                  'u-channel': { en: 'U-Channels', de: 'U-Profile' },
+                  'all': { en: 'All Profiles', de: 'Alle Profile' },
+                };
+                const label = labels[pill]?.[lang] ?? pill;
                 const active = activePill === pill;
                 return (
                   <button key={pill} type="button" onClick={() => setActivePill(pill)}
@@ -1023,7 +792,7 @@ function App() {
               }
 
               if (displayList.length === 0) {
-                return <div className="col-span-4 text-center py-10 text-sm font-semibold text-slate-500">No profiles found in database.</div>;
+                return <div className="col-span-4 text-center py-10 text-sm font-semibold text-slate-500">{lang === 'de' ? 'Keine Profile in der Datenbank gefunden.' : 'No profiles found in database.'}</div>;
               }
 
               return displayList.map((p) => {
@@ -1037,8 +806,8 @@ function App() {
                         <h3 className="font-extrabold text-slate-900 text-xs sm:text-sm leading-snug line-clamp-1 group-hover:text-blue-600 transition-colors">{p.name}</h3>
                         <div className="space-y-0.5 text-[11px] text-slate-600 font-medium">
                           <p><span className="text-slate-400 font-normal">Code: </span>{p.dimensions || p.name}</p>
-                          <p><span className="text-slate-400 font-normal">Dims: </span>{p.dimensions || '-'}</p>
-                          <p><span className="text-slate-400 font-normal">Alloy: </span>{p.material || '6063-T5'}</p>
+                          <p><span className="text-slate-400 font-normal">{lang === 'de' ? 'Maße: ' : 'Dims: '}</span>{p.dimensions || '-'}</p>
+                          <p><span className="text-slate-400 font-normal">{lang === 'de' ? 'Legierung: ' : 'Alloy: '}</span>{p.material || '6063-T5'}</p>
                         </div>
                       </div>
                       <div className="h-14 w-14 shrink-0 rounded-xl overflow-hidden border border-slate-200/80 bg-white shadow-inner flex items-center justify-center p-1.5 group-hover:scale-110 transition-transform duration-300">
@@ -1051,7 +820,7 @@ function App() {
                     </div>
 
                     <Button size="sm" onClick={() => loadDetail(p.id)} className="w-full bg-[#131c2a] group-hover:bg-blue-600 text-white font-bold text-xs py-2.5 rounded-xl shadow-sm transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5">
-                      <span>View Technical Data</span>
+                      <span>{lang === 'de' ? 'Technische Daten ansehen' : 'View Technical Data'}</span>
                       <ChevronRight className="h-3.5 w-3.5" />
                     </Button>
                   </div>
@@ -1067,7 +836,7 @@ function App() {
                 type="button"
                 className="rounded-full bg-[#131c2a] hover:bg-blue-600 text-white font-extrabold text-xs sm:text-sm px-8 py-3.5 shadow-xl hover:shadow-blue-500/20 transition-all flex items-center gap-2 cursor-pointer"
               >
-                <span>Explore Full Catalog ({overview?.totals?.profiles ?? profiles.length ?? 0}+ Profiles)</span>
+                <span>{lang === 'de' ? `Gesamten Katalog ansehen (${overview?.totals?.profiles ?? profiles.length ?? 0}+ Profile)` : `Explore Full Catalog (${overview?.totals?.profiles ?? profiles.length ?? 0}+ Profiles)`}</span>
                 <ChevronRight className="h-4 w-4 text-cyan-400" />
               </button>
             </Link>
@@ -1081,13 +850,13 @@ function App() {
           <div className="space-y-2 max-w-2xl mx-auto">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-200/80 px-3.5 py-1 text-[11px] font-black uppercase tracking-[0.22em] text-blue-600 shadow-sm">
               <span className="h-2 w-2 rounded-full bg-blue-600 animate-pulse" />
-              Workflow Solutions
+              {lang === 'de' ? 'Workflow-Lösungen' : 'Workflow Solutions'}
             </span>
             <h2 className="text-2xl sm:text-4xl font-black text-slate-950 tracking-tight">
-              {siteSettings.howItWorksTitle || 'How It Works'}
+              {siteSettings.howItWorksTitle || (lang === 'de' ? 'So funktioniert es' : 'How It Works')}
             </h2>
             <p className="text-slate-500 text-xs sm:text-sm font-medium leading-relaxed">
-              {siteSettings.howItWorksSubtitle || 'Seamlessly Find and Integrate Your Profiles'}
+              {siteSettings.howItWorksSubtitle || (lang === 'de' ? 'Profile nahtlos finden, prüfen und integrieren' : 'Seamlessly Find and Integrate Your Profiles')}
             </p>
           </div>
 
@@ -1095,8 +864,8 @@ function App() {
             {[
               {
                 stepNum: '01',
-                title: '1. Search Profiles',
-                desc: 'Search and access to compare and integrate your profiles standard.',
+                title: lang === 'de' ? '1. Profile suchen' : '1. Search Profiles',
+                desc: lang === 'de' ? 'Suchen und vergleichen Sie Standard- und Sonderprofile nach technischen Kriterien.' : 'Search and access to compare and integrate your profiles standard.',
                 icon: (
                   <svg className="h-9 w-9" viewBox="0 0 56 56" fill="none" stroke="currentColor" strokeWidth="2.2">
                     <circle cx="22" cy="22" r="13" strokeWidth="2.5"/>
@@ -1108,8 +877,8 @@ function App() {
               },
               {
                 stepNum: '02',
-                title: '2. Customize Dimensions',
-                desc: 'Customize dimensions with custom parameters and slot sizes.',
+                title: lang === 'de' ? '2. Maße anpassen' : '2. Customize Dimensions',
+                desc: lang === 'de' ? 'Filtern und vergleichen Sie Nutgrößen, Wandstärken und Querschnittsmaße.' : 'Customize dimensions with custom parameters and slot sizes.',
                 icon: (
                   <svg className="h-9 w-9" viewBox="0 0 56 56" fill="none" stroke="currentColor" strokeWidth="2.2">
                     <rect x="10" y="18" width="36" height="5" rx="1.5" strokeWidth="2"/>
@@ -1123,8 +892,8 @@ function App() {
               },
               {
                 stepNum: '03',
-                title: '3. Validate Specifications',
-                desc: 'Validate your specification and parameters with 2D CAD drawing.',
+                title: lang === 'de' ? '3. Spezifikationen prüfen' : '3. Validate Specifications',
+                desc: lang === 'de' ? 'Prüfen Sie Trägheitsmomente, Metergewicht und 2D/3D CAD-Zeichnungen.' : 'Validate your specification and parameters with 2D CAD drawing.',
                 icon: (
                   <div className="relative">
                     <svg className="h-9 w-9" viewBox="0 0 56 56" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -1137,8 +906,8 @@ function App() {
               },
               {
                 stepNum: '04',
-                title: '4. Download CAD/BIM',
-                desc: 'Download CAD/BIM models, STEP/DXF files, and technical datasheets.',
+                title: lang === 'de' ? '4. CAD/BIM laden' : '4. Download CAD/BIM',
+                desc: lang === 'de' ? 'Laden Sie STEP 3D-Modelle, DXF 2D-Zeichnungen und Datenblätter direkt herunter.' : 'Download CAD/BIM models, STEP/DXF files, and technical datasheets.',
                 icon: (
                   <div className="relative">
                     <svg className="h-9 w-9" viewBox="0 0 56 56" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -1154,7 +923,7 @@ function App() {
             ].map((step, i) => (
               <div key={i} className="bg-slate-50/80 hover:bg-white rounded-2xl p-6 border border-slate-200/90 hover:border-blue-500/60 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col items-center text-center space-y-4 group cursor-pointer">
                 <span className="text-[10px] font-black uppercase tracking-wider text-cyan-600 bg-cyan-50 px-2.5 py-0.5 rounded-full border border-cyan-200">
-                  Step {step.stepNum}
+                  {lang === 'de' ? `Schritt ${step.stepNum}` : `Step ${step.stepNum}`}
                 </span>
 
                 <div className="h-20 w-20 rounded-2xl bg-white border border-slate-200/90 shadow-inner flex items-center justify-center text-slate-700 group-hover:scale-110 group-hover:border-blue-400 group-hover:bg-blue-50/50 group-hover:text-blue-600 transition-all duration-300">
@@ -1497,7 +1266,9 @@ function App() {
                 </span>
               </Link>
               <p className="text-slate-400 text-xs leading-relaxed font-medium">
-                The leading industrial aluminum profile search engine & 3D CAD catalog system for mechanical engineers and manufacturers worldwide.
+                {lang === 'de'
+                  ? 'Die führende B2B-Suchmaschine für Aluminiumprofile und 3D-CAD-Katalogsysteme für Maschinenbauingenieure und Hersteller weltweit.'
+                  : 'The leading industrial aluminum profile search engine & 3D CAD catalog system for mechanical engineers and manufacturers worldwide.'}
               </p>
               <div className="flex items-center gap-2.5 pt-1">
                 <a href="https://facebook.com" target="_blank" rel="noreferrer" className="h-9 w-9 rounded-xl bg-slate-800/80 hover:bg-cyan-500/20 text-slate-400 hover:text-cyan-400 border border-slate-700/80 flex items-center justify-center transition-all">
@@ -1511,28 +1282,34 @@ function App() {
 
             {/* Products Column */}
             <div className="space-y-3.5">
-              <h4 className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">Products</h4>
+              <h4 className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
+                {lang === 'de' ? 'Produkte' : 'Products'}
+              </h4>
               <ul className="space-y-2.5 text-slate-300 font-medium">
-                <li><Link to="/catalog" className="hover:text-cyan-400 transition-colors">Profile Catalog</Link></li>
-                <li><Link to="/catalog" className="hover:text-cyan-400 transition-colors">Technical Data</Link></li>
-                <li><Link to="/search" className="hover:text-cyan-400 transition-colors">CAD Downloads (STEP/DXF)</Link></li>
+                <li><Link to="/catalog" className="hover:text-cyan-400 transition-colors">{lang === 'de' ? 'Profilkatalog' : 'Profile Catalog'}</Link></li>
+                <li><Link to="/catalog" className="hover:text-cyan-400 transition-colors">{lang === 'de' ? 'Technische Daten' : 'Technical Data'}</Link></li>
+                <li><Link to="/search" className="hover:text-cyan-400 transition-colors">{lang === 'de' ? 'CAD Downloads (STEP/DXF)' : 'CAD Downloads (STEP/DXF)'}</Link></li>
               </ul>
             </div>
 
             {/* Company Column */}
             <div className="space-y-3.5">
-              <h4 className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">Company</h4>
+              <h4 className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
+                {lang === 'de' ? 'Unternehmen' : 'Company'}
+              </h4>
               <ul className="space-y-2.5 text-slate-300 font-medium">
-                <li><a href="#about" onClick={(e) => { e.preventDefault(); document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' }); }} className="hover:text-cyan-400 transition-colors">About Us</a></li>
-                <li><Link to="/terms" className="hover:text-cyan-400 transition-colors">Terms of Service</Link></li>
-                <li><Link to="/privacy" className="hover:text-cyan-400 transition-colors">Privacy Policy</Link></li>
-                <li><Link to="/imprint" className="hover:text-cyan-400 transition-colors">Imprint</Link></li>
+                <li><a href="#about" onClick={(e) => { e.preventDefault(); document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' }); }} className="hover:text-cyan-400 transition-colors">{lang === 'de' ? 'Über uns' : 'About Us'}</a></li>
+                <li><Link to="/terms" className="hover:text-cyan-400 transition-colors">{lang === 'de' ? 'AGB' : 'Terms of Service'}</Link></li>
+                <li><Link to="/privacy" className="hover:text-cyan-400 transition-colors">{lang === 'de' ? 'Datenschutz' : 'Privacy Policy'}</Link></li>
+                <li><Link to="/imprint" className="hover:text-cyan-400 transition-colors">{lang === 'de' ? 'Impressum' : 'Imprint'}</Link></li>
               </ul>
             </div>
 
             {/* Contact Column */}
             <div className="space-y-3.5">
-              <h4 className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">Contact & Support</h4>
+              <h4 className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
+                {lang === 'de' ? 'Kontakt & Support' : 'Contact & Support'}
+              </h4>
               <div className="space-y-2 text-slate-300 font-medium">
                 <p className="flex items-center gap-2"><Mail className="h-4 w-4 text-cyan-400" /> contact@aluprofile.biz</p>
                 <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-cyan-400" /> +1 (555) 000-0000</p>
@@ -1543,7 +1320,7 @@ function App() {
                   onClick={() => setShowManufacturerModal(true)}
                   className="rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-xs font-extrabold px-3.5 py-2 transition-all cursor-pointer"
                 >
-                  Register as Manufacturer
+                  {lang === 'de' ? 'Als Hersteller eintragen' : 'Register as Manufacturer'}
                 </button>
               </div>
             </div>
@@ -1552,17 +1329,17 @@ function App() {
 
           {/* Bottom copyright bar */}
           <div className="mt-10 pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400 font-medium">
-            <p>© 2026 AluProfile, Inc. All rights reserved.</p>
+            <p>{lang === 'de' ? '© 2026 AluProfile. Alle Rechte vorbehalten.' : '© 2026 AluProfile, Inc. All rights reserved.'}</p>
             <div className="flex flex-wrap gap-5">
-              <Link to="/imprint" className="hover:text-slate-200 transition-colors">Imprint</Link>
-              <Link to="/privacy" className="hover:text-slate-200 transition-colors">Privacy</Link>
-              <Link to="/terms" className="hover:text-slate-200 transition-colors">Terms</Link>
+              <Link to="/imprint" className="hover:text-slate-200 transition-colors">{lang === 'de' ? 'Impressum' : 'Imprint'}</Link>
+              <Link to="/privacy" className="hover:text-slate-200 transition-colors">{lang === 'de' ? 'Datenschutz' : 'Privacy'}</Link>
+              <Link to="/terms" className="hover:text-slate-200 transition-colors">{lang === 'de' ? 'AGB' : 'Terms'}</Link>
               <button
                 type="button"
                 onClick={() => window.dispatchEvent(new Event('open_cookie_settings'))}
                 className="hover:text-slate-200 transition-colors cursor-pointer"
               >
-                Cookie Settings
+                {lang === 'de' ? 'Cookie-Einstellungen' : 'Cookie Settings'}
               </button>
             </div>
           </div>
@@ -1572,77 +1349,214 @@ function App() {
 
 
       {showInquiryModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={() => { setShowInquiryModal(null); setInquirySuccess(false); setInquiryForm({ firstName: '', lastName: '', company: '', email: '', phone: '', message: '', requestPurchase: false }); }}>
-          <div className="w-full max-w-lg rounded-[1.5rem] bg-white shadow-2xl overflow-hidden flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-6 py-4">
-              <h3 className="text-lg font-semibold text-slate-900">{t.contactSeller}</h3>
-              <button className="text-slate-400 hover:text-slate-600" onClick={() => { setShowInquiryModal(null); setInquirySuccess(false); setInquiryForm({ firstName: '', lastName: '', company: '', email: '', phone: '', message: '', requestPurchase: false }); }}>
+        <div
+          className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-900/60 p-4 sm:p-6 backdrop-blur-md overflow-y-auto"
+          onClick={() => {
+            setShowInquiryModal(null);
+            setInquirySuccess(false);
+            setInquiryForm({ firstName: '', lastName: '', company: '', email: '', phone: '', message: '', requestPurchase: false });
+          }}
+        >
+          <div
+            className="w-full max-w-xl rounded-3xl bg-white shadow-2xl overflow-hidden border border-slate-200 text-slate-900 my-auto relative flex flex-col max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/90 px-6 py-4.5 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20">
+                  <Mail className="h-4.5 w-4.5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900 tracking-tight">
+                    {t.contactSeller || 'Send Inquiry / Request Quote'}
+                  </h3>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    {lang === 'de' ? 'Direkter Kontakt zum Hersteller für Spezifikationen & Angebote' : 'Direct manufacturer contact for specifications & RFQ'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowInquiryModal(null);
+                  setInquirySuccess(false);
+                  setInquiryForm({ firstName: '', lastName: '', company: '', email: '', phone: '', message: '', requestPurchase: false });
+                }}
+                className="rounded-full p-1.5 text-slate-400 hover:bg-slate-200/60 hover:text-slate-700 transition-colors cursor-pointer"
+              >
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="p-6 overflow-y-auto">
-              {inquirySuccess ? (
-                <div className="text-center py-8">
-                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                    <Sparkles className="h-6 w-6" />
-                  </div>
-                  <h4 className="text-lg font-medium text-slate-900">{t.inquirySent}</h4>
-                  <Button className="mt-6" onClick={() => { setShowInquiryModal(null); setInquirySuccess(false); setInquiryForm({ firstName: '', lastName: '', company: '', email: '', phone: '', message: '', requestPurchase: false }); }}>OK</Button>
+
+            {/* Modal Body */}
+            {inquirySuccess ? (
+              <div className="p-8 text-center space-y-4 my-auto">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 shadow-sm">
+                  <Sparkles className="h-8 w-8" />
                 </div>
-              ) : (
-                <form className="space-y-4" onSubmit={async (e) => {
+                <h4 className="text-xl font-black text-slate-900">{t.inquirySent}</h4>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
+                  {lang === 'de'
+                    ? 'Ihre Anfrage wurde an den Hersteller und an info@aluprofile.biz weitergeleitet. Sie erhalten in Kürze eine Rückmeldung.'
+                    : 'Your inquiry and technical request have been dispatched to the supplier and info@aluprofile.biz. You will be contacted shortly.'}
+                </p>
+                <div className="pt-2">
+                  <Button
+                    className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-8 py-2.5 rounded-xl shadow-md shadow-blue-500/25 cursor-pointer"
+                    onClick={() => {
+                      setShowInquiryModal(null);
+                      setInquirySuccess(false);
+                      setInquiryForm({ firstName: '', lastName: '', company: '', email: '', phone: '', message: '', requestPurchase: false });
+                    }}
+                  >
+                    OK
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <form
+                id="inquiry-form-app"
+                className="flex flex-col flex-1 overflow-hidden"
+                onSubmit={async (e) => {
                   e.preventDefault();
                   setInquiryLoadingId(showInquiryModal.id);
                   try {
                     await api('/public/inquiries', {
                       method: 'POST',
-                      body: JSON.stringify({ profileId: showInquiryModal.id, ...inquiryForm })
+                      body: JSON.stringify({ profileId: showInquiryModal.id, ...inquiryForm }),
                     });
                     setInquirySuccess(true);
+                    toast.success(lang === 'de' ? 'Anfrage erfolgreich versandt!' : 'Inquiry dispatched successfully!');
                   } catch (err) {
                     toast.error(parseApiError(err));
                   } finally {
                     setInquiryLoadingId(null);
                   }
-                }}>
-                  <div className="grid grid-cols-2 gap-4">
-                    <label className="block text-sm font-medium text-slate-700">
-                      {t.firstName} *
-                      <Input required className="mt-1" value={inquiryForm.firstName} onChange={e => setInquiryForm(f => ({ ...f, firstName: e.target.value }))} />
-                    </label>
-                    <label className="block text-sm font-medium text-slate-700">
-                      {t.lastName} *
-                      <Input required className="mt-1" value={inquiryForm.lastName} onChange={e => setInquiryForm(f => ({ ...f, lastName: e.target.value }))} />
-                    </label>
+                }}
+              >
+                <div className="p-6 space-y-4 overflow-y-auto flex-1">
+                  {/* Target Profile Card */}
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 flex items-center justify-between gap-4 shadow-sm">
+                    <div>
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200/60 mb-1">
+                        Target Profile
+                      </span>
+                      <h4 className="font-extrabold text-slate-900 text-sm">{showInquiryModal.name}</h4>
+                      <p className="text-xs text-slate-500 font-bold mt-0.5">{showInquiryModal.dimensions || '-'}</p>
+                    </div>
+                    {showInquiryModal.drawingUrl && (
+                      <div className="h-14 w-14 rounded-xl border border-slate-200 bg-white p-1.5 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+                        <img src={safeUrl(showInquiryModal.drawingUrl)} alt={showInquiryModal.name} className="h-full w-full object-contain" />
+                      </div>
+                    )}
                   </div>
-                  <label className="block text-sm font-medium text-slate-700">
-                    {t.company}
-                    <Input className="mt-1" value={inquiryForm.company} onChange={e => setInquiryForm(f => ({ ...f, company: e.target.value }))} />
-                  </label>
-                  <label className="block text-sm font-medium text-slate-700">
-                    {t.email} *
-                    <Input required type="email" className="mt-1" value={inquiryForm.email} onChange={e => setInquiryForm(f => ({ ...f, email: e.target.value }))} />
-                  </label>
-                  <label className="block text-sm font-medium text-slate-700">
-                    {t.phone}
-                    <Input className="mt-1" type="tel" value={inquiryForm.phone} onChange={e => setInquiryForm(f => ({ ...f, phone: e.target.value }))} />
-                  </label>
-                  <label className="block text-sm font-medium text-slate-700">
-                    {t.message} *
-                    <textarea required className="mt-1 block w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.04)] focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" rows={4} value={inquiryForm.message} onChange={e => setInquiryForm(f => ({ ...f, message: e.target.value }))} />
-                  </label>
-                  <label className="flex items-center gap-3 text-sm text-slate-700">
-                    <input type="checkbox" className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary" checked={inquiryForm.requestPurchase} onChange={e => setInquiryForm(f => ({ ...f, requestPurchase: e.target.checked }))} />
-                    {t.receiveOffer}
-                  </label>
-                  <div className="pt-2">
-                    <Button type="submit" className="w-full" disabled={inquiryLoadingId === showInquiryModal.id}>
-                      {inquiryLoadingId === showInquiryModal.id ? t.sending : t.sendInquiry}
-                    </Button>
+
+                  {/* Form Inputs Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-700">{t.firstName} *</label>
+                      <Input
+                        required
+                        placeholder="e.g. John"
+                        value={inquiryForm.firstName}
+                        onChange={(e) => setInquiryForm((f) => ({ ...f, firstName: e.target.value }))}
+                        className="rounded-xl border-slate-200 bg-white text-xs py-2.5 focus:ring-2 focus:ring-blue-500/20"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-700">{t.lastName} *</label>
+                      <Input
+                        required
+                        placeholder="e.g. Doe"
+                        value={inquiryForm.lastName}
+                        onChange={(e) => setInquiryForm((f) => ({ ...f, lastName: e.target.value }))}
+                        className="rounded-xl border-slate-200 bg-white text-xs py-2.5 focus:ring-2 focus:ring-blue-500/20"
+                      />
+                    </div>
                   </div>
-                </form>
-              )}
-            </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-700">{t.company}</label>
+                      <Input
+                        placeholder="e.g. Automation Systems GmbH"
+                        value={inquiryForm.company}
+                        onChange={(e) => setInquiryForm((f) => ({ ...f, company: e.target.value }))}
+                        className="rounded-xl border-slate-200 bg-white text-xs py-2.5 focus:ring-2 focus:ring-blue-500/20"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-700">{t.email} *</label>
+                      <Input
+                        required
+                        type="email"
+                        placeholder="john.doe@company.com"
+                        value={inquiryForm.email}
+                        onChange={(e) => setInquiryForm((f) => ({ ...f, email: e.target.value }))}
+                        className="rounded-xl border-slate-200 bg-white text-xs py-2.5 focus:ring-2 focus:ring-blue-500/20"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700">{t.phone}</label>
+                    <Input
+                      placeholder="+49 (0) 123 456789"
+                      value={inquiryForm.phone}
+                      onChange={(e) => setInquiryForm((f) => ({ ...f, phone: e.target.value }))}
+                      className="rounded-xl border-slate-200 bg-white text-xs py-2.5 focus:ring-2 focus:ring-blue-500/20"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700">{t.message} *</label>
+                    <textarea
+                      required
+                      rows={3}
+                      placeholder="Please specify requested quantities, custom length cuts, surface anodization, or technical queries..."
+                      className="w-full rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      value={inquiryForm.message}
+                      onChange={(e) => setInquiryForm((f) => ({ ...f, message: e.target.value }))}
+                    />
+                  </div>
+
+                  <label className="flex items-center gap-2.5 text-xs font-bold text-slate-700 cursor-pointer bg-slate-50/70 p-3 rounded-xl border border-slate-200">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                      checked={inquiryForm.requestPurchase}
+                      onChange={(e) => setInquiryForm((f) => ({ ...f, requestPurchase: e.target.checked }))}
+                    />
+                    <span>{t.receiveOffer}</span>
+                  </label>
+                </div>
+
+                {/* Dedicated Fixed Footer with Proper Padding */}
+                <div className="border-t border-slate-100 bg-slate-50/90 px-6 py-4 flex items-center justify-end gap-3 shrink-0 rounded-b-3xl">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-10 px-5 rounded-xl border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs cursor-pointer"
+                    onClick={() => {
+                      setShowInquiryModal(null);
+                      setInquirySuccess(false);
+                      setInquiryForm({ firstName: '', lastName: '', company: '', email: '', phone: '', message: '', requestPurchase: false });
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={inquiryLoadingId === showInquiryModal.id}
+                    className="h-10 px-6 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-md shadow-blue-500/25 cursor-pointer flex items-center gap-2"
+                  >
+                    <Mail className="h-4 w-4" />
+                    <span>{inquiryLoadingId === showInquiryModal.id ? t.sending : t.sendInquiry}</span>
+                  </Button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
@@ -1738,42 +1652,61 @@ function App() {
         </div>
       )}
 
-      {/* ── PROFILE DETAIL MODAL OVERLAY (PIXEL-PERFECT MATCH TO PROFILE_DETAIL_UI.JPG) ── */}
+      {/* ── PROFILE DETAIL MODAL OVERLAY (PIXEL-PERFECT MATCH TO TECHNICAL SPECIFICATION) ── */}
       {showDetailModal && detail && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-900/60 p-4 sm:p-6 backdrop-blur-md overflow-y-auto" onClick={() => setShowDetailModal(false)}>
-          <div className="w-full max-w-5xl rounded-3xl bg-[#f4f7fb] shadow-2xl overflow-hidden border border-slate-200 text-slate-900 my-auto animate-in fade-in zoom-in-95 duration-200 relative" onClick={e => e.stopPropagation()}>
+          <div className="w-full max-w-5xl rounded-3xl bg-[#f4f7fb] shadow-2xl overflow-hidden border border-slate-200 text-slate-900 my-auto animate-in fade-in zoom-in-95 duration-200 relative max-h-[92vh] flex flex-col" onClick={e => e.stopPropagation()}>
             
             {/* Modal Header Bar */}
-            <div className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-slate-500">Home</span>
-                <span className="text-xs text-slate-400">&gt;</span>
-                <span className="text-xs font-semibold text-slate-500">Products</span>
-                <span className="text-xs text-slate-400">&gt;</span>
-                <span className="text-xs font-semibold text-slate-500">Aluminum Profiles</span>
-                <span className="text-xs text-slate-400">&gt;</span>
-                <span className="text-xs font-bold text-slate-900">{detail.dimensions || detail.name}</span>
+            <div className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 shrink-0">
+              <div className="flex items-center gap-2 text-xs">
+                <span className="font-semibold text-slate-500">Home</span>
+                <span className="text-slate-400">&gt;</span>
+                <span className="font-semibold text-slate-500">Products</span>
+                <span className="text-slate-400">&gt;</span>
+                <span className="font-semibold text-slate-500">Aluminum Profiles</span>
+                <span className="text-slate-400">&gt;</span>
+                <span className="font-extrabold text-blue-600">{detail.dimensions || detail.name}</span>
               </div>
-              <button onClick={() => setShowDetailModal(false)} className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors">
+              <button onClick={() => setShowDetailModal(false)} className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer">
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="p-6 sm:p-8 space-y-6">
+            {/* Scrollable Modal Body */}
+            <div className="p-6 sm:p-8 space-y-6 overflow-y-auto flex-1">
               
               {/* Profile Title Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-sm">
                 <div>
-                  <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                    {detail.name}
-                  </h2>
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                      {detail.name}
+                    </h2>
+                    <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider ${
+                      detail.status === 'AVAILABLE'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : detail.status === 'IN_DEVELOPMENT'
+                        ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                        : 'bg-rose-50 text-rose-700 border border-rose-200'
+                    }`}>
+                      <span className={`h-1.5 w-1.5 rounded-full ${detail.status === 'AVAILABLE' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                      {detail.status}
+                    </span>
+                    {detail.price ? (
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-black bg-blue-50 text-blue-700 border border-blue-200">
+                        {new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US').format(detail.price)} {detail.currency?.symbol ?? '€'}
+                      </span>
+                    ) : null}
+                  </div>
                   <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-                    {detail.description || 'Industrial grade aluminum profile with high structural rigidity.'}
+                    {detail.description || detail.usage || 'Industrial grade aluminum profile with high structural rigidity.'}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <Button size="sm" onClick={() => { setShowDetailModal(false); setShowInquiryModal(detail); }} className="bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-sm">
-                    {t.inquiry}
+                  <Button size="sm" onClick={() => { setShowDetailModal(false); setShowInquiryModal(detail); }} className="bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-md shadow-blue-500/25 flex items-center gap-2 cursor-pointer">
+                    <Mail className="h-4 w-4" />
+                    <span>{t.inquiry}</span>
                   </Button>
                 </div>
               </div>
@@ -1782,39 +1715,131 @@ function App() {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
                 {/* LEFT BOX (7 cols): CAD Drawing & Engineering Cross-Section View */}
-                <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 flex flex-col justify-between items-center min-h-[420px] relative overflow-hidden">
-                  
-                  {/* Top-left Pill Badge */}
-                  <div className="absolute top-4 left-4 z-10">
-                    <span className="inline-flex items-center rounded-lg bg-slate-100 px-3 py-1 text-[11px] font-extrabold text-slate-700 border border-slate-200/80">
-                      CAD Drawing
-                    </span>
+                <div className="lg:col-span-7 space-y-4">
+                  <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 flex flex-col justify-between items-center min-h-[420px] relative overflow-hidden">
+                    
+                    {/* Media Tabs Header */}
+                    <div className="w-full flex items-center justify-between border-b border-slate-100 pb-3 mb-2">
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setModalMediaTab('drawing')}
+                          className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                            modalMediaTab === 'drawing'
+                              ? 'bg-blue-50 text-blue-700 border border-blue-200 font-black'
+                              : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
+                          }`}
+                        >
+                          <Boxes className="h-3.5 w-3.5" />
+                          <span>CAD Cross-Section</span>
+                        </button>
+                        {detail.photoUrl && (
+                          <button
+                            type="button"
+                            onClick={() => setModalMediaTab('photo')}
+                            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                              modalMediaTab === 'photo'
+                                ? 'bg-blue-50 text-blue-700 border border-blue-200 font-black'
+                                : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
+                            }`}
+                          >
+                            <ImageIcon className="h-3.5 w-3.5" />
+                            <span>Product Photo</span>
+                          </button>
+                        )}
+                      </div>
+                      {detail.dimensions && (
+                        <span className="text-[11px] font-black text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-md border border-slate-200/80">
+                          {detail.dimensions}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Media Preview canvas */}
+                    <div className="w-full flex-1 flex items-center justify-center py-6 px-4">
+                      {modalMediaTab === 'drawing' ? (
+                        detail.drawingUrl ? (
+                          <img
+                            src={detail.drawingUrl}
+                            alt={`${detail.name} CAD Schematic`}
+                            className="max-h-[300px] w-auto object-contain transition-transform duration-300 hover:scale-105"
+                            onError={(e) => { (e.target as HTMLImageElement).src = '/hero-target-profile.png'; }}
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center text-slate-300 gap-2 py-10">
+                            <Boxes className="h-16 w-16" />
+                            <span className="text-xs text-slate-400">No CAD drawing file uploaded</span>
+                          </div>
+                        )
+                      ) : detail.photoUrl ? (
+                        <img
+                          src={detail.photoUrl}
+                          alt={`${detail.name} Product Photo`}
+                          className="max-h-[300px] w-auto object-contain rounded-xl shadow-sm transition-transform duration-300 hover:scale-105"
+                        />
+                      ) : null}
+                    </div>
+
+                    {/* Bottom Subtitle */}
+                    <div className="pt-3 text-center border-t border-slate-100 w-full flex items-center justify-between text-[11px] text-slate-400 font-bold uppercase tracking-wider">
+                      <span>CROSS-SECTION VIEW (Unit: mm)</span>
+                      <span>Scale 1:1</span>
+                    </div>
+
                   </div>
 
-                  {/* CAD Drawing Image schematic */}
-                  <div className="w-full flex-1 flex items-center justify-center py-6 px-4">
-                    {detail.drawingUrl ? (
-                      <img
-                        src={detail.drawingUrl}
-                        alt={`${detail.name} CAD Schematic`}
-                        className="max-h-[320px] w-auto object-contain transition-transform duration-300 hover:scale-105"
-                        onError={(e) => { (e.target as HTMLImageElement).src = '/hero-target-profile.png'; }}
-                      />
-                    ) : (
-                      <img
-                        src="/hero-target-profile.png"
-                        alt="Aluminum Profile Cross Section"
-                        className="max-h-[320px] w-auto object-contain"
-                      />
-                    )}
-                  </div>
-
-                  {/* Bottom Subtitle */}
-                  <div className="pt-3 text-center border-t border-slate-100 w-full">
-                    <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">
-                      CROSS-SECTION VIEW (Unit: mm)
-                    </p>
-                  </div>
+                  {/* Supplier Card (if present) */}
+                  {detail.supplier && (
+                    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-50 text-amber-600 border border-amber-200/60">
+                            <Building2 className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-black uppercase tracking-wider text-slate-900">
+                              {lang === 'de' ? 'Hersteller & Lieferant' : 'Verified Manufacturer'}
+                            </h4>
+                            <p className="text-xs font-bold text-slate-700">{detail.supplier.name}</p>
+                          </div>
+                        </div>
+                        {detail.supplier.website && (
+                          <a
+                            href={detail.supplier.website.startsWith('http') ? detail.supplier.website : `https://${detail.supplier.website}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200 cursor-pointer"
+                          >
+                            <Globe className="h-3.5 w-3.5" />
+                            <span>Website</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-600 pt-1">
+                        {detail.supplier.contactPerson && (
+                          <p className="flex items-center gap-1.5">
+                            <User className="h-3.5 w-3.5 text-slate-400" />
+                            <span>{detail.supplier.contactPerson}</span>
+                          </p>
+                        )}
+                        {detail.supplier.email && (
+                          <p className="flex items-center gap-1.5">
+                            <Mail className="h-3.5 w-3.5 text-slate-400" />
+                            <a href={`mailto:${detail.supplier.email}`} className="hover:underline text-blue-600">
+                              {detail.supplier.email}
+                            </a>
+                          </p>
+                        )}
+                        {detail.supplier.phone && (
+                          <p className="flex items-center gap-1.5">
+                            <Phone className="h-3.5 w-3.5 text-slate-400" />
+                            <span>{detail.supplier.phone}</span>
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                 </div>
 
@@ -1825,30 +1850,40 @@ function App() {
                   <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
                     <div className="bg-slate-100/90 px-4 py-3 border-b border-slate-200/80">
                       <h4 className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-700">
-                        TECHNICAL DATA & PROPERTIES
+                        {lang === 'de' ? 'TECHNISCHE DATEN & EIGENSCHAFTEN' : 'TECHNICAL DATA & PROPERTIES'}
                       </h4>
                     </div>
 
                     <div className="divide-y divide-slate-100 text-xs font-medium">
                       
+                      {/* Dimensions */}
+                      <div className="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50/50">
+                        <span className="text-slate-600 flex items-center gap-1.5 font-bold">
+                          <Ruler className="h-3.5 w-3.5 text-slate-400" />
+                          Dimensions
+                        </span>
+                        <span className="text-slate-900 font-extrabold">
+                          {detail.dimensions || '-'}
+                        </span>
+                      </div>
+
                       {/* Moment of Inertia */}
                       <div className="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50/50">
                         <span className="text-slate-600 flex items-center gap-1.5 font-bold">
                           <SlidersHorizontal className="h-3.5 w-3.5 text-slate-400" />
                           Moment of Inertia
                         </span>
-                        <span className="text-slate-900 font-bold font-mono">
+                        <span className="text-slate-900 font-bold font-mono text-[11px]">
                           {detail.momentOfInertiaIx ? `Ix: ${detail.momentOfInertiaIx} cm⁴, Iy: ${detail.momentOfInertiaIy || detail.momentOfInertiaIx} cm⁴` : 'Ix: 15.6 cm⁴, Iy: 15.6 cm⁴'}
                         </span>
                       </div>
 
                       {/* Section Modulus */}
                       <div className="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50/50">
-                        <span className="text-slate-600 flex items-center gap-1.5 font-bold">
-                          <Ruler className="h-3.5 w-3.5 text-slate-400" />
+                        <span className="text-slate-600 font-bold">
                           Wx Section Modulus
                         </span>
-                        <span className="text-slate-900 font-bold font-mono">
+                        <span className="text-slate-900 font-bold font-mono text-[11px]">
                           {detail.sectionModulusWx ? `Wx: ${detail.sectionModulusWx} cm³, Wy: ${detail.sectionModulusWy || detail.sectionModulusWx} cm³` : 'Wx: 7.8 cm³, Wy: 7.8 cm³'}
                         </span>
                       </div>
@@ -1884,7 +1919,15 @@ function App() {
                       <div className="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50/50">
                         <span className="text-slate-600 font-bold">{t.material}</span>
                         <span className="text-slate-900 font-semibold">
-                          {detail.material || 'Aluminum 6063-T5'}
+                          {detail.material || 'EN AW-6063 T6'}
+                        </span>
+                      </div>
+
+                      {/* Standard Length */}
+                      <div className="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50/50">
+                        <span className="text-slate-600 font-bold">Standard Length</span>
+                        <span className="text-slate-900 font-semibold">
+                          {detail.lengthMm ? `${detail.lengthMm} mm` : '6000 mm'}
                         </span>
                       </div>
 
@@ -1902,7 +1945,7 @@ function App() {
                   {/* Bottom Card: DOWNLOADS */}
                   <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-3">
                     <h4 className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-700">
-                      DOWNLOADS
+                      DOWNLOADS & CAD DATA
                     </h4>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
@@ -1921,7 +1964,7 @@ function App() {
                       {/* DXF (2D) */}
                       <button
                         onClick={() => window.open(detail.dxfUrl || detail.drawingUrl || '#', '_blank')}
-                        className="rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs py-2.5 px-4 flex items-center justify-between transition-all cursor-pointer"
+                        className="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs py-2.5 px-4 flex items-center justify-between transition-all cursor-pointer"
                       >
                         <span className="flex items-center gap-1.5">
                           <FileIcon className="h-3.5 w-3.5 text-slate-500" /> DXF (2D)
@@ -1932,10 +1975,10 @@ function App() {
                       {/* PDF (Datasheet) */}
                       <button
                         onClick={() => window.open(detail.pdfUrl || detail.drawingUrl || '#', '_blank')}
-                        className="rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs py-2.5 px-4 flex items-center justify-between transition-all cursor-pointer"
+                        className="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs py-2.5 px-4 flex items-center justify-between transition-all cursor-pointer"
                       >
                         <span className="flex items-center gap-1.5">
-                          <FileText className="h-3.5 w-3.5 text-red-500" /> PDF (Datasheet)
+                          <FileText className="h-3.5 w-3.5 text-rose-500" /> PDF (Datasheet)
                         </span>
                         <span>&rarr;</span>
                       </button>
@@ -1943,7 +1986,7 @@ function App() {
                       {/* Order Sample */}
                       <button
                         onClick={() => { setShowDetailModal(false); setShowInquiryModal(detail); }}
-                        className="rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs py-2.5 px-4 text-center transition-all cursor-pointer"
+                        className="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs py-2.5 px-4 text-center transition-all cursor-pointer"
                       >
                         Order Sample
                       </button>
@@ -1956,7 +1999,6 @@ function App() {
               </div>
 
             </div>
-
           </div>
         </div>
       )}

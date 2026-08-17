@@ -1,6 +1,7 @@
 import toast from 'react-hot-toast';
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from './AuthContext';
+import { useLanguage } from './LanguageContext';
 import {
   Boxes,
   Eye,
@@ -313,8 +314,8 @@ function exportTablePdf(title: string, headers: string[], rows: Array<Array<stri
 
 function CustomerPage() {
   const { token, user, login, logout, isLoading } = useAuth();
+  const { lang, setLang } = useLanguage();
   const initialMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('mode') === 'sign-up' ? 'sign-up' : 'sign-in';
-  const [lang, setLang] = useState<Lang>('en');
   const [authMode, setAuthMode] = useState<'sign-in' | 'sign-up'>(initialMode);
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -387,15 +388,6 @@ function CustomerPage() {
     if (type === 'success') toast.success(text);
     else toast.error(text);
   }
-
-  useEffect(() => {
-    const saved = window.localStorage.getItem('aluprofile_lang');
-    if (saved === 'en' || saved === 'de') setLang(saved);
-  }, []);
-
-  useEffect(() => {
-    window.localStorage.setItem('aluprofile_lang', lang);
-  }, [lang]);
 
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -1078,44 +1070,42 @@ function CustomerPage() {
           <div className="space-y-6">
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {/* Owned Profiles Stat Card */}
-              <div className="rounded-3xl border border-slate-700/80 bg-[#131c2a] p-6 shadow-xl relative overflow-hidden group hover:border-cyan-500/50 transition-all duration-300">
+              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-black uppercase tracking-wider text-slate-400">{t.totalProfiles}</p>
-                    <p className="text-3xl font-extrabold text-white mt-2">{profiles.length}</p>
+                    <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">{t.totalProfiles}</p>
+                    <p className="text-3xl font-black text-slate-900 mt-1">{profiles.length}</p>
                   </div>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 group-hover:scale-110 transition-transform">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 border border-blue-100">
                     <Boxes className="h-6 w-6" />
                   </div>
                 </div>
               </div>
 
               {/* Categories Stat Card */}
-              <div className="rounded-3xl border border-slate-700/80 bg-[#131c2a] p-6 shadow-xl relative overflow-hidden group hover:border-blue-500/50 transition-all duration-300">
+              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-black uppercase tracking-wider text-slate-400">{t.categories}</p>
-                    <p className="text-3xl font-extrabold text-white mt-2">{(referenceData?.applications.length ?? 0) + (referenceData?.crossSections.length ?? 0)}</p>
+                    <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">{t.categories}</p>
+                    <p className="text-3xl font-black text-slate-900 mt-1">{(referenceData?.applications.length ?? 0) + (referenceData?.crossSections.length ?? 0)}</p>
                   </div>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-400 border border-blue-500/20 group-hover:scale-110 transition-transform">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100">
                     <Wrench className="h-6 w-6" />
                   </div>
                 </div>
               </div>
             </div>
 
-
             {/* Professional Company Profile Card */}
-            <Card className="border border-slate-700/80 shadow-2xl bg-[#131c2a] text-white overflow-hidden rounded-3xl">
-              <CardHeader className="border-b border-slate-800 bg-[#0f172a]/90 py-5 px-6 sm:px-8">
+            <Card className="material-panel bg-white shadow-sm border border-slate-200 rounded-3xl overflow-hidden">
+              <CardHeader className="border-b border-slate-200/80 bg-slate-50/50 py-5 px-6 sm:px-8">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 shadow-sm">
-                      <Building2 className="h-5 w-5" />
-                    </div>
                     <div>
-                      <CardTitle className="text-lg font-extrabold text-white">{t.companyProfile}</CardTitle>
-                      <p className="text-xs text-slate-400 font-medium mt-0.5">
+                      <CardTitle className="text-xl font-black text-slate-900 flex items-center gap-3">
+                        <Building2 className="h-5 w-5 text-amber-600" /> {t.companyProfile}
+                      </CardTitle>
+                      <p className="text-xs text-slate-500 font-medium mt-0.5">
                         {lang === 'de'
                           ? 'Verwalten Sie die offiziellen Stammdaten Ihres Unternehmens für Angebote & CAD-Downloads'
                           : 'Manage organization identity, contact details, and VAT information for CAD specs & RFQs'}
@@ -1128,118 +1118,118 @@ function CustomerPage() {
               <CardContent className="space-y-6 pt-6 px-6 sm:px-8 pb-8">
                 <div className="grid gap-6 md:grid-cols-2">
                   {/* Group 1: Organization & Identity */}
-                  <div className="space-y-4 bg-[#1e293b]/60 p-5 rounded-2xl border border-slate-800">
-                    <h4 className="text-xs font-black uppercase tracking-wider text-cyan-400 flex items-center gap-2">
+                  <div className="space-y-4 bg-slate-50/70 p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <h4 className="font-extrabold text-[#0284c7] text-xs uppercase tracking-wider border-b border-slate-200 pb-2 flex items-center gap-2">
                       <span>1. Organization & Identification</span>
                     </h4>
 
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-bold text-slate-300">{t.name} (EN)</label>
+                      <label className="block text-xs font-bold text-slate-700">{t.name} (EN) *</label>
                       <Input
                         placeholder="e.g. Aluprofile Systems GmbH"
                         value={supplierForm.name}
                         onChange={(e) => setSupplierForm({ ...supplierForm, name: e.target.value })}
-                        className="rounded-2xl border-slate-700 bg-[#0f172a] text-white text-xs py-2.5 focus:border-cyan-400"
+                        className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-amber-500/20"
                       />
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-bold text-slate-300">{t.name} (DE)</label>
+                      <label className="block text-xs font-bold text-slate-700">{t.name} (DE)</label>
                       <Input
                         placeholder="z.B. Aluprofile Systeme GmbH"
                         value={supplierForm.nameDe}
                         onChange={(e) => setSupplierForm({ ...supplierForm, nameDe: e.target.value })}
-                        className="rounded-2xl border-slate-700 bg-[#0f172a] text-white text-xs py-2.5 focus:border-cyan-400"
+                        className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-amber-500/20"
                       />
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-bold text-slate-300">{lang === 'de' ? 'Branche / Sektor' : 'Industry Sector'}</label>
+                      <label className="block text-xs font-bold text-slate-700">{lang === 'de' ? 'Branche / Sektor' : 'Industry Sector'}</label>
                       <Input
                         placeholder="e.g. Industrial Automation / Mechanical Engineering"
                         value={supplierForm.industry}
                         onChange={(e) => setSupplierForm({ ...supplierForm, industry: e.target.value })}
-                        className="rounded-2xl border-slate-700 bg-[#0f172a] text-white text-xs py-2.5 focus:border-cyan-400"
+                        className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-amber-500/20"
                       />
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-bold text-slate-300">{t.uid} (Tax ID / VAT)</label>
+                      <label className="block text-xs font-bold text-slate-700">{t.uid} (Tax ID / VAT)</label>
                       <Input
                         placeholder="e.g. DE123456789 / CHE-123.456.789"
                         value={supplierForm.uid}
                         onChange={(e) => setSupplierForm({ ...supplierForm, uid: e.target.value })}
-                        className="rounded-2xl border-slate-700 bg-[#0f172a] text-white text-xs py-2.5 focus:border-cyan-400"
+                        className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-amber-500/20"
                       />
                     </div>
                   </div>
 
                   {/* Group 2: Contact & Location */}
-                  <div className="space-y-4 bg-[#1e293b]/60 p-5 rounded-2xl border border-slate-800">
-                    <h4 className="text-xs font-black uppercase tracking-wider text-cyan-400 flex items-center gap-2">
+                  <div className="space-y-4 bg-slate-50/70 p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <h4 className="font-extrabold text-[#0284c7] text-xs uppercase tracking-wider border-b border-slate-200 pb-2 flex items-center gap-2">
                       <span>2. Contact & Address Details</span>
                     </h4>
 
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-bold text-slate-300">{t.contactPerson}</label>
+                      <label className="block text-xs font-bold text-slate-700">{t.contactPerson}</label>
                       <Input
                         placeholder="e.g. Dipl.-Ing. Max Mustermann"
                         value={supplierForm.contactPerson}
                         onChange={(e) => setSupplierForm({ ...supplierForm, contactPerson: e.target.value })}
-                        className="rounded-2xl border-slate-700 bg-[#0f172a] text-white text-xs py-2.5 focus:border-cyan-400"
+                        className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-amber-500/20"
                       />
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-bold text-slate-300">{t.emailAddress}</label>
+                      <label className="block text-xs font-bold text-slate-700">{t.emailAddress}</label>
                       <Input
                         type="email"
                         placeholder="contact@company.com"
                         value={supplierForm.email}
                         onChange={(e) => setSupplierForm({ ...supplierForm, email: e.target.value })}
-                        className="rounded-2xl border-slate-700 bg-[#0f172a] text-white text-xs py-2.5 focus:border-cyan-400"
+                        className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-amber-500/20"
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-slate-300">{t.phone}</label>
+                        <label className="block text-xs font-bold text-slate-700">{t.phone}</label>
                         <Input
                           placeholder="+49 (0) 123 4567"
                           value={supplierForm.phone}
                           onChange={(e) => setSupplierForm({ ...supplierForm, phone: e.target.value })}
-                          className="rounded-2xl border-slate-700 bg-[#0f172a] text-white text-xs py-2.5 focus:border-cyan-400"
+                          className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-amber-500/20"
                         />
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-slate-300">{t.website}</label>
+                        <label className="block text-xs font-bold text-slate-700">{t.website}</label>
                         <Input
                           placeholder="https://www.company.com"
                           value={supplierForm.website}
                           onChange={(e) => setSupplierForm({ ...supplierForm, website: e.target.value })}
-                          className="rounded-2xl border-slate-700 bg-[#0f172a] text-white text-xs py-2.5 focus:border-cyan-400"
+                          className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-amber-500/20"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-bold text-slate-300">{t.companyAddress}</label>
+                      <label className="block text-xs font-bold text-slate-700">{t.companyAddress}</label>
                       <Input
                         placeholder="Street, Postal Code, City, Country"
                         value={supplierForm.address}
                         onChange={(e) => setSupplierForm({ ...supplierForm, address: e.target.value })}
-                        className="rounded-2xl border-slate-700 bg-[#0f172a] text-white text-xs py-2.5 focus:border-cyan-400"
+                        className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-amber-500/20"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-2 border-t border-slate-800">
+                <div className="flex justify-end pt-3 border-t border-slate-200">
                   <Button
                     onClick={saveSupplier}
                     disabled={isSavingSupplier}
-                    className="rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-600 text-white font-extrabold text-xs px-6 py-3 shadow-lg shadow-blue-500/25 flex items-center gap-2 cursor-pointer transition-all"
+                    className="bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-sm flex items-center gap-2"
                   >
                     <Save className="h-4 w-4" />
                     <span>{isSavingSupplier ? 'Saving Profile...' : 'Save Company Profile'}</span>
@@ -1248,18 +1238,16 @@ function CustomerPage() {
               </CardContent>
             </Card>
 
-
             {/* Modern Profile Controls Section */}
-            <Card className="border border-slate-700/80 shadow-2xl bg-[#131c2a] text-white overflow-hidden rounded-3xl">
-              <CardHeader className="border-b border-slate-800 bg-[#0f172a]/90 py-5 px-6 sm:px-8">
+            <Card className="material-panel bg-white shadow-sm border border-slate-200 rounded-3xl overflow-hidden">
+              <CardHeader className="border-b border-slate-200/80 bg-slate-50/50 py-5 px-6 sm:px-8">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 shadow-sm">
-                      <Boxes className="h-5 w-5" />
-                    </div>
                     <div>
-                      <CardTitle className="text-lg font-extrabold text-white">{t.profileControls}</CardTitle>
-                      <p className="text-xs text-slate-400 font-medium mt-0.5">
+                      <CardTitle className="text-xl font-black text-slate-900 flex items-center gap-3">
+                        <Boxes className="h-5 w-5 text-blue-600" /> {t.profileControls}
+                      </CardTitle>
+                      <p className="text-xs text-slate-500 font-medium mt-0.5">
                         {lang === 'de'
                           ? 'Erstellen und verwalten Sie Ihre eigenen Aluminiumprofile'
                           : 'Create, manage, and publish custom aluminum profile specifications'}
@@ -1270,21 +1258,17 @@ function CustomerPage() {
                   <div className="flex flex-wrap items-center gap-3">
                     <Button
                       variant="outline"
-                      className="rounded-2xl border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 font-extrabold text-xs px-4 py-2.5 cursor-pointer transition-all"
+                      className="border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs rounded-xl"
                       onClick={hideAllProfiles}
                     >
                       {lang === 'de' ? 'Alle ausblenden' : 'Hide All Profiles'}
                     </Button>
                     <Button
-                      className={`rounded-2xl font-extrabold text-xs px-5 py-2.5 shadow-lg cursor-pointer transition-all flex items-center gap-2 ${
-                        showForm
-                          ? 'bg-slate-700 hover:bg-slate-600 text-white'
-                          : 'bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-600 text-white shadow-blue-500/25'
-                      }`}
+                      className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-sm flex items-center gap-2"
                       onClick={() => (showForm ? resetProfileForm() : setShowForm(true))}
                     >
                       <Plus className="h-4 w-4" />
-                      <span>{showForm ? t.closeEditor : t.addProfile}</span>
+                      <span>{showForm ? t.closeEditor : (`+ ${t.addProfile}`)}</span>
                     </Button>
                   </div>
                 </div>
@@ -1293,162 +1277,257 @@ function CustomerPage() {
               <CardContent className="space-y-6 pt-6 px-6 sm:px-8 pb-8">
                 {/* Profile Editor Form */}
                 {showForm && (
-                  <div className="rounded-3xl border border-slate-700/90 bg-[#0f172a] p-6 shadow-2xl space-y-6">
-                    <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-                      <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
-                        <span className="h-2.5 w-2.5 rounded-full bg-cyan-400 animate-pulse" />
-                        <span>{editId ? (lang === 'de' ? 'Profil bearbeiten' : 'Edit Profile Specification') : (lang === 'de' ? 'Neues Profil hinzufügen' : 'Create New Profile Specification')}</span>
-                      </h3>
-                      <span className="text-xs text-slate-400 font-mono">{t.signedInAs}: {user?.email || user?.id}</span>
-                    </div>
-
-                    <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-slate-300">{t.name} (EN)</label>
-                        <Input placeholder="e.g. 40x40 Heavy T-Slot" value={profileForm.name} onChange={(e) => setProfileForm((current) => ({ ...current, name: e.target.value }))} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white text-xs py-2.5" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-slate-300">{t.name} (DE)</label>
-                        <Input placeholder="z.B. 40x40 Schwer Nut 8" value={profileForm.nameDe} onChange={(e) => setProfileForm((current) => ({ ...current, nameDe: e.target.value }))} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white text-xs py-2.5" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-slate-300">{t.dimensions}</label>
-                        <Input placeholder="e.g. 40x40 mm" value={profileForm.dimensions} onChange={(e) => setProfileForm((current) => ({ ...current, dimensions: e.target.value }))} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white text-xs py-2.5" />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-slate-300">{t.description} (EN)</label>
-                        <Input placeholder="Profile description" value={profileForm.description} onChange={(e) => setProfileForm((current) => ({ ...current, description: e.target.value }))} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white text-xs py-2.5" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-slate-300">{t.description} (DE)</label>
-                        <Input placeholder="Profilbeschreibung" value={profileForm.descriptionDe} onChange={(e) => setProfileForm((current) => ({ ...current, descriptionDe: e.target.value }))} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white text-xs py-2.5" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-slate-300">{t.weightPerMeter} (kg/m)</label>
-                        <Input placeholder="e.g. 1.75" value={profileForm.weightPerMeter} onChange={(e) => setProfileForm((current) => ({ ...current, weightPerMeter: e.target.value }))} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white text-xs py-2.5" />
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-6 space-y-6 shadow-sm">
+                    {/* Sub-section 1: Profile Specifications */}
+                    <div className="space-y-4">
+                      <h4 className="font-extrabold text-[#0284c7] text-xs uppercase tracking-wider border-b border-slate-200 pb-2">
+                        Profile Details & Multilingual Information
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">{t.name} (EN) *</label>
+                          <Input
+                            placeholder="e.g. 40x40 Heavy T-Slot"
+                            value={profileForm.name}
+                            onChange={(e) => setProfileForm((current) => ({ ...current, name: e.target.value }))}
+                            className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">{t.name} (DE)</label>
+                          <Input
+                            placeholder="z.B. 40x40 Schwer Nut 8"
+                            value={profileForm.nameDe}
+                            onChange={(e) => setProfileForm((current) => ({ ...current, nameDe: e.target.value }))}
+                            className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20"
+                          />
+                        </div>
                       </div>
 
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-slate-300">{t.usage} (EN)</label>
-                        <Input placeholder="e.g. Automation framing" value={profileForm.usage} onChange={(e) => setProfileForm((current) => ({ ...current, usage: e.target.value }))} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white text-xs py-2.5" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-slate-300">{t.usage} (DE)</label>
-                        <Input placeholder="z.B. Maschinenbau" value={profileForm.usageDe} onChange={(e) => setProfileForm((current) => ({ ...current, usageDe: e.target.value }))} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white text-xs py-2.5" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-slate-300">{t.lengthMm} (mm)</label>
-                        <Input placeholder="e.g. 6000" value={profileForm.lengthMm} onChange={(e) => setProfileForm((current) => ({ ...current, lengthMm: e.target.value }))} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white text-xs py-2.5" />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-slate-300">{t.material} (EN)</label>
-                        <Input placeholder="e.g. EN AW-6063 T6" value={profileForm.material} onChange={(e) => setProfileForm((current) => ({ ...current, material: e.target.value }))} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white text-xs py-2.5" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-slate-300">{t.material} (DE)</label>
-                        <Input placeholder="z.B. EN AW-6063 T6" value={profileForm.materialDe} onChange={(e) => setProfileForm((current) => ({ ...current, materialDe: e.target.value }))} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white text-xs py-2.5" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-slate-300">{t.price}</label>
-                        <Input placeholder="e.g. 45.50" value={profileForm.price} onChange={(e) => setProfileForm((current) => ({ ...current, price: e.target.value }))} className="rounded-2xl border-slate-700 bg-[#1e293b] text-white text-xs py-2.5" />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">{t.description} (EN)</label>
+                          <Input
+                            placeholder="Profile description"
+                            value={profileForm.description}
+                            onChange={(e) => setProfileForm((current) => ({ ...current, description: e.target.value }))}
+                            className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">{t.description} (DE)</label>
+                          <Input
+                            placeholder="Profilbeschreibung"
+                            value={profileForm.descriptionDe}
+                            onChange={(e) => setProfileForm((current) => ({ ...current, descriptionDe: e.target.value }))}
+                            className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20"
+                          />
+                        </div>
                       </div>
 
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-slate-300">{t.currency}</label>
-                        <select
-                          value={profileForm.currencyId}
-                          onChange={(e) => setProfileForm((current) => ({ ...current, currencyId: e.target.value }))}
-                          className="w-full rounded-2xl border border-slate-700 bg-[#1e293b] text-white text-xs p-2.5 focus:border-cyan-400"
-                        >
-                          <option value="" className="bg-slate-900">-- Select {t.currency} --</option>
-                          {((referenceData as any)?.currencies ?? []).map((currency: any) => (
-                            <option key={currency.id} value={currency.id} className="bg-slate-900">
-                              {currency.code} ({currency.symbol})
-                            </option>
-                          ))}
-                        </select>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">{t.dimensions}</label>
+                          <Input
+                            placeholder="e.g. 40x40 mm"
+                            value={profileForm.dimensions}
+                            onChange={(e) => setProfileForm((current) => ({ ...current, dimensions: e.target.value }))}
+                            className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">{t.weightPerMeter} (kg/m)</label>
+                          <Input
+                            placeholder="e.g. 1.75"
+                            value={profileForm.weightPerMeter}
+                            onChange={(e) => setProfileForm((current) => ({ ...current, weightPerMeter: e.target.value }))}
+                            className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">{t.lengthMm} (mm)</label>
+                          <Input
+                            placeholder="e.g. 6000"
+                            value={profileForm.lengthMm}
+                            onChange={(e) => setProfileForm((current) => ({ ...current, lengthMm: e.target.value }))}
+                            className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">{t.price}</label>
+                          <Input
+                            placeholder="e.g. 45.50"
+                            value={profileForm.price}
+                            onChange={(e) => setProfileForm((current) => ({ ...current, price: e.target.value }))}
+                            className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20"
+                          />
+                        </div>
                       </div>
 
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-slate-300">{t.status}</label>
-                        <select
-                          value={profileForm.status}
-                          onChange={(e) => setProfileForm((current) => ({ ...current, status: e.target.value }))}
-                          className="w-full rounded-2xl border border-slate-700 bg-[#1e293b] text-white text-xs p-2.5 focus:border-cyan-400 font-bold"
-                        >
-                          {(referenceData?.statusOptions ?? []).map((status) => (
-                            <option key={status} value={status} className="bg-slate-900">
-                              {status}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-slate-300">{t.applications}</label>
-                        <select
-                          multiple
-                          value={profileForm.applicationIds.map(String)}
-                          onChange={(e) => setProfileForm((current) => ({ ...current, applicationIds: Array.from(e.target.selectedOptions).map((option) => Number(option.value)) }))}
-                          className="w-full h-24 rounded-2xl border border-slate-700 bg-[#1e293b] text-white text-xs p-2 focus:border-cyan-400"
-                        >
-                          {(referenceData?.applications ?? []).map((item) => (
-                            <option key={item.id} value={item.id} className="p-1 rounded hover:bg-cyan-500/20">
-                              {item.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-slate-300">{t.crossSections}</label>
-                        <select
-                          multiple
-                          value={profileForm.crossSectionIds.map(String)}
-                          onChange={(e) => setProfileForm((current) => ({ ...current, crossSectionIds: Array.from(e.target.selectedOptions).map((option) => Number(option.value)) }))}
-                          className="w-full h-24 rounded-2xl border border-slate-700 bg-[#1e293b] text-white text-xs p-2 focus:border-cyan-400"
-                        >
-                          {(referenceData?.crossSections ?? []).map((item) => (
-                            <option key={item.id} value={item.id} className="p-1 rounded hover:bg-cyan-500/20">
-                              {item.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* File Uploads */}
-                      <div className="space-y-1.5 bg-[#1e293b]/60 p-4 rounded-2xl border border-slate-800">
-                        <label className="block text-xs font-bold text-slate-300">{t.drawingFile} (PDF/Image)</label>
-                        {profileForm.drawingUrl ? (
-                          <div className="flex items-center justify-between gap-2 bg-[#0f172a] p-2 rounded-xl border border-slate-700">
-                            <a href={profileForm.drawingUrl} target="_blank" rel="noreferrer" className="truncate text-xs text-cyan-400 underline">{profileForm.drawingUrl.split('/').pop()}</a>
-                            <Button size="sm" variant="destructive" className="h-7 text-xs rounded-lg" onClick={() => setProfileForm((current) => ({ ...current, drawingUrl: '' }))}>{t.delete}</Button>
-                          </div>
-                        ) : (
-                          <input type="file" accept="image/*,.pdf" className="w-full text-xs text-slate-400 file:mr-3 file:rounded-xl file:border-0 file:bg-cyan-500/10 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-cyan-400" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; const data = await uploadFile(file); setProfileForm((current) => ({ ...current, drawingUrl: data.url })); }} />
-                        )}
-                      </div>
-
-                      <div className="space-y-1.5 bg-[#1e293b]/60 p-4 rounded-2xl border border-slate-800">
-                        <label className="block text-xs font-bold text-slate-300">{t.photoFile} (PDF/Image)</label>
-                        {profileForm.photoUrl ? (
-                          <div className="flex items-center justify-between gap-2 bg-[#0f172a] p-2 rounded-xl border border-slate-700">
-                            <a href={profileForm.photoUrl} target="_blank" rel="noreferrer" className="truncate text-xs text-cyan-400 underline">{profileForm.photoUrl.split('/').pop()}</a>
-                            <Button size="sm" variant="destructive" className="h-7 text-xs rounded-lg" onClick={() => setProfileForm((current) => ({ ...current, photoUrl: '' }))}>{t.delete}</Button>
-                          </div>
-                        ) : (
-                          <input type="file" accept="image/*,.pdf" className="w-full text-xs text-slate-400 file:mr-3 file:rounded-xl file:border-0 file:bg-cyan-500/10 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-cyan-400" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; const data = await uploadFile(file); setProfileForm((current) => ({ ...current, photoUrl: data.url })); }} />
-                        )}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">{t.material} (EN)</label>
+                          <Input
+                            placeholder="e.g. EN AW-6063 T6"
+                            value={profileForm.material}
+                            onChange={(e) => setProfileForm((current) => ({ ...current, material: e.target.value }))}
+                            className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">{t.material} (DE)</label>
+                          <Input
+                            placeholder="z.B. EN AW-6063 T6"
+                            value={profileForm.materialDe}
+                            onChange={(e) => setProfileForm((current) => ({ ...current, materialDe: e.target.value }))}
+                            className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">{t.currency}</label>
+                          <select
+                            value={profileForm.currencyId}
+                            onChange={(e) => setProfileForm((current) => ({ ...current, currencyId: e.target.value }))}
+                            className="w-full rounded-xl border border-slate-200 bg-white text-slate-900 text-xs px-3 py-2 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                          >
+                            <option value="">-- Select {t.currency} --</option>
+                            {((referenceData as any)?.currencies ?? []).map((currency: any) => (
+                              <option key={currency.id} value={currency.id}>
+                                {currency.code} ({currency.symbol})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">{t.status}</label>
+                          <select
+                            value={profileForm.status}
+                            onChange={(e) => setProfileForm((current) => ({ ...current, status: e.target.value }))}
+                            className="w-full rounded-xl border border-slate-200 bg-white text-slate-900 text-xs px-3 py-2 focus:ring-2 focus:ring-blue-500/20 focus:outline-none font-bold"
+                          >
+                            {(referenceData?.statusOptions ?? []).map((status) => (
+                              <option key={status} value={status}>
+                                {status}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
-                      <Button variant="outline" className="rounded-2xl border-slate-700 text-slate-300 hover:bg-slate-800 text-xs px-5 py-2.5" onClick={resetProfileForm}>
+                    {/* Sub-section 2: Categories & Classifications */}
+                    <div className="space-y-4 pt-4 border-t border-slate-200">
+                      <h4 className="font-extrabold text-[#0284c7] text-xs uppercase tracking-wider border-b border-slate-200 pb-2">
+                        Category & Classification Links
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">
+                            {t.applications} (Hold Cmd/Ctrl to multi-select)
+                          </label>
+                          <select
+                            multiple
+                            value={profileForm.applicationIds.map(String)}
+                            onChange={(e) => setProfileForm((current) => ({ ...current, applicationIds: Array.from(e.target.selectedOptions).map((option) => Number(option.value)) }))}
+                            className="w-full min-h-[100px] rounded-xl border border-slate-200 bg-white text-slate-900 text-xs p-2.5 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                          >
+                            {(referenceData?.applications ?? []).map((item) => (
+                              <option key={item.id} value={item.id} className="py-1">
+                                {item.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">
+                            {t.crossSections} (Hold Cmd/Ctrl to multi-select)
+                          </label>
+                          <select
+                            multiple
+                            value={profileForm.crossSectionIds.map(String)}
+                            onChange={(e) => setProfileForm((current) => ({ ...current, crossSectionIds: Array.from(e.target.selectedOptions).map((option) => Number(option.value)) }))}
+                            className="w-full min-h-[100px] rounded-xl border border-slate-200 bg-white text-slate-900 text-xs p-2.5 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                          >
+                            {(referenceData?.crossSections ?? []).map((item) => (
+                              <option key={item.id} value={item.id} className="py-1">
+                                {item.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Sub-section 3: Technical Drawings & Photos */}
+                    <div className="space-y-4 pt-4 border-t border-slate-200">
+                      <h4 className="font-extrabold text-[#0284c7] text-xs uppercase tracking-wider border-b border-slate-200 pb-2">
+                        Technical Schematics & Product Photos
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-slate-700">{t.drawingFile} (CAD / Image)</span>
+                            <span className="text-[10px] text-slate-400">PDF, JPG, PNG</span>
+                          </div>
+                          {profileForm.drawingUrl ? (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200">
+                                <a href={profileForm.drawingUrl} target="_blank" rel="noreferrer" className="truncate text-xs text-blue-600 font-bold hover:underline">{profileForm.drawingUrl.split('/').pop()}</a>
+                                <Button size="sm" variant="destructive" className="h-7 text-[11px] font-bold rounded-lg" onClick={() => setProfileForm((current) => ({ ...current, drawingUrl: '' }))}>{t.delete}</Button>
+                              </div>
+                              <div className="h-32 w-full rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden p-2">
+                                {/\.(jpeg|jpg|gif|png|svg|bmp)(\?.*)?$/i.test(profileForm.drawingUrl) ? (
+                                  <img src={profileForm.drawingUrl} alt="Drawing Preview" className="h-full w-full object-contain" />
+                                ) : (
+                                  <iframe src={profileForm.drawingUrl} title="Drawing Preview" className="h-full w-full border-0" />
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <label className="flex flex-col items-center justify-center h-28 rounded-xl border-2 border-dashed border-slate-200 hover:border-blue-400 bg-slate-50/50 hover:bg-blue-50/30 transition-all cursor-pointer">
+                              <Boxes className="h-5 w-5 text-slate-400 mb-1" />
+                              <span className="text-xs font-bold text-blue-600">Upload CAD Drawing</span>
+                              <input type="file" accept="image/*,.pdf" className="hidden" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; const data = await uploadFile(file); setProfileForm((current) => ({ ...current, drawingUrl: data.url })); }} />
+                            </label>
+                          )}
+                        </div>
+
+                        <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-slate-700">{t.photoFile} (Product Photo)</span>
+                            <span className="text-[10px] text-slate-400">PDF, JPG, PNG</span>
+                          </div>
+                          {profileForm.photoUrl ? (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200">
+                                <a href={profileForm.photoUrl} target="_blank" rel="noreferrer" className="truncate text-xs text-blue-600 font-bold hover:underline">{profileForm.photoUrl.split('/').pop()}</a>
+                                <Button size="sm" variant="destructive" className="h-7 text-[11px] font-bold rounded-lg" onClick={() => setProfileForm((current) => ({ ...current, photoUrl: '' }))}>{t.delete}</Button>
+                              </div>
+                              <div className="h-32 w-full rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden p-2">
+                                {/\.(jpeg|jpg|gif|png|svg|bmp)(\?.*)?$/i.test(profileForm.photoUrl) ? (
+                                  <img src={profileForm.photoUrl} alt="Photo Preview" className="h-full w-full object-contain" />
+                                ) : (
+                                  <iframe src={profileForm.photoUrl} title="Photo Preview" className="h-full w-full border-0" />
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <label className="flex flex-col items-center justify-center h-28 rounded-xl border-2 border-dashed border-slate-200 hover:border-blue-400 bg-slate-50/50 hover:bg-blue-50/30 transition-all cursor-pointer">
+                              <Boxes className="h-5 w-5 text-slate-400 mb-1" />
+                              <span className="text-xs font-bold text-blue-600">Upload Product Photo</span>
+                              <input type="file" accept="image/*,.pdf" className="hidden" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; const data = await uploadFile(file); setProfileForm((current) => ({ ...current, photoUrl: data.url })); }} />
+                            </label>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+                      <Button variant="outline" className="border-slate-300 text-slate-700 hover:bg-slate-100 font-bold text-xs rounded-xl" onClick={resetProfileForm}>
                         {t.cancel}
                       </Button>
-                      <Button onClick={saveProfile} disabled={isSaving} className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs px-6 py-2.5 shadow-lg shadow-blue-500/25 cursor-pointer">
+                      <Button onClick={saveProfile} disabled={isSaving} className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-sm cursor-pointer">
                         {isSaving ? 'Saving...' : t.saveProfile}
                       </Button>
                     </div>
@@ -1456,88 +1535,81 @@ function CustomerPage() {
                 )}
 
                 {/* Toolbar Controls Bar */}
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between bg-[#0f172a]/90 p-4 rounded-2xl border border-slate-800">
-                  <div className="flex flex-1 items-center gap-3">
-                    <div className="relative flex-1 max-w-md">
-                      <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                      <Input
-                        placeholder={t.filterProfiles}
-                        value={profileFilter}
-                        onChange={(e) => setProfileFilter(e.target.value)}
-                        className="rounded-2xl border-slate-700 bg-[#1e293b] pl-10 text-white text-xs py-2.5 focus:border-cyan-400"
-                      />
-                    </div>
-
-                    {/* Sorting Dropdown */}
-                    <div className="relative">
-                      <select
-                        value={profileSort}
-                        onChange={(e) => setProfileSort(e.target.value as any)}
-                        className="rounded-2xl border border-slate-700 bg-[#1e293b] text-white text-xs font-bold py-2.5 px-3 focus:border-cyan-400 cursor-pointer"
-                      >
-                        <option value="newest" className="bg-slate-900">✨ Newest First</option>
-                        <option value="oldest" className="bg-slate-900">⌛ Oldest First</option>
-                        <option value="priceAsc" className="bg-slate-900">💲 Price: Low to High</option>
-                        <option value="priceDesc" className="bg-slate-900">💲 Price: High to Low</option>
-                        <option value="name-asc" className="bg-slate-900">🔤 Name (A–Z)</option>
-                        <option value="name-desc" className="bg-slate-900">🔤 Name (Z–A)</option>
-                        <option value="status-asc" className="bg-slate-900">🏷️ Status</option>
-                      </select>
-                    </div>
+                <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_200px_auto_auto_auto]">
+                  <div className="relative">
+                    <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <Input
+                      placeholder={t.filterProfiles}
+                      value={profileFilter}
+                      onChange={(e) => setProfileFilter(e.target.value)}
+                      className="rounded-xl border-slate-200 bg-white pl-10 text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20"
+                    />
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-3">
-                    {/* Per Page Selector */}
-                    <label className="flex items-center gap-2 text-xs font-bold text-slate-400">
-                      <span>Per Page:</span>
-                      <select
-                        value={profilePageSize}
-                        onChange={(e) => {
-                          setProfilePageSize(Number(e.target.value));
-                          setProfilePage(1);
-                        }}
-                        className="rounded-xl border border-slate-700 bg-[#1e293b] text-white text-xs font-bold py-1.5 px-2.5 cursor-pointer"
-                      >
-                        <option value={5} className="bg-slate-900">5</option>
-                        <option value={10} className="bg-slate-900">10</option>
-                        <option value={25} className="bg-slate-900">25</option>
-                        <option value={50} className="bg-slate-900">50</option>
-                        <option value={1000} className="bg-slate-900">All</option>
-                      </select>
-                    </label>
+                  {/* Sorting Dropdown */}
+                  <select
+                    value={profileSort}
+                    onChange={(e) => setProfileSort(e.target.value as any)}
+                    className="rounded-xl border border-slate-200 bg-white text-slate-900 text-xs font-bold px-3 py-2 focus:ring-2 focus:ring-blue-500/20 focus:outline-none cursor-pointer"
+                  >
+                    <option value="newest">✨ Newest First</option>
+                    <option value="oldest">⌛ Oldest First</option>
+                    <option value="priceAsc">💲 Price: Low to High</option>
+                    <option value="priceDesc">💲 Price: High to Low</option>
+                    <option value="name-asc">🔤 Name (A–Z)</option>
+                    <option value="name-desc">🔤 Name (Z–A)</option>
+                    <option value="status-asc">🏷️ Status</option>
+                  </select>
 
-                    <Button
-                      variant="outline"
-                      className="rounded-2xl border-slate-700 bg-[#1e293b] hover:bg-slate-800 text-slate-200 text-xs px-3.5 py-2 flex items-center gap-1.5 cursor-pointer"
-                      onClick={() => exportCustomerProfiles('excel')}
+                  <label className="flex items-center gap-2 text-xs font-bold text-slate-600 bg-white border border-slate-200 px-3 py-2 rounded-xl">
+                    <span>Show:</span>
+                    <select
+                      value={profilePageSize}
+                      onChange={(e) => {
+                        setProfilePageSize(Number(e.target.value));
+                        setProfilePage(1);
+                      }}
+                      className="bg-transparent text-slate-900 text-xs font-bold focus:outline-none cursor-pointer"
                     >
-                      <FileSpreadsheet className="h-4 w-4 text-emerald-400" />
-                      <span>{t.exportExcel}</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="rounded-2xl border-slate-700 bg-[#1e293b] hover:bg-slate-800 text-slate-200 text-xs px-3.5 py-2 flex items-center gap-1.5 cursor-pointer"
-                      onClick={() => exportCustomerProfiles('pdf')}
-                    >
-                      <FileText className="h-4 w-4 text-red-400" />
-                      <span>{t.exportPdf}</span>
-                    </Button>
-                  </div>
+                      <option value={5}>5</option>
+                      <option value={10}>10</option>
+                      <option value={25}>25</option>
+                      <option value={50}>50</option>
+                      <option value={1000}>All</option>
+                    </select>
+                  </label>
+
+                  <Button
+                    variant="outline"
+                    className="border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer"
+                    onClick={() => exportCustomerProfiles('excel')}
+                  >
+                    <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+                    <span>{t.exportExcel}</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer"
+                    onClick={() => exportCustomerProfiles('pdf')}
+                  >
+                    <FileText className="h-4 w-4 text-rose-600" />
+                    <span>{t.exportPdf}</span>
+                  </Button>
                 </div>
 
                 {/* Table Records List */}
                 {!filteredProfiles.length ? (
-                  <div className="rounded-3xl border border-dashed border-slate-800 bg-[#0f172a]/50 p-12 text-center text-sm text-slate-400 space-y-2">
-                    <Boxes className="h-10 w-10 text-slate-600 mx-auto" />
-                    <p className="font-extrabold text-slate-300">{t.noProfiles}</p>
-                    <p className="text-xs text-slate-500">Click &quot;Add Profile&quot; above to create your first custom extrusion profile.</p>
+                  <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50/50 p-12 text-center text-sm text-slate-500 space-y-2">
+                    <Boxes className="h-10 w-10 text-slate-400 mx-auto" />
+                    <p className="font-extrabold text-slate-700">{t.noProfiles}</p>
+                    <p className="text-xs text-slate-500">Click &quot;+ Add Profile&quot; above to create your first custom extrusion profile.</p>
                   </div>
                 ) : (
                   <>
-                    <div className="overflow-x-auto rounded-3xl border border-slate-800 bg-[#0f172a]">
-                      <table className="w-full text-left text-xs">
+                    <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+                      <table className="w-full text-left text-sm">
                         <thead>
-                          <tr className="border-b border-slate-800 bg-[#131c2a] text-[11px] font-black uppercase tracking-wider text-slate-400">
+                          <tr className="bg-slate-50/80 text-slate-600 font-extrabold text-xs uppercase tracking-wider border-b border-slate-200">
                             <th className="px-4 py-3.5">{t.drawing}</th>
                             <th className="px-4 py-3.5">{t.name}</th>
                             <th className="px-4 py-3.5">{t.description}</th>
@@ -1553,7 +1625,7 @@ function CustomerPage() {
                             <th className="px-4 py-3.5 text-right">{t.actions}</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-800/80">
+                        <tbody className="divide-y divide-slate-100 text-slate-700 text-xs">
                           {profileRows.items.map((profile) => {
                             const displayName = profile.nameDe ? profile.name + ' / ' + profile.nameDe : profile.name;
                             const descriptionText = profile.descriptionDe ? (profile.description || '-') + ' / ' + profile.descriptionDe : profile.description || '-';
@@ -1562,48 +1634,48 @@ function CustomerPage() {
                             const displayApplications = (profile.applications ?? []).map((entry) => entry.nameDe ? entry.name + ' / ' + entry.nameDe : entry.name).join(', ') || '-';
                             const displayCrossSections = (profile.crossSections ?? []).map((entry) => entry.nameDe ? entry.name + ' / ' + entry.nameDe : entry.name).join(', ') || '-';
                             return (
-                              <tr key={profile.id} className="hover:bg-slate-800/40 transition-colors">
+                              <tr key={profile.id} className="hover:bg-slate-50/80 transition-colors">
                                 <td className="px-4 py-3">
                                   {profile.drawingUrl ? (
-                                    <a href={profile.drawingUrl} target="_blank" rel="noreferrer" className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border border-slate-700 bg-white p-1 shadow-sm">
+                                    <a href={profile.drawingUrl} target="_blank" rel="noreferrer" className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
                                       <img src={profile.drawingUrl} alt={profile.name} className="h-full w-full object-contain" loading="lazy" />
                                     </a>
                                   ) : (
-                                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-dashed border-slate-800 bg-slate-900 text-[10px] font-bold text-slate-500">N/A</div>
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-100 text-[10px] font-bold text-slate-400">N/A</div>
                                   )}
                                 </td>
-                                <td className="px-4 py-3 font-extrabold text-white">{displayName}</td>
-                                <td className="px-4 py-3 text-slate-400">{descriptionText}</td>
-                                <td className="px-4 py-3 text-slate-400">{displayUsage}</td>
-                                <td className="px-4 py-3 text-slate-400">{displayApplications}</td>
-                                <td className="px-4 py-3 text-slate-400">{displayCrossSections}</td>
+                                <td className="px-4 py-3 font-extrabold text-slate-900">{displayName}</td>
+                                <td className="px-4 py-3 text-slate-500">{descriptionText}</td>
+                                <td className="px-4 py-3 text-slate-500">{displayUsage}</td>
+                                <td className="px-4 py-3 text-slate-500">{displayApplications}</td>
+                                <td className="px-4 py-3 text-slate-500">{displayCrossSections}</td>
                                 <td className="px-4 py-3">
-                                  <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider ${
+                                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold border ${
                                     profile.status === 'NOT_AVAILABLE'
-                                      ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                                      ? 'bg-rose-50 text-rose-700 border-rose-200'
                                       : profile.status === 'IN_DEVELOPMENT'
-                                      ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                                      : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                      ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                      : 'bg-emerald-50 text-emerald-700 border-emerald-200'
                                   }`}>
                                     {profile.status}
                                   </span>
                                 </td>
-                                <td className="px-4 py-3 text-slate-300 font-mono">{profile.dimensions || '-'}</td>
-                                <td className="px-4 py-3 text-slate-400">{displayMaterial}</td>
-                                <td className="px-4 py-3 text-slate-400">{profile.weightPerMeter ? new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(profile.weightPerMeter) : '-'}</td>
-                                <td className="px-4 py-3 text-slate-400">{profile.lengthMm ? new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(profile.lengthMm) : '-'}</td>
-                                <td className="px-4 py-3 font-extrabold text-cyan-400">
+                                <td className="px-4 py-3 text-slate-700 font-bold">{profile.dimensions || '-'}</td>
+                                <td className="px-4 py-3 text-slate-500">{displayMaterial}</td>
+                                <td className="px-4 py-3 text-slate-600">{profile.weightPerMeter ? new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(profile.weightPerMeter) : '-'}</td>
+                                <td className="px-4 py-3 text-slate-600">{profile.lengthMm ? new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(profile.lengthMm) : '-'}</td>
+                                <td className="px-4 py-3 font-extrabold text-slate-900">
                                   {profile.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(profile.price)} ${profile.currency ? profile.currency.symbol : ''}` : '-'}
                                 </td>
                                 <td className="px-4 py-3 text-right">
                                   <div className="flex items-center justify-end gap-1.5">
-                                    <Button size="sm" variant="outline" className="h-8 rounded-xl border-slate-700 text-slate-300 text-[11px]" onClick={() => toggleProfileVisibility(profile)}>
-                                      {profile.status === 'AVAILABLE' ? <EyeOff className="h-3.5 w-3.5 text-amber-400" /> : <Eye className="h-3.5 w-3.5 text-emerald-400" />}
+                                    <Button size="sm" variant="outline" className="h-8 rounded-xl border-slate-200 text-slate-600 hover:bg-slate-100 text-[11px] font-bold" onClick={() => toggleProfileVisibility(profile)}>
+                                      {profile.status === 'AVAILABLE' ? <EyeOff className="h-3.5 w-3.5 text-amber-600" /> : <Eye className="h-3.5 w-3.5 text-emerald-600" />}
                                     </Button>
-                                    <Button size="sm" variant="ghost" className="h-8 rounded-xl text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 text-[11px]" onClick={() => startEditProfile(profile)}>
+                                    <Button size="sm" variant="ghost" className="h-8 rounded-xl text-blue-600 hover:bg-blue-50 text-[11px] font-bold" onClick={() => startEditProfile(profile)}>
                                       {t.edit}
                                     </Button>
-                                    <Button size="sm" variant="ghost" className="h-8 rounded-xl text-red-400 hover:text-red-300 hover:bg-red-500/10 text-[11px]" onClick={() => deleteProfile(profile.id)}>
+                                    <Button size="sm" variant="destructive" className="h-8 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 text-[11px] font-bold" onClick={() => deleteProfile(profile.id)}>
                                       {t.delete}
                                     </Button>
                                   </div>
@@ -1616,9 +1688,9 @@ function CustomerPage() {
                     </div>
 
                     {/* Interactive Pagination Controls */}
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-[#0f172a] p-4 rounded-2xl border border-slate-800 text-xs">
-                      <div className="text-slate-400 font-medium">
-                        {t.showing} <span className="font-extrabold text-white">{profileRows.start}</span>–<span className="font-extrabold text-white">{profileRows.end}</span> of <span className="font-extrabold text-cyan-400">{profileRows.total}</span> {t.records}
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50/60 p-4 text-xs font-medium text-slate-600">
+                      <div>
+                        {t.showing} <span className="font-extrabold text-slate-900">{profileRows.start}</span>–<span className="font-extrabold text-slate-900">{profileRows.end}</span> of <span className="font-extrabold text-slate-900">{profileRows.total}</span> {t.records}
                       </div>
 
                       <div className="flex items-center gap-2">
@@ -1627,9 +1699,9 @@ function CustomerPage() {
                           variant="outline"
                           disabled={profileRows.page <= 1}
                           onClick={() => setProfilePage((page) => page - 1)}
-                          className="h-8 rounded-xl border-slate-700 bg-[#1e293b] text-slate-200 disabled:opacity-40"
+                          className="h-8 rounded-xl border-slate-200 bg-white text-slate-700 hover:bg-slate-100 text-xs font-bold"
                         >
-                          <ChevronLeft className="h-4 w-4" />
+                          <ChevronLeft className="h-4 w-4 mr-1" />
                           <span>{t.previous}</span>
                         </Button>
 
@@ -1640,8 +1712,8 @@ function CustomerPage() {
                               onClick={() => setProfilePage(p)}
                               className={`h-8 w-8 rounded-xl text-xs font-black transition-all cursor-pointer ${
                                 profileRows.page === p
-                                  ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/30'
-                                  : 'bg-[#1e293b] text-slate-400 hover:bg-slate-700 hover:text-white'
+                                  ? 'bg-blue-600 text-white shadow-sm'
+                                  : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
                               }`}
                             >
                               {p}
@@ -1654,10 +1726,10 @@ function CustomerPage() {
                           variant="outline"
                           disabled={profileRows.page >= profileRows.totalPages}
                           onClick={() => setProfilePage((page) => page + 1)}
-                          className="h-8 rounded-xl border-slate-700 bg-[#1e293b] text-slate-200 disabled:opacity-40"
+                          className="h-8 rounded-xl border-slate-200 bg-white text-slate-700 hover:bg-slate-100 text-xs font-bold"
                         >
                           <span>{t.next}</span>
-                          <ChevronRight className="h-4 w-4" />
+                          <ChevronRight className="h-4 w-4 ml-1" />
                         </Button>
                       </div>
                     </div>

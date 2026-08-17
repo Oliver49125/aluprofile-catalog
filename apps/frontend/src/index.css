@@ -153,27 +153,15 @@
 
 @layer components {
   .admin-sidebar {
-    @apply sticky top-6 h-fit overflow-hidden rounded-[1.8rem] border border-slate-700/70 bg-[linear-gradient(180deg,#262b33_0%,#171b22_100%)] p-5 text-white shadow-[0_28px_70px_-34px_rgba(15,23,42,0.8)];
+    @apply sticky top-6 h-fit overflow-hidden rounded-[1.8rem] border border-slate-700/80 bg-gradient-to-b from-[#131c2a] via-[#0f172a] to-[#0b1320] p-6 text-white shadow-2xl backdrop-blur-xl self-start w-full;
   }
 
   .admin-nav-link {
-    @apply flex items-center justify-between rounded-[1rem] bg-white/5 px-4 py-3 text-sm font-medium text-slate-200 transition-all hover:bg-white/10 hover:text-white;
-  }
-}
-
-
-
-@layer components {
-  .admin-sidebar {
-    @apply self-start w-full overflow-visible;
-  }
-
-  .admin-nav-link {
-    @apply w-full text-left;
+    @apply flex items-center justify-between w-full text-left rounded-[1rem] border border-slate-700/60 bg-slate-800/50 px-4 py-3 text-sm font-semibold text-slate-300 transition-all hover:bg-cyan-500/10 hover:border-cyan-500/40 hover:text-cyan-400 cursor-pointer shadow-sm;
   }
 
   .admin-action-tile {
-    @apply flex min-h-[150px] flex-col rounded-[1.35rem] border border-slate-200 bg-gradient-to-br from-white to-slate-100/90 p-5 text-left shadow-[0_18px_40px_-30px_rgba(15,23,42,0.35)] transition-transform hover:-translate-y-0.5;
+    @apply flex min-h-[150px] flex-col rounded-[1.35rem] border border-slate-700/80 bg-[#131c2a]/95 p-5 text-left text-white shadow-xl backdrop-blur-md transition-all hover:-translate-y-1 hover:border-cyan-500/50 hover:shadow-cyan-500/10 cursor-pointer;
   }
 
   .admin-section-toolbar {
@@ -181,7 +169,7 @@
   }
 
   .admin-editor-grid {
-    @apply grid gap-3 rounded-[1.4rem] border border-slate-200 bg-slate-50/80 p-4 md:grid-cols-2;
+    @apply grid gap-3 rounded-[1.4rem] border border-slate-700/80 bg-[#131c2a]/90 p-4 text-white md:grid-cols-2;
   }
 
   .admin-editor-grid-wide {
@@ -193,17 +181,18 @@
   }
 
   .admin-table-wrap {
-    @apply overflow-x-auto rounded-[1.35rem] border border-slate-200 bg-white;
+    @apply overflow-x-auto rounded-[1.35rem] border border-slate-700/80 bg-[#131c2a]/95 text-white shadow-xl backdrop-blur-md;
   }
 
   .admin-pagination {
-    @apply flex flex-col gap-3 text-sm text-slate-600 md:flex-row md:items-center md:justify-between;
+    @apply flex flex-col gap-3 text-sm text-slate-300 md:flex-row md:items-center md:justify-between;
   }
 
   .admin-upload-field {
-    @apply rounded-[1rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700;
+    @apply rounded-[1rem] border border-slate-700 bg-[#1e293b] px-4 py-3 text-sm text-white;
   }
 }
+
 
 
 @layer components {

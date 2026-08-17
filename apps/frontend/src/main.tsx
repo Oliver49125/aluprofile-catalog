@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './AuthContext';
+import { LanguageProvider } from './LanguageContext';
 import './index.css';
 import App from './App.tsx';
 import AdminPage from './AdminPage.tsx';
@@ -20,28 +21,29 @@ initGA();
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <AuthProvider>
-        <Toaster position="top-center" />
-        <Routes>
-          <Route path="/" element={<App />} />
-          <Route path="/catalog" element={<CatalogPage />} />
-          <Route path="/catalog/*" element={<CatalogPage />} />
-          <Route path="/search" element={<SearchPortalPage />} />
-          <Route path="/search/*" element={<SearchPortalPage />} />
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="/admin/*" element={<AdminPage />} />
-          <Route path="/customer" element={<CustomerPage />} />
-          <Route path="/customer/*" element={<CustomerPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/privacy/*" element={<PrivacyPage />} />
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/terms/*" element={<TermsPage />} />
-          <Route path="*" element={<CatalogPage />} />
-        </Routes>
+      <LanguageProvider>
+        <AuthProvider>
+          <Toaster position="top-center" />
+          <Routes>
+            <Route path="/" element={<App />} />
+            <Route path="/catalog" element={<CatalogPage />} />
+            <Route path="/catalog/*" element={<CatalogPage />} />
+            <Route path="/search" element={<SearchPortalPage />} />
+            <Route path="/search/*" element={<SearchPortalPage />} />
+            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/admin/*" element={<AdminPage />} />
+            <Route path="/customer" element={<CustomerPage />} />
+            <Route path="/customer/*" element={<CustomerPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/privacy/*" element={<PrivacyPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/terms/*" element={<TermsPage />} />
+            <Route path="*" element={<App />} />
+          </Routes>
 
-
-        <CookieConsentBanner />
-      </AuthProvider>
+          <CookieConsentBanner />
+        </AuthProvider>
+      </LanguageProvider>
     </BrowserRouter>
   </StrictMode>,
 );

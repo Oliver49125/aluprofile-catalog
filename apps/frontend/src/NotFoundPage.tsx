@@ -1,18 +1,11 @@
-import { useState, useEffect } from 'react';
 import { ArrowLeft, Ban, Globe, Construction } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Card, CardContent } from './components/ui/card';
 import { NavigationHeader } from './components/NavigationHeader';
-
-type Lang = 'en' | 'de';
+import { useLanguage } from './LanguageContext';
 
 export default function NotFoundPage() {
-  const [lang, setLang] = useState<Lang>('en');
-
-  useEffect(() => {
-    const saved = localStorage.getItem('aluprofile_lang');
-    if (saved === 'en' || saved === 'de') setLang(saved);
-  }, []);
+  const { lang, setLang } = useLanguage();
 
   const t = {
     en: {

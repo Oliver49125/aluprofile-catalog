@@ -1,22 +1,14 @@
-import { useState, useEffect } from 'react';
 import { ArrowLeft, BookOpen, CheckSquare, Globe, Scale, HelpCircle, FileText, AlertTriangle } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Card, CardContent } from './components/ui/card';
 import { NavigationHeader } from './components/NavigationHeader';
-
-type Lang = 'en' | 'de';
+import { useLanguage } from './LanguageContext';
 
 export default function TermsPage() {
-  const [lang, setLang] = useState<Lang>('en');
+  const { lang, setLang } = useLanguage();
 
-  useEffect(() => {
-    const saved = localStorage.getItem('aluprofile_lang');
-    if (saved === 'en' || saved === 'de') setLang(saved);
-  }, []);
-
-  const handleLangChange = (newLang: Lang) => {
+  const handleLangChange = (newLang: 'en' | 'de') => {
     setLang(newLang);
-    localStorage.setItem('aluprofile_lang', newLang);
   };
 
   const t = {
