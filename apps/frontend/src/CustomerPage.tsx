@@ -901,34 +901,6 @@ function CustomerPage() {
                     >
                       {loginLoading ? t.signingIn : t.signIn}
                     </Button>
-
-                    <div className="pt-4 border-t border-slate-800 space-y-2">
-                      <p className="text-center text-[10px] font-black uppercase tracking-wider text-slate-400">⚡ 1-Click Fast Auto-Fill Login</p>
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIdentifier('customer@aluprofile.com');
-                            setPassword('customer123');
-                            toast.success('Customer credentials auto-filled!');
-                          }}
-                          className="py-2.5 px-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 font-extrabold text-xs border border-emerald-500/30 transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
-                        >
-                          <span>👤 Customer Login</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIdentifier('admin@aluprofile.com');
-                            setPassword('admin123');
-                            toast.success('Admin credentials auto-filled!');
-                          }}
-                          className="py-2.5 px-3 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 font-extrabold text-xs border border-cyan-500/30 transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
-                        >
-                          <span>🔑 Admin Login</span>
-                        </button>
-                      </div>
-                    </div>
                   </form>
 
 
