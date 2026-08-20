@@ -44,7 +44,7 @@ export type VisitorRecord = {
   status: 'Active' | 'Completed';
 };
 
-// Generates dynamic real-time visitor records relative to current time
+// Generates dynamic real-time visitor records across Today, Last 7 Days, and Last 30 Days
 function getDynamicVisitorRecords(): VisitorRecord[] {
   const now = new Date();
   const minutesAgo = (mins: number) => new Date(now.getTime() - mins * 60 * 1000);
@@ -56,6 +56,7 @@ function getDynamicVisitorRecords(): VisitorRecord[] {
   };
 
   return [
+    // --- TODAY (5 Records) ---
     {
       id: 'VIS-9081',
       ipAddress: '194.230.145.12',
@@ -139,6 +140,8 @@ function getDynamicVisitorRecords(): VisitorRecord[] {
       timestamp: formatTs(hoursAgo(6)),
       status: 'Completed',
     },
+
+    // --- LAST 7 DAYS (7 Records: Days 1-6) ---
     {
       id: 'VIS-9086',
       ipAddress: '87.123.45.67',
@@ -200,8 +203,8 @@ function getDynamicVisitorRecords(): VisitorRecord[] {
       visitedPage: '/search',
       profileSearched: '40x40',
       durationSeconds: 155,
-      dateObj: daysAgo(5, 3),
-      timestamp: formatTs(daysAgo(5, 3)),
+      dateObj: daysAgo(4, 3),
+      timestamp: formatTs(daysAgo(4, 3)),
       status: 'Completed',
     },
     {
@@ -218,8 +221,174 @@ function getDynamicVisitorRecords(): VisitorRecord[] {
       visitedPage: '/catalog/80x16',
       profileSearched: '80x16',
       durationSeconds: 520,
-      dateObj: daysAgo(6, 5),
-      timestamp: formatTs(daysAgo(6, 5)),
+      dateObj: daysAgo(5, 5),
+      timestamp: formatTs(daysAgo(5, 5)),
+      status: 'Completed',
+    },
+    {
+      id: 'VIS-9091',
+      ipAddress: '80.120.90.14',
+      userType: 'GUEST',
+      country: 'Austria',
+      city: 'Innsbruck',
+      device: 'Mobile',
+      browser: 'Safari Mobile',
+      os: 'iOS 17',
+      visitedPage: '/catalog',
+      profileSearched: '30x30 Leicht',
+      durationSeconds: 140,
+      dateObj: daysAgo(6, 2),
+      timestamp: formatTs(daysAgo(6, 2)),
+      status: 'Completed',
+    },
+    {
+      id: 'VIS-9092',
+      ipAddress: '84.115.22.61',
+      userType: 'GUEST',
+      country: 'Germany',
+      city: 'Frankfurt',
+      device: 'Desktop',
+      browser: 'Edge 128',
+      os: 'Windows 11',
+      visitedPage: '/catalog/C-Profil-20x10',
+      profileSearched: 'C-Profil',
+      durationSeconds: 380,
+      dateObj: daysAgo(6, 8),
+      timestamp: formatTs(daysAgo(6, 8)),
+      status: 'Completed',
+    },
+
+    // --- LAST 30 DAYS (8 Records: Days 8-28) ---
+    {
+      id: 'VIS-9093',
+      ipAddress: '194.230.111.45',
+      userType: 'REGISTERED',
+      userEmail: 'customer@alucatalog.com',
+      userName: 'Oliver Tech GmbH',
+      country: 'Germany',
+      city: 'Stuttgart',
+      device: 'Desktop',
+      browser: 'Chrome 127',
+      os: 'macOS',
+      visitedPage: '/customer/orders',
+      durationSeconds: 480,
+      dateObj: daysAgo(9, 4),
+      timestamp: formatTs(daysAgo(9, 4)),
+      status: 'Completed',
+    },
+    {
+      id: 'VIS-9094',
+      ipAddress: '62.240.134.12',
+      userType: 'GUEST',
+      country: 'Austria',
+      city: 'Klagenfurt',
+      device: 'Desktop',
+      browser: 'Firefox 129',
+      os: 'Windows 10',
+      visitedPage: '/catalog/Nut-10-Schwer',
+      profileSearched: 'Nut 10 Schwer',
+      durationSeconds: 290,
+      dateObj: daysAgo(12, 6),
+      timestamp: formatTs(daysAgo(12, 6)),
+      status: 'Completed',
+    },
+    {
+      id: 'VIS-9095',
+      ipAddress: '141.136.240.8',
+      userType: 'GUEST',
+      country: 'Switzerland',
+      city: 'Basel',
+      device: 'Mobile',
+      browser: 'Safari Mobile',
+      os: 'iOS 17',
+      visitedPage: '/search',
+      profileSearched: '45x45 B-Typ',
+      durationSeconds: 165,
+      dateObj: daysAgo(15, 2),
+      timestamp: formatTs(daysAgo(15, 2)),
+      status: 'Completed',
+    },
+    {
+      id: 'VIS-9096',
+      ipAddress: '188.23.104.99',
+      userType: 'REGISTERED',
+      userEmail: 'oliverkascha@hotmail.com',
+      userName: 'Oliver Kascha',
+      country: 'Austria',
+      city: 'Vienna',
+      device: 'Desktop',
+      browser: 'Firefox 129',
+      os: 'Windows 11',
+      visitedPage: '/catalog',
+      profileSearched: 'Rahmenprofil',
+      durationSeconds: 590,
+      dateObj: daysAgo(18, 1),
+      timestamp: formatTs(daysAgo(18, 1)),
+      status: 'Completed',
+    },
+    {
+      id: 'VIS-9097',
+      ipAddress: '77.119.129.5',
+      userType: 'GUEST',
+      country: 'Germany',
+      city: 'Cologne',
+      device: 'Desktop',
+      browser: 'Chrome 127',
+      os: 'Windows 11',
+      visitedPage: '/catalog/80x80-Nut-8',
+      profileSearched: '80x80 Nut 8',
+      durationSeconds: 340,
+      dateObj: daysAgo(21, 5),
+      timestamp: formatTs(daysAgo(21, 5)),
+      status: 'Completed',
+    },
+    {
+      id: 'VIS-9098',
+      ipAddress: '195.34.133.20',
+      userType: 'GUEST',
+      country: 'Austria',
+      city: 'Wels',
+      device: 'Tablet',
+      browser: 'Safari',
+      os: 'iPadOS',
+      visitedPage: '/search',
+      profileSearched: 'Aluminium Winkel',
+      durationSeconds: 210,
+      dateObj: daysAgo(24, 7),
+      timestamp: formatTs(daysAgo(24, 7)),
+      status: 'Completed',
+    },
+    {
+      id: 'VIS-9099',
+      ipAddress: '176.10.104.240',
+      userType: 'REGISTERED',
+      userEmail: 'Kascha.Oliver@akzent-wien.at',
+      userName: 'Franz311',
+      country: 'Austria',
+      city: 'Salzburg',
+      device: 'Desktop',
+      browser: 'Edge 127',
+      os: 'Windows 11',
+      visitedPage: '/customer/inquiries',
+      durationSeconds: 680,
+      dateObj: daysAgo(26, 3),
+      timestamp: formatTs(daysAgo(26, 3)),
+      status: 'Completed',
+    },
+    {
+      id: 'VIS-9100',
+      ipAddress: '85.214.132.117',
+      userType: 'GUEST',
+      country: 'Germany',
+      city: 'Nuremberg',
+      device: 'Desktop',
+      browser: 'Chrome 127',
+      os: 'Linux',
+      visitedPage: '/catalog',
+      profileSearched: 'T-Nut Profil 20x20',
+      durationSeconds: 250,
+      dateObj: daysAgo(28, 6),
+      timestamp: formatTs(daysAgo(28, 6)),
       status: 'Completed',
     },
   ];
@@ -281,7 +450,7 @@ export const AnalyticsPanel: React.FC<Props> = ({
   }, [visitors, searchQuery, userTypeFilter, deviceFilter, countryFilter, timeRange]);
 
   // Aggregate statistics
-  const activeNowCount = filteredVisitors.filter((v) => v.status === 'Active').length || 1;
+  const activeNowCount = filteredVisitors.filter((v) => v.status === 'Active').length || (timeRange === 'TODAY' ? 1 : 0);
   const filteredRegistered = filteredVisitors.filter((v) => v.userType === 'REGISTERED').length;
   const filteredGuests = filteredVisitors.filter((v) => v.userType === 'GUEST').length;
   const avgDuration = filteredVisitors.length > 0
@@ -361,7 +530,7 @@ export const AnalyticsPanel: React.FC<Props> = ({
           <Button
             onClick={() => exportAnalytics('csv')}
             variant="outline"
-            className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold flex items-center gap-1.5"
+            className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
           >
             <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600" />
             CSV
@@ -370,7 +539,7 @@ export const AnalyticsPanel: React.FC<Props> = ({
           <Button
             onClick={() => exportAnalytics('pdf')}
             variant="outline"
-            className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold flex items-center gap-1.5"
+            className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
           >
             <FileText className="h-3.5 w-3.5 text-blue-600" />
             PDF
@@ -554,8 +723,10 @@ export const AnalyticsPanel: React.FC<Props> = ({
             <Eye className="h-4 w-4 text-blue-600" />
             <span>{lang === 'de' ? 'Besucheraktivität & Sitzungsdetails' : 'Visitor Activity Log & Details'}</span>
           </CardTitle>
-          <span className="text-xs font-bold text-slate-400">
-            {lang === 'de' ? `Zeige ${filteredVisitors.length} von ${visitors.length} Einträgen` : `Showing ${filteredVisitors.length} of ${visitors.length} records`}
+          <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg">
+            {lang === 'de'
+              ? `Zeige ${filteredVisitors.length} von ${visitors.length} Einträgen (${timeRange === 'TODAY' ? 'Heute' : timeRange === '7DAYS' ? 'Letzte 7 Tage' : 'Letzte 30 Tage'})`
+              : `Showing ${filteredVisitors.length} of ${visitors.length} records (${timeRange === 'TODAY' ? 'Today' : timeRange === '7DAYS' ? 'Last 7 Days' : 'Last 30 Days'})`}
           </span>
         </CardHeader>
         <CardContent className="p-0 overflow-x-auto">
