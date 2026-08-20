@@ -151,3 +151,25 @@ model SiteSettings {
   value     String   @db.Text
   updatedAt DateTime @updatedAt
 }
+
+model VisitorLog {
+  id              Int      @id @default(autoincrement())
+  ipAddress       String   @default("194.230.xxx.xxx")
+  userType        String   @default("GUEST")
+  userEmail       String?
+  userName        String?
+  country         String   @default("Austria")
+  city            String   @default("Vienna")
+  device          String   @default("Desktop")
+  browser         String   @default("Chrome")
+  os              String   @default("Windows")
+  visitedPage     String   @default("/")
+  profileSearched String?
+  durationSeconds Int      @default(30)
+  status          String   @default("Completed")
+  createdAt       DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([userType])
+  @@index([country])
+}

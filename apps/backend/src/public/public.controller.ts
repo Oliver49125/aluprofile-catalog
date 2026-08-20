@@ -91,9 +91,37 @@ export class PublicController {
   }
 
   @Post('visits')
+  async incrementVisit(
+    @Body() body?: {
+      visitedPage?: string;
+      profileSearched?: string;
+      device?: string;
+      browser?: string;
+      os?: string;
+      userType?: string;
+      userEmail?: string;
+      userName?: string;
+      durationSeconds?: number;
+    }
+  ) {
+    return this.publicService.incrementVisit(body);
+  }
 
-  async incrementVisit() {
-    return this.publicService.incrementVisit();
+  @Get('visitor-logs')
+  async getVisitorLogs(
+    @Query('timeRange') timeRange?: 'TODAY' | '7DAYS' | '30DAYS',
+    @Query('userType') userType?: string,
+    @Query('device') device?: string,
+    @Query('country') country?: string,
+    @Query('q') q?: string,
+  ) {
+    return this.publicService.getVisitorLogs({
+      timeRange: timeRange || 'TODAY',
+      userType,
+      device,
+      country,
+      q,
+    });
   }
 
   @Get('site-settings')

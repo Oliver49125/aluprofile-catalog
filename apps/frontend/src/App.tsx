@@ -365,12 +365,21 @@ function App() {
   const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    api('/public/visits', { method: 'POST' })
-      .then(data => {
-        if (data && typeof data.value === 'number') {
-        }
-      })
-      .catch(err => console.error('Failed to increment visits', err));
+    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+    const isTablet = /Tablet|iPad/i.test(navigator.userAgent);
+    const device = isTablet ? 'Tablet' : isMobile ? 'Mobile' : 'Desktop';
+    const browser = navigator.userAgent.includes('Chrome') ? 'Chrome' : navigator.userAgent.includes('Safari') ? 'Safari' : navigator.userAgent.includes('Firefox') ? 'Firefox' : navigator.userAgent.includes('Edg') ? 'Edge' : 'Browser';
+    const os = navigator.userAgent.includes('Mac') ? 'macOS' : navigator.userAgent.includes('Windows') ? 'Windows' : navigator.userAgent.includes('Android') ? 'Android' : navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad') ? 'iOS' : 'OS';
+
+    api('/public/visits', {
+      method: 'POST',
+      body: JSON.stringify({
+        visitedPage: window.location.pathname || '/',
+        device,
+        browser,
+        os,
+      }),
+    }).catch(err => console.error('Failed to increment visits', err));
   }, []);
 
   const [message, setMessage] = useState('');
