@@ -702,7 +702,9 @@ export default function SearchPortalPage() {
                       const weight = profile.weightPerMeter ? `${profile.weightPerMeter} kg/m` : '1.2 kg/m';
                       const alloy = profile.material || 'Aluminum Alloy 6063-T5';
                       const visual = profile.photoUrl || profile.drawingUrl || '/hero-3d-profile.png';
-                      const priceVal = profile.price ? `${profile.price.toFixed(2)} ${profile.currency?.symbol || '€'}` : null;
+                      const priceVal = profile.price !== null && profile.price !== undefined && profile.price > 0
+                        ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(profile.price)} ${profile.currency?.symbol || '€'}`
+                        : (lang === 'de' ? 'Auf Anfrage' : 'On Request');
 
                       return (
                         <div
@@ -710,12 +712,12 @@ export default function SearchPortalPage() {
                           onClick={() => setSelectedProfile(profile)}
                           className="group bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm hover:shadow-md hover:border-blue-400 transition-all duration-200 flex flex-col justify-between cursor-pointer relative"
                         >
-                          {/* Price Tag Pill if available */}
-                          {priceVal && (
-                            <span className="absolute top-2.5 right-2.5 z-10 rounded-full bg-slate-900/90 backdrop-blur-md px-2 py-0.5 text-[10px] font-black text-white shadow-sm">
-                              {priceVal}
-                            </span>
-                          )}
+                          {/* Price Tag Pill */}
+                          <span className={`absolute top-2.5 right-2.5 z-10 rounded-full px-2.5 py-0.5 text-[10px] font-black shadow-sm backdrop-blur-md ${
+                            profile.price ? 'bg-slate-900/90 text-emerald-400 border border-slate-700/60' : 'bg-slate-800/80 text-slate-300'
+                          }`}>
+                            {priceVal}
+                          </span>
 
                           {/* Top Extrusion Render Thumbnail */}
                           <div className="h-32 w-full rounded-xl bg-slate-50/60 flex items-center justify-center p-2 group-hover:scale-105 transition-transform duration-300">
@@ -901,11 +903,9 @@ export default function SearchPortalPage() {
                       <span className={`h-1.5 w-1.5 rounded-full ${selectedProfile.status === 'AVAILABLE' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
                       {selectedProfile.status}
                     </span>
-                    {selectedProfile.price ? (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-black bg-blue-50 text-blue-700 border border-blue-200">
-                        {new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US').format(selectedProfile.price)} {selectedProfile.currency?.symbol ?? '€'}
-                      </span>
-                    ) : null}
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      💰 {selectedProfile.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(selectedProfile.price)} ${selectedProfile.currency?.symbol ?? '€'}` : (lang === 'de' ? 'Preis auf Anfrage' : 'Price on Request')}
+                    </span>
                   </div>
                   <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
                     {selectedProfile.description || selectedProfile.usage || 'Industrial grade aluminum profile with high structural rigidity.'}

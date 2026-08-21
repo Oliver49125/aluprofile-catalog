@@ -1107,7 +1107,7 @@ function App() {
                                   <div>
                                     <p className="text-[10px] text-slate-400 uppercase tracking-wide">{t.price}</p>
                                     <p className="text-xs font-semibold text-slate-900">
-                                      {p.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(p.price)} ${p.currency?.symbol ?? ''}` : t.onRequest}
+                                      {p.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(p.price)} ${p.currency?.symbol ?? '€'}` : t.onRequest}
                                     </p>
                                   </div>
                                   <Button size="sm" className="ml-auto text-xs" onClick={(e) => { e.stopPropagation(); setShowInquiryModal(p); }}>{t.inquiry}</Button>
@@ -1176,7 +1176,7 @@ function App() {
                                       <div>
                                         <p className="text-[10px] text-slate-400 uppercase tracking-wide">{t.price}</p>
                                         <p className="text-sm font-semibold text-slate-900">
-                                          {p.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(p.price)} ${p.currency?.symbol ?? ''}` : t.onRequest}
+                                          {p.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(p.price)} ${p.currency?.symbol ?? '€'}` : t.onRequest}
                                         </p>
                                       </div>
                                       <Button size="sm" onClick={(e) => { e.stopPropagation(); setShowInquiryModal(p); }} className="w-full text-xs">{t.inquiry}</Button>

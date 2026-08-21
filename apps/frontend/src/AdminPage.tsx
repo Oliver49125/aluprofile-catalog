@@ -2848,7 +2848,7 @@ function AdminPage() {
                                       ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', {
                                           minimumFractionDigits: 2,
                                           maximumFractionDigits: 2,
-                                        }).format(item.price)} ${item.currency ? item.currency.symbol : ''}`
+                                        }).format(item.price)} ${item.currency ? item.currency.symbol : '€'}`
                                       : '-'}
                                   </td>
                                   <td className="px-5 py-4 text-right">

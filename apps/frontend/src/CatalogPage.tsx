@@ -588,9 +588,9 @@ export default function CatalogPage() {
 
                       <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
                         <div>
-                          <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Price</p>
+                          <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">{lang === 'de' ? 'Preis' : 'Price'}</p>
                           <p className="text-sm font-extrabold text-slate-900">
-                            {p.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(p.price)} ${p.currency?.symbol ?? '€'}` : 'On Request'}
+                            {p.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(p.price)} ${p.currency?.symbol ?? '€'}` : (lang === 'de' ? 'Auf Anfrage' : 'On Request')}
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -824,11 +824,9 @@ export default function CatalogPage() {
                       <span className={`h-1.5 w-1.5 rounded-full ${detail.status === 'AVAILABLE' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
                       {detail.status}
                     </span>
-                    {detail.price ? (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-black bg-blue-50 text-blue-700 border border-blue-200">
-                        {new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US').format(detail.price)} {detail.currency?.symbol ?? '€'}
-                      </span>
-                    ) : null}
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      💰 {detail.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(detail.price)} ${detail.currency?.symbol ?? '€'}` : (lang === 'de' ? 'Preis auf Anfrage' : 'Price on Request')}
+                    </span>
                   </div>
                   <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1.5">
                     {detail.description || detail.usage || 'Industrial grade aluminum profile with high structural rigidity.'}
