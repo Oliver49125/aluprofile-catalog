@@ -485,7 +485,7 @@ export default function CatalogPage() {
               <div className="p-8 text-center text-sm font-semibold text-slate-500">{lang === 'de' ? 'Katalogprofile werden geladen...' : 'Loading catalog profiles...'}</div>
             ) : viewMode === 'table' ? (
               <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
+                <table className="w-full text-sm text-left min-w-[760px]">
                   <thead className="bg-slate-50 text-slate-600 font-extrabold text-xs uppercase tracking-wider">
                     <tr>
                       <th className="px-5 py-3.5">{lang === 'de' ? 'Zeichnung' : 'Drawing'}</th>

@@ -980,7 +980,7 @@ function CustomerPage() {
                     <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/10 border border-blue-400/20 px-3.5 py-1 text-[11px] font-extrabold uppercase tracking-[0.24em] text-cyan-400 shadow-sm">
                       <Boxes className="h-3.5 w-3.5" /> AluProfile System
                     </div>
-                    <h2 className="text-3xl font-extrabold text-white tracking-tight">{t.signUp}</h2>
+                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight leading-tight">{t.signUp}</h2>
                     <p className="text-xs text-slate-400 leading-relaxed max-w-xs mx-auto">{t.signUpNote}</p>
                   </div>
                   <div className="space-y-3.5">

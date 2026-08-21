@@ -785,15 +785,32 @@ function App() {
             {(() => {
               const filteredList = profiles.filter((p) => {
                 if (activePill === 'all') return true;
-                const nameLower = p.name.toLowerCase();
+                const nameLower = (p.name || '').toLowerCase();
                 const descLower = (p.description || '').toLowerCase();
-                if (activePill === 't-slot') return nameLower.includes('slot') || nameLower.includes('t-slot') || descLower.includes('slot');
-                if (activePill === 'base') return nameLower.includes('base') || nameLower.includes('heavy') || descLower.includes('base');
-                if (activePill === 'angle') return nameLower.includes('angle') || descLower.includes('angle');
-                if (activePill === 'u-channel') return nameLower.includes('u-channel') || nameLower.includes('channel') || descLower.includes('channel');
+                const dimsLower = (p.dimensions || '').toLowerCase();
+
+                if (activePill === 't-slot') {
+                  return !!p.slotSize || nameLower.includes('slot') || nameLower.includes('nut') || nameLower.includes('t-') || dimsLower.includes('x') || descLower.includes('slot') || descLower.includes('nut');
+                }
+                if (activePill === 'base') {
+                  return nameLower.includes('base') || nameLower.includes('schwer') || nameLower.includes('heavy') || nameLower.includes('80x80') || nameLower.includes('160x80') || descLower.includes('base') || descLower.includes('pillar') || descLower.includes('gestell');
+                }
+                if (activePill === 'angle') {
+                  return nameLower.includes('angle') || nameLower.includes('winkel') || nameLower.includes('r20') || nameLower.includes('1n') || nameLower.includes('2n') || descLower.includes('corner') || descLower.includes('eck');
+                }
+                if (activePill === 'u-channel') {
+                  return nameLower.includes('channel') || nameLower.includes('abdeck') || nameLower.includes('trenn') || nameLower.includes('u-') || descLower.includes('channel') || descLower.includes('cover') || descLower.includes('partition');
+                }
                 return true;
               });
-              const displayList = (filteredList.length > 0 ? filteredList : profiles).slice(0, 8);
+
+              // Always ensure exactly 8 profiles are displayed for a complete 4x2 grid
+              let displayList = [...filteredList];
+              if (displayList.length < 8 && profiles.length > 0) {
+                const remaining = profiles.filter(p => !displayList.some(item => item.id === p.id));
+                displayList = [...displayList, ...remaining];
+              }
+              displayList = displayList.slice(0, 8);
 
               if (isLoading) {
                 return Array.from({ length: 8 }).map((_, i) => (
