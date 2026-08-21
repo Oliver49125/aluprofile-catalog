@@ -101,7 +101,7 @@ type UserAdmin = {
   permissions: AppPermission[];
 };
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 function paginateItems<T>(items: T[], page: number, pageSize = PAGE_SIZE) {
   const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
@@ -1099,12 +1099,27 @@ function AdminPage() {
       });
   }, [roleFilter, roleSort, userList]);
 
+  const suppliers = adminRef?.suppliers ?? [];
+  const filteredSuppliers = useMemo(() => {
+    let result = suppliers;
+    if (supplierFilter) {
+      const q = normalizeForSearch(supplierFilter);
+      result = result.filter((item) =>
+        normalizeForSearch(item.name).includes(q) ||
+        (item.contactPerson && normalizeForSearch(item.contactPerson).includes(q)) ||
+        (item.email && normalizeForSearch(item.email).includes(q)) ||
+        (item.phone && normalizeForSearch(item.phone).includes(q))
+      );
+    }
+    return [...result].sort((a, b) => compareText(a.name, b.name));
+  }, [suppliers, supplierFilter]);
 
   const applicationRows = paginateItems(filteredApplications, applicationPage);
   const crossSectionRows = paginateItems(filteredCrossSections, crossSectionPage);
   const profileRows = paginateItems(filteredProfiles, profilePage);
   const currencyRows = paginateItems(filteredCurrencies, currencyPage);
   const roleRows = paginateItems(filteredRoles, rolePage);
+  const supplierRows = paginateItems(filteredSuppliers, supplierPage);
 
   function exportAdminSection(kind: 'excel' | 'pdf', title: string, headers: string[], rows: Array<Array<string | number>>) {
     if (kind === 'excel') {
@@ -2128,25 +2143,63 @@ function AdminPage() {
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
-                              {(adminRef?.suppliers || []).filter(s => normalizeForSearch(s.name).includes(normalizeForSearch(supplierFilter))).slice((supplierPage - 1) * PAGE_SIZE, supplierPage * PAGE_SIZE).map((item) => (
-                                <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                                  <td className="p-4 font-extrabold text-slate-900">{item.name}</td>
-                                  <td className="p-4 font-medium text-slate-600">{item.contactPerson || '-'}</td>
-                                  <td className="p-4 font-medium text-slate-600">{item.email || '-'}</td>
-                                  <td className="p-4 text-right">
-                                    <div className="flex justify-end gap-1.5">
-                                      <Button variant="ghost" size="sm" onClick={() => startEditSupplier(item)} className="text-blue-600 hover:bg-blue-50 text-xs font-bold rounded-xl">
-                                        {t.edit}
-                                      </Button>
-                                      <Button variant="destructive" size="sm" onClick={() => deleteItem('/admin/suppliers/' + item.id)} className="bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 text-xs font-bold rounded-xl">
-                                        {t.delete}
-                                      </Button>
-                                    </div>
+                              {supplierRows.items.length === 0 ? (
+                                <tr>
+                                  <td colSpan={4} className="p-8 text-center text-sm font-semibold text-slate-400">
+                                    {lang === 'de' ? 'Keine Lieferanten gefunden.' : 'No suppliers found.'}
                                   </td>
                                 </tr>
-                              ))}
+                              ) : (
+                                supplierRows.items.map((item) => (
+                                  <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
+                                    <td className="p-4 font-extrabold text-slate-900">{item.name}</td>
+                                    <td className="p-4 font-medium text-slate-600">{item.contactPerson || '-'}</td>
+                                    <td className="p-4 font-medium text-slate-600">{item.email || '-'}</td>
+                                    <td className="p-4 text-right">
+                                      <div className="flex justify-end gap-1.5">
+                                        <Button variant="ghost" size="sm" onClick={() => startEditSupplier(item)} className="text-blue-600 hover:bg-blue-50 text-xs font-bold rounded-xl">
+                                          {t.edit}
+                                        </Button>
+                                        <Button variant="destructive" size="sm" onClick={() => deleteItem('/admin/suppliers/' + item.id)} className="bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 text-xs font-bold rounded-xl">
+                                          {t.delete}
+                                        </Button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ))
+                              )}
                             </tbody>
                           </table>
+                        </div>
+
+                        {/* Pagination Bar for Suppliers */}
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50/60 p-4 text-xs font-medium text-slate-600">
+                          <span>
+                            {t.showing} {supplierRows.start}-{supplierRows.end} / {supplierRows.total} {t.records}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={supplierRows.page <= 1}
+                              onClick={() => setSupplierPage((page) => page - 1)}
+                              className="border-slate-200 bg-white text-slate-700 hover:bg-slate-100 text-xs font-bold rounded-xl"
+                            >
+                              {t.previous}
+                            </Button>
+                            <span className="font-bold text-slate-900 px-2">
+                              {t.pageLabel} {supplierRows.page} {t.ofLabel} {supplierRows.totalPages}
+                            </span>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={supplierRows.page >= supplierRows.totalPages}
+                              onClick={() => setSupplierPage((page) => page + 1)}
+                              className="border-slate-200 bg-white text-slate-700 hover:bg-slate-100 text-xs font-bold rounded-xl"
+                            >
+                              {t.next}
+                            </Button>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
