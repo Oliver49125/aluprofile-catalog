@@ -26,7 +26,11 @@ import {
   Layers,
   MapPin,
   Share2,
-  CheckCircle2
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -428,6 +432,15 @@ export const AnalyticsPanel: React.FC<Props> = ({
   const [customStartDate, setCustomStartDate] = useState(sevenDaysAgoStr);
   const [customEndDate, setCustomEndDate] = useState(todayStr);
 
+  // Pagination state for Visitor Activity Log table
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  // Reset pagination to page 1 whenever any filter or page size changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [timeRange, customStartDate, customEndDate, searchQuery, userTypeFilter, deviceFilter, countryFilter, pageSize]);
+
   // Fetch real database visitor logs from Railway PostgreSQL API
   const fetchDbVisitorLogs = () => {
     setLoadingDb(true);
@@ -487,8 +500,16 @@ export const AnalyticsPanel: React.FC<Props> = ({
     const sevenDaysMs = 7 * oneDayMs;
     const thirtyDaysMs = 30 * oneDayMs;
 
-    const customStart = new Date(customStartDate).getTime();
-    const customEnd = new Date(customEndDate).setHours(23, 59, 59, 999);
+    let customStart = 0;
+    let customEnd = Infinity;
+    if (timeRange === 'CUSTOM') {
+      if (customStartDate) {
+        customStart = new Date(customStartDate + 'T00:00:00').getTime();
+      }
+      if (customEndDate) {
+        customEnd = new Date(customEndDate + 'T23:59:59.999').getTime();
+      }
+    }
 
     return rawVisitors.filter((v) => {
       // Time Range filter
@@ -499,7 +520,8 @@ export const AnalyticsPanel: React.FC<Props> = ({
       if (timeRange === '7DAYS' && diff > sevenDaysMs) return false;
       if (timeRange === '30DAYS' && diff > thirtyDaysMs) return false;
       if (timeRange === 'CUSTOM') {
-        if (vTime < customStart || vTime > customEnd) return false;
+        if (!isNaN(customStart) && vTime < customStart) return false;
+        if (!isNaN(customEnd) && vTime > customEnd) return false;
       }
 
       // User Type
@@ -524,6 +546,15 @@ export const AnalyticsPanel: React.FC<Props> = ({
       return true;
     });
   }, [rawVisitors, searchQuery, userTypeFilter, deviceFilter, countryFilter, timeRange, customStartDate, customEndDate]);
+
+  // Pagination calculation
+  const totalPages = Math.max(1, Math.ceil(filteredVisitors.length / pageSize));
+  const validCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+  const startIndex = (validCurrentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, filteredVisitors.length);
+  const paginatedVisitors = useMemo(() => {
+    return filteredVisitors.slice(startIndex, endIndex);
+  }, [filteredVisitors, startIndex, endIndex]);
 
   // Aggregate statistics
   const activeNowCount = filteredVisitors.filter((v) => v.status === 'Active').length || (timeRange === 'TODAY' ? 1 : 0);
@@ -889,18 +920,30 @@ export const AnalyticsPanel: React.FC<Props> = ({
             </CardContent>
           </Card>
 
-          {/* Visitor Activity Log & Details */}
+          {/* Visitor Activity Log & Details with Full Pagination */}
           <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader className="border-b border-slate-100 pb-4 flex flex-row items-center justify-between">
               <CardTitle className="flex items-center gap-2 text-base font-extrabold text-slate-900">
                 <Eye className="h-4 w-4 text-blue-600" />
                 <span>{lang === 'de' ? 'Besucheraktivität & Sitzungsdetails' : 'Visitor Activity Log & Details'}</span>
               </CardTitle>
-              <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg">
-                {lang === 'de'
-                  ? `Zeige ${filteredVisitors.length} von ${rawVisitors.length} Einträgen (${timeRange === 'TODAY' ? 'Heute' : timeRange === '7DAYS' ? 'Letzte 7 Tage' : timeRange === '30DAYS' ? 'Letzte 30 Tage' : `${customStartDate} bis ${customEndDate}`})`
-                  : `Showing ${filteredVisitors.length} of ${rawVisitors.length} records (${timeRange === 'TODAY' ? 'Today' : timeRange === '7DAYS' ? 'Last 7 Days' : timeRange === '30DAYS' ? 'Last 30 Days' : `${customStartDate} to ${customEndDate}`})`}
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg">
+                  {lang === 'de'
+                    ? `Zeige ${filteredVisitors.length === 0 ? 0 : startIndex + 1}–${endIndex} von ${filteredVisitors.length} Einträgen`
+                    : `Showing ${filteredVisitors.length === 0 ? 0 : startIndex + 1}–${endIndex} of ${filteredVisitors.length} records`}
+                </span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-bold text-slate-700 shadow-sm focus:outline-none cursor-pointer"
+                >
+                  <option value={5}>5 / page</option>
+                  <option value={10}>10 / page</option>
+                  <option value={20}>20 / page</option>
+                  <option value={50}>50 / page</option>
+                </select>
+              </div>
             </CardHeader>
             <CardContent className="p-0 overflow-x-auto">
               <table className="w-full text-left text-xs text-slate-600">
@@ -916,14 +959,14 @@ export const AnalyticsPanel: React.FC<Props> = ({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredVisitors.length === 0 ? (
+                  {paginatedVisitors.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="py-8 text-center text-slate-400 font-semibold">
                         {lang === 'de' ? 'Keine Besucher für die gewählten Filter gefunden.' : 'No visitors found matching the selected filters.'}
                       </td>
                     </tr>
                   ) : (
-                    filteredVisitors.map((v) => (
+                    paginatedVisitors.map((v) => (
                       <tr key={v.id} className="hover:bg-slate-50/80 transition-colors">
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-2.5">
@@ -981,6 +1024,84 @@ export const AnalyticsPanel: React.FC<Props> = ({
                   )}
                 </tbody>
               </table>
+
+              {/* Pagination Controls Footer */}
+              {totalPages > 1 && (
+                <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                  <span className="text-slate-500 font-semibold">
+                    {lang === 'de'
+                      ? `Seite ${validCurrentPage} von ${totalPages} (${filteredVisitors.length} Gesamteinträge)`
+                      : `Page ${validCurrentPage} of ${totalPages} (${filteredVisitors.length} total entries)`}
+                  </span>
+
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(1)}
+                      disabled={validCurrentPage === 1}
+                      className="h-8 w-8 p-0 rounded-lg border-slate-200 cursor-pointer disabled:opacity-40"
+                      title={lang === 'de' ? 'Erste Seite' : 'First Page'}
+                    >
+                      <ChevronsLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={validCurrentPage === 1}
+                      className="h-8 w-8 p-0 rounded-lg border-slate-200 cursor-pointer disabled:opacity-40"
+                      title={lang === 'de' ? 'Vorherige Seite' : 'Previous Page'}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+
+                    {/* Page Numbers */}
+                    {Array.from({ length: totalPages }, (_, idx) => idx + 1)
+                      .filter((p) => p === 1 || p === totalPages || Math.abs(p - validCurrentPage) <= 1)
+                      .map((p, idx, arr) => (
+                        <React.Fragment key={p}>
+                          {idx > 0 && p - arr[idx - 1] > 1 && (
+                            <span className="px-1 text-slate-400">...</span>
+                          )}
+                          <Button
+                            variant={validCurrentPage === p ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setCurrentPage(p)}
+                            className={`h-8 w-8 p-0 rounded-lg text-xs font-bold cursor-pointer ${
+                              validCurrentPage === p
+                                ? 'bg-blue-600 text-white shadow-sm'
+                                : 'border-slate-200 text-slate-700 hover:bg-slate-100'
+                            }`}
+                          >
+                            {p}
+                          </Button>
+                        </React.Fragment>
+                      ))}
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={validCurrentPage === totalPages}
+                      className="h-8 w-8 p-0 rounded-lg border-slate-200 cursor-pointer disabled:opacity-40"
+                      title={lang === 'de' ? 'Nächste Seite' : 'Next Page'}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(totalPages)}
+                      disabled={validCurrentPage === totalPages}
+                      className="h-8 w-8 p-0 rounded-lg border-slate-200 cursor-pointer disabled:opacity-40"
+                      title={lang === 'de' ? 'Letzte Seite' : 'Last Page'}
+                    >
+                      <ChevronsRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </>
