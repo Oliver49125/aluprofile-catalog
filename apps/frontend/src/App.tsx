@@ -810,14 +810,15 @@ function App() {
                 const drawing = safeUrl(p.drawingUrl);
                 const bestImg = (photo && isImage(photo)) ? photo : (drawing && isImage(drawing)) ? drawing : (photo || drawing);
                 return (
-                  <div key={p.id} className="bg-slate-50/80 hover:bg-white rounded-2xl p-5 border border-slate-200/90 hover:border-blue-400/80 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between space-y-4 group">
+                  <div key={p.id} className="bg-slate-50/80 hover:bg-white rounded-2xl p-5 border border-slate-200/90 hover:border-blue-400/80 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between space-y-3 group">
                     <div className="flex justify-between items-start gap-3">
-                      <div className="space-y-1 min-w-0">
+                      <div className="space-y-1 min-w-0 flex-1">
                         <h3 className="font-extrabold text-slate-900 text-xs sm:text-sm leading-snug line-clamp-1 group-hover:text-blue-600 transition-colors">{p.name}</h3>
-                        <div className="space-y-0.5 text-[11px] text-slate-600 font-medium">
-                          <p><span className="text-slate-400 font-normal">Code: </span>{p.dimensions || p.name}</p>
-                          <p><span className="text-slate-400 font-normal">{lang === 'de' ? 'Maße: ' : 'Dims: '}</span>{p.dimensions || '-'}</p>
-                          <p><span className="text-slate-400 font-normal">{lang === 'de' ? 'Legierung: ' : 'Alloy: '}</span>{p.material || '6063-T5'}</p>
+                        <div className="space-y-1 text-[11px] text-slate-600 font-medium pt-1">
+                          <p className="flex items-center justify-between"><span className="text-slate-400 font-normal">{lang === 'de' ? 'Maße:' : 'Dims:'}</span> <span className="font-bold text-slate-800">{p.dimensions || p.name}</span></p>
+                          {p.weightPerMeter && <p className="flex items-center justify-between"><span className="text-slate-400 font-normal">{lang === 'de' ? 'Gewicht:' : 'Weight:'}</span> <span className="font-bold text-blue-600">{p.weightPerMeter} kg/m</span></p>}
+                          <p className="flex items-center justify-between"><span className="text-slate-400 font-normal">{lang === 'de' ? 'Legierung:' : 'Alloy:'}</span> <span className="text-slate-700">{p.material || '6063-T5'}</span></p>
+                          {p.slotSize && <p className="flex items-center justify-between"><span className="text-slate-400 font-normal">{lang === 'de' ? 'Nutgröße:' : 'Slot:'}</span> <span className="font-bold text-amber-700">Nut {p.slotSize}</span></p>}
                         </div>
                       </div>
                       <div className="h-14 w-14 shrink-0 rounded-xl overflow-hidden border border-slate-200/80 bg-white shadow-inner flex items-center justify-center p-1.5 group-hover:scale-110 transition-transform duration-300">
@@ -827,6 +828,14 @@ function App() {
                           <Boxes className="h-6 w-6 text-slate-400" />
                         )}
                       </div>
+                    </div>
+
+                    {/* Price with Important Details */}
+                    <div className="flex items-center justify-between pt-2.5 border-t border-slate-200/70">
+                      <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wide">{lang === 'de' ? 'Preis' : 'Price'}</span>
+                      <span className="text-xs font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-lg shadow-sm">
+                        {p.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(p.price)} ${p.currency?.symbol ?? '€'}` : (lang === 'de' ? 'Auf Anfrage' : 'On Request')}
+                      </span>
                     </div>
 
                     <Button size="sm" onClick={() => loadDetail(p.id)} className="w-full bg-[#131c2a] group-hover:bg-blue-600 text-white font-bold text-xs py-2.5 rounded-xl shadow-sm transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5">

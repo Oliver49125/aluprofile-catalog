@@ -59,6 +59,7 @@ type Profile = {
   supplier?: { id: number; name: string; contactPerson?: string; phone?: string; email?: string; website?: string };
   applications?: RefOption[];
   crossSections?: RefOption[];
+  slotSize?: string;
   price?: number;
   currency?: { symbol: string };
 };
@@ -487,11 +488,12 @@ export default function CatalogPage() {
                 <table className="w-full text-sm text-left">
                   <thead className="bg-slate-50 text-slate-600 font-extrabold text-xs uppercase tracking-wider">
                     <tr>
-                      <th className="px-6 py-3.5">{lang === 'de' ? 'Zeichnung' : 'Drawing'}</th>
-                      <th className="px-6 py-3.5">{lang === 'de' ? 'Beschreibung & Maße' : 'Description'}</th>
-                      <th className="px-6 py-3.5">{lang === 'de' ? 'Anwendung' : 'Application'}</th>
-                      <th className="px-6 py-3.5">{lang === 'de' ? 'Status' : 'Status'}</th>
-                      <th className="px-6 py-3.5 text-right">{lang === 'de' ? 'Aktionen' : 'Actions'}</th>
+                      <th className="px-5 py-3.5">{lang === 'de' ? 'Zeichnung' : 'Drawing'}</th>
+                      <th className="px-5 py-3.5">{lang === 'de' ? 'Profil & Details' : 'Profile & Details'}</th>
+                      <th className="px-5 py-3.5">{lang === 'de' ? 'Anwendung' : 'Application'}</th>
+                      <th className="px-5 py-3.5">{lang === 'de' ? 'Status' : 'Status'}</th>
+                      <th className="px-5 py-3.5">{lang === 'de' ? 'Preis' : 'Price'}</th>
+                      <th className="px-5 py-3.5 text-right">{lang === 'de' ? 'Aktionen' : 'Actions'}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -501,23 +503,33 @@ export default function CatalogPage() {
                       const bestImg = (photo && isImage(photo)) ? photo : (drawing && isImage(drawing)) ? drawing : (photo || drawing);
                       return (
                         <tr key={p.id} onClick={() => openDetail(p.id)} className="hover:bg-slate-50/80 cursor-pointer transition-colors">
-                          <td className="px-6 py-4">
+                          <td className="px-5 py-4">
                             <div className="h-16 w-16 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center">
                               {bestImg ? <img src={bestImg} alt={p.name} className="w-full h-full object-contain" /> : <Boxes className="h-6 w-6 text-slate-400" />}
                             </div>
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-5 py-4">
                             <p className="font-extrabold text-slate-900 text-sm">{p.name}</p>
-                            <p className="text-xs text-slate-500 font-medium">{p.dimensions || '-'}</p>
-                            <p className="text-xs text-slate-600 line-clamp-1 mt-0.5">{p.description || '-'}</p>
+                            <div className="flex flex-wrap items-center gap-1.5 mt-1 text-[11px] font-medium text-slate-600">
+                              {p.dimensions && <span className="bg-slate-100 px-2 py-0.5 rounded-md font-semibold text-slate-700">{p.dimensions}</span>}
+                              {p.weightPerMeter && <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md font-bold">{p.weightPerMeter} kg/m</span>}
+                              {p.material && <span className="bg-slate-100 px-2 py-0.5 rounded-md text-slate-600">{p.material}</span>}
+                              {p.slotSize && <span className="bg-amber-50 text-amber-700 px-2 py-0.5 rounded-md font-bold">Nut {p.slotSize}</span>}
+                            </div>
+                            {p.description && <p className="text-xs text-slate-500 line-clamp-1 mt-1">{p.description}</p>}
                           </td>
-                          <td className="px-6 py-4 text-xs text-slate-700 font-medium">
+                          <td className="px-5 py-4 text-xs text-slate-700 font-medium">
                             <p>{(p.applications ?? []).map((a) => a.name).join(', ') || '-'}</p>
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-5 py-4">
                             <span className="inline-flex px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">{p.status}</span>
                           </td>
-                          <td className="px-6 py-4 text-right">
+                          <td className="px-5 py-4 whitespace-nowrap">
+                            <span className="font-extrabold text-sm text-slate-900">
+                              {p.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(p.price)} ${p.currency?.symbol ?? '€'}` : (lang === 'de' ? 'Auf Anfrage' : 'On Request')}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4 text-right">
                             <div className="flex items-center justify-end gap-2">
                               <Button
                                 size="sm"
@@ -528,7 +540,7 @@ export default function CatalogPage() {
                                 className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-sm px-3.5 py-2 flex items-center gap-1.5 cursor-pointer"
                               >
                                 <Mail className="h-3.5 w-3.5" />
-                                <span>Inquiry</span>
+                                <span>{lang === 'de' ? 'Anfrage' : 'Inquiry'}</span>
                               </Button>
                               <Button
                                 size="sm"
@@ -538,7 +550,7 @@ export default function CatalogPage() {
                                 }}
                                 className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl px-3.5 py-2 cursor-pointer"
                               >
-                                View Technical Data &rarr;
+                                {lang === 'de' ? 'Details ansehen' : 'View Technical Data'} &rarr;
                               </Button>
                             </div>
                           </td>
@@ -569,7 +581,12 @@ export default function CatalogPage() {
                             <h3 className="font-extrabold text-slate-900 text-base group-hover:text-blue-600 transition-colors pt-1">
                               {p.name}
                             </h3>
-                            <p className="text-xs text-slate-500 font-bold">{p.dimensions || '-'}</p>
+                            <div className="flex flex-wrap items-center gap-1.5 mt-1.5 text-[11px] font-medium text-slate-600">
+                              {p.dimensions && <span className="bg-slate-100 px-2 py-0.5 rounded-md font-semibold text-slate-700">{p.dimensions}</span>}
+                              {p.weightPerMeter && <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md font-bold">{p.weightPerMeter} kg/m</span>}
+                              {p.material && <span className="bg-slate-100 px-2 py-0.5 rounded-md text-slate-600">{p.material}</span>}
+                              {p.slotSize && <span className="bg-amber-50 text-amber-700 px-2 py-0.5 rounded-md font-bold">Nut {p.slotSize}</span>}
+                            </div>
                           </div>
                           
                           <div className="h-16 w-16 rounded-xl border border-slate-200/80 bg-slate-50 flex items-center justify-center overflow-hidden shrink-0 group-hover:bg-blue-50/40 transition-colors">
