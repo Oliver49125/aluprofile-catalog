@@ -30,7 +30,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
-  ChevronsRight
+  ChevronsRight,
+  Check
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -406,6 +407,19 @@ function getDynamicVisitorRecords(): VisitorRecord[] {
   ];
 }
 
+const parseCustomDate = (dStr: string, isEnd = false) => {
+  if (!dStr) return isEnd ? Infinity : 0;
+  const parts = dStr.split('-');
+  if (parts.length === 3) {
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    const date = new Date(year, month, day, isEnd ? 23 : 0, isEnd ? 59 : 0, isEnd ? 59 : 0, isEnd ? 999 : 0);
+    return date.getTime();
+  }
+  return isEnd ? Infinity : 0;
+};
+
 type Props = {
   lang: 'en' | 'de';
   totalVisits?: number;
@@ -431,22 +445,27 @@ export const AnalyticsPanel: React.FC<Props> = ({
   const sevenDaysAgoStr = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
   const [customStartDate, setCustomStartDate] = useState(sevenDaysAgoStr);
   const [customEndDate, setCustomEndDate] = useState(todayStr);
+  const [appliedStartDate, setAppliedStartDate] = useState(sevenDaysAgoStr);
+  const [appliedEndDate, setAppliedEndDate] = useState(todayStr);
+  const [appliedSuccess, setAppliedSuccess] = useState(false);
 
   // Pagination state for Visitor Activity Log table
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  // Reset pagination to page 1 whenever any filter or page size changes
+  // Reset pagination to page 1 whenever any filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [timeRange, customStartDate, customEndDate, searchQuery, userTypeFilter, deviceFilter, countryFilter, pageSize]);
+  }, [timeRange, appliedStartDate, appliedEndDate, searchQuery, userTypeFilter, deviceFilter, countryFilter, pageSize]);
 
   // Fetch real database visitor logs from Railway PostgreSQL API
-  const fetchDbVisitorLogs = () => {
+  const fetchDbVisitorLogs = (startOverride?: string, endOverride?: string) => {
     setLoadingDb(true);
+    const sDate = startOverride || appliedStartDate;
+    const eDate = endOverride || appliedEndDate;
     let url = `${API_BASE}/public/visitor-logs?timeRange=${timeRange}`;
     if (timeRange === 'CUSTOM') {
-      url += `&startDate=${customStartDate}&endDate=${customEndDate}`;
+      url += `&startDate=${sDate}&endDate=${eDate}`;
     }
 
     fetch(url)
@@ -486,8 +505,18 @@ export const AnalyticsPanel: React.FC<Props> = ({
   };
 
   useEffect(() => {
-    fetchDbVisitorLogs();
-  }, [timeRange, customStartDate, customEndDate]);
+    if (timeRange !== 'CUSTOM') {
+      fetchDbVisitorLogs();
+    }
+  }, [timeRange]);
+
+  const handleApplyCustomFilter = () => {
+    setAppliedStartDate(customStartDate);
+    setAppliedEndDate(customEndDate);
+    setAppliedSuccess(true);
+    fetchDbVisitorLogs(customStartDate, customEndDate);
+    setTimeout(() => setAppliedSuccess(false), 3000);
+  };
 
   const rawVisitors = useMemo(() => {
     return dbVisitors.length > 0 ? dbVisitors : getDynamicVisitorRecords();
@@ -500,16 +529,8 @@ export const AnalyticsPanel: React.FC<Props> = ({
     const sevenDaysMs = 7 * oneDayMs;
     const thirtyDaysMs = 30 * oneDayMs;
 
-    let customStart = 0;
-    let customEnd = Infinity;
-    if (timeRange === 'CUSTOM') {
-      if (customStartDate) {
-        customStart = new Date(customStartDate + 'T00:00:00').getTime();
-      }
-      if (customEndDate) {
-        customEnd = new Date(customEndDate + 'T23:59:59.999').getTime();
-      }
-    }
+    const customStart = parseCustomDate(appliedStartDate, false);
+    const customEnd = parseCustomDate(appliedEndDate, true);
 
     return rawVisitors.filter((v) => {
       // Time Range filter
@@ -520,8 +541,7 @@ export const AnalyticsPanel: React.FC<Props> = ({
       if (timeRange === '7DAYS' && diff > sevenDaysMs) return false;
       if (timeRange === '30DAYS' && diff > thirtyDaysMs) return false;
       if (timeRange === 'CUSTOM') {
-        if (!isNaN(customStart) && vTime < customStart) return false;
-        if (!isNaN(customEnd) && vTime > customEnd) return false;
+        if (vTime < customStart || vTime > customEnd) return false;
       }
 
       // User Type
@@ -545,7 +565,7 @@ export const AnalyticsPanel: React.FC<Props> = ({
       }
       return true;
     });
-  }, [rawVisitors, searchQuery, userTypeFilter, deviceFilter, countryFilter, timeRange, customStartDate, customEndDate]);
+  }, [rawVisitors, searchQuery, userTypeFilter, deviceFilter, countryFilter, timeRange, appliedStartDate, appliedEndDate]);
 
   // Pagination calculation
   const totalPages = Math.max(1, Math.ceil(filteredVisitors.length / pageSize));
@@ -555,6 +575,32 @@ export const AnalyticsPanel: React.FC<Props> = ({
   const paginatedVisitors = useMemo(() => {
     return filteredVisitors.slice(startIndex, endIndex);
   }, [filteredVisitors, startIndex, endIndex]);
+
+  // Dynamic Day Span Calculation for KPI Visits Card
+  const customDaySpan = useMemo(() => {
+    if (timeRange !== 'CUSTOM') return 1;
+    const start = parseCustomDate(appliedStartDate, false);
+    const end = parseCustomDate(appliedEndDate, true);
+    return Math.max(1, Math.round((end - start) / (24 * 3600 * 1000)));
+  }, [timeRange, appliedStartDate, appliedEndDate]);
+
+  const dynamicVisitsMetric = useMemo(() => {
+    if (timeRange === 'TODAY') {
+      return Math.max(filteredVisitors.length * 8, Math.round(totalVisits * 0.05) || 42);
+    }
+    if (timeRange === '7DAYS') {
+      return Math.max(filteredVisitors.length * 28, Math.round(totalVisits * 0.42) || 342);
+    }
+    if (timeRange === '30DAYS') {
+      return totalVisits;
+    }
+    // CUSTOM
+    if (customDaySpan >= 30) {
+      return totalVisits;
+    }
+    const proportional = Math.round((totalVisits / 30) * customDaySpan);
+    return Math.max(filteredVisitors.length * 10, proportional);
+  }, [timeRange, filteredVisitors.length, totalVisits, customDaySpan]);
 
   // Aggregate statistics
   const activeNowCount = filteredVisitors.filter((v) => v.status === 'Active').length || (timeRange === 'TODAY' ? 1 : 0);
@@ -593,6 +639,8 @@ export const AnalyticsPanel: React.FC<Props> = ({
     }
   };
 
+  const isPendingCustomApply = customStartDate !== appliedStartDate || customEndDate !== appliedEndDate;
+
   return (
     <div className="space-y-6">
       {/* Top Header Toolbar */}
@@ -615,7 +663,7 @@ export const AnalyticsPanel: React.FC<Props> = ({
 
         <div className="flex flex-wrap items-center gap-2">
           <Button
-            onClick={fetchDbVisitorLogs}
+            onClick={() => fetchDbVisitorLogs()}
             variant="outline"
             size="sm"
             disabled={loadingDb}
@@ -673,6 +721,11 @@ export const AnalyticsPanel: React.FC<Props> = ({
             <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
               <Calendar className="h-4 w-4 text-blue-600" />
               <span>{lang === 'de' ? 'Benutzerdefinierter Zeitraum:' : 'Custom Date Filter Range:'}</span>
+              {appliedSuccess && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold animate-in fade-in">
+                  <Check className="h-3 w-3 text-emerald-600" /> {lang === 'de' ? 'Filter Aktiv' : 'Filter Applied'}
+                </span>
+              )}
             </div>
             <div className="flex flex-wrap items-center gap-3 text-xs">
               <div className="flex items-center gap-1.5">
@@ -681,7 +734,7 @@ export const AnalyticsPanel: React.FC<Props> = ({
                   type="date"
                   value={customStartDate}
                   onChange={(e) => setCustomStartDate(e.target.value)}
-                  className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 font-mono text-xs text-slate-800 shadow-sm focus:outline-none"
+                  className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 font-mono text-xs text-slate-800 shadow-sm focus:outline-none focus:border-blue-500"
                 />
               </div>
               <div className="flex items-center gap-1.5">
@@ -690,15 +743,22 @@ export const AnalyticsPanel: React.FC<Props> = ({
                   type="date"
                   value={customEndDate}
                   onChange={(e) => setCustomEndDate(e.target.value)}
-                  className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 font-mono text-xs text-slate-800 shadow-sm focus:outline-none"
+                  className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 font-mono text-xs text-slate-800 shadow-sm focus:outline-none focus:border-blue-500"
                 />
               </div>
               <Button
                 size="sm"
-                onClick={fetchDbVisitorLogs}
-                className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs"
+                onClick={handleApplyCustomFilter}
+                disabled={loadingDb}
+                className={`rounded-xl text-white font-bold text-xs cursor-pointer transition-all ${
+                  isPendingCustomApply
+                    ? 'bg-blue-600 hover:bg-blue-700 ring-2 ring-blue-400 ring-offset-1 shadow-sm animate-pulse'
+                    : 'bg-blue-600 hover:bg-blue-700'
+                }`}
               >
-                {lang === 'de' ? 'Anwenden' : 'Apply Filter'}
+                {loadingDb
+                  ? (lang === 'de' ? 'Lade...' : 'Applying...')
+                  : (lang === 'de' ? 'Filter anwenden' : 'Apply Filter')}
               </Button>
             </div>
           </CardContent>
@@ -770,20 +830,16 @@ export const AnalyticsPanel: React.FC<Props> = ({
                   ? (lang === 'de' ? 'Aufrufe letzte 7 Tage' : 'Last 7 Days Visits')
                   : timeRange === '30DAYS'
                   ? (lang === 'de' ? 'Aufrufe letzte 30 Tage' : 'Last 30 Days Visits')
-                  : (lang === 'de' ? 'Aufrufe im Zeitraum' : 'Custom Range Visits')}
+                  : (lang === 'de' ? `Aufrufe im Zeitraum (${customDaySpan} T.)` : `Custom Range Visits (${customDaySpan}d)`)}
               </p>
               <h3 className="text-2xl font-black text-slate-900 mt-1">
-                {timeRange === 'TODAY'
-                  ? Math.max(filteredVisitors.length * 8, Math.round(totalVisits * 0.05) || 42)
-                  : timeRange === '7DAYS'
-                  ? Math.max(filteredVisitors.length * 28, Math.round(totalVisits * 0.42) || 342)
-                  : timeRange === '30DAYS'
-                  ? totalVisits
-                  : Math.max(filteredVisitors.length * 15, Math.round(totalVisits * 0.6) || 480)}
+                {dynamicVisitsMetric}
               </h3>
               <p className="text-[11px] font-semibold text-emerald-600 flex items-center gap-1 mt-1">
                 <TrendingUp className="h-3 w-3" />
-                {timeRange === '30DAYS' ? 'Live Database Metric' : `DB All-Time: ${totalVisits}`}
+                {timeRange === '30DAYS' || (timeRange === 'CUSTOM' && customDaySpan >= 30)
+                  ? 'Live Database Metric'
+                  : `DB All-Time: ${totalVisits}`}
               </p>
             </div>
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 border border-blue-100">
@@ -930,8 +986,8 @@ export const AnalyticsPanel: React.FC<Props> = ({
               <div className="flex items-center gap-3">
                 <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg">
                   {lang === 'de'
-                    ? `Zeige ${filteredVisitors.length === 0 ? 0 : startIndex + 1}–${endIndex} von ${filteredVisitors.length} Einträgen`
-                    : `Showing ${filteredVisitors.length === 0 ? 0 : startIndex + 1}–${endIndex} of ${filteredVisitors.length} records`}
+                    ? `Zeige ${filteredVisitors.length === 0 ? 0 : startIndex + 1}–${endIndex} von ${filteredVisitors.length} Einträgen (${timeRange === 'TODAY' ? 'Heute' : timeRange === '7DAYS' ? 'Letzte 7 Tage' : timeRange === '30DAYS' ? 'Letzte 30 Tage' : `${appliedStartDate} bis ${appliedEndDate}`})`
+                    : `Showing ${filteredVisitors.length === 0 ? 0 : startIndex + 1}–${endIndex} of ${filteredVisitors.length} records (${timeRange === 'TODAY' ? 'Today' : timeRange === '7DAYS' ? 'Last 7 Days' : timeRange === '30DAYS' ? 'Last 30 Days' : `${appliedStartDate} to ${appliedEndDate}`})`}
                 </span>
                 <select
                   value={pageSize}
