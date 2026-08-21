@@ -12,6 +12,8 @@ import SearchPortalPage from './SearchPortalPage.tsx';
 import CatalogPage from './CatalogPage.tsx';
 import PrivacyPage from './PrivacyPage.tsx';
 import TermsPage from './TermsPage.tsx';
+import ImprintPage from './ImprintPage.tsx';
+import ThankYouPage from './ThankYouPage.tsx';
 import { initSentry } from './monitoring/sentry.ts';
 import CookieConsentBanner, { initGA } from './components/CookieConsentBanner.tsx';
 
@@ -38,6 +40,9 @@ createRoot(document.getElementById('root')!).render(
             <Route path="/privacy/*" element={<PrivacyPage />} />
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/terms/*" element={<TermsPage />} />
+            <Route path="/imprint" element={<ImprintPage />} />
+            <Route path="/imprint/*" element={<ImprintPage />} />
+            <Route path="/thank-you" element={<ThankYouPage />} />
             <Route path="*" element={<App />} />
           </Routes>
 
@@ -47,4 +52,3 @@ createRoot(document.getElementById('root')!).render(
     </BrowserRouter>
   </StrictMode>,
 );
-
