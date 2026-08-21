@@ -560,13 +560,12 @@ export default function SearchPortalPage() {
                 </select>
               </label>
 
-              <button
-                type="button"
-                onClick={() => setShowManufacturerModal(true)}
+              <Link
+                to="/customer?mode=sign-up"
                 className="rounded-full bg-[#131c2a] hover:bg-slate-900 text-white text-[12px] font-extrabold px-3.5 py-2 shadow-sm transition-all border border-slate-700/50 flex items-center gap-1.5 cursor-pointer shrink-0"
               >
                 <span>{lang === 'de' ? 'Als Hersteller eintragen' : 'Register as Manufacturer'}</span>
-              </button>
+              </Link>
 
               <Link
                 to="/"

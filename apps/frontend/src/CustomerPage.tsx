@@ -74,9 +74,9 @@ const TXT = {
     language: 'Language',
     signIn: 'Customer Login',
     loginLabel: 'Login',
-    signUp: 'Customer Registration',
+    signUp: 'Manufacturer & Customer Registration (Erstmaliges Registrieren)',
     signInNote: 'Use your email or username and password to access your customer workspace.',
-    signUpNote: 'Create a customer account first, then manage your own profile records.',
+    signUpNote: 'Create your manufacturer or customer account first, then manage your own aluminum profile catalog.',
     usernameOrEmail: 'Username or email',
     password: 'Password',
     signingIn: 'Signing in...',
@@ -120,7 +120,7 @@ const TXT = {
 
     statusAsc: 'Status',
     showing: 'Showing',
-    records: 'records',
+    records: 'Records',
     pageLabel: 'Page',
     ofLabel: 'of',
     previous: 'Previous',
@@ -161,18 +161,18 @@ const TXT = {
   de: {
     title: 'Kundenprofil-Portal',
     subtitle: 'Konto erstellen, anmelden und eigene Aluminiumprofile verwalten.',
-    backToCatalog: 'Zuruck zum Katalog',
+    backToCatalog: 'Zurück zum Katalog',
     language: 'Sprache',
     signIn: 'Kunden-Anmeldung',
     loginLabel: 'Login',
-    signUp: 'Kunden-Registrierung',
-    signInNote: 'Verwenden Sie Ihre E-Mail oder Ihren Benutzernamen und Ihr Passwort fur den Zugang.',
-    signUpNote: 'Erstellen Sie zuerst ein Kundenkonto und verwalten Sie dann Ihre eigenen Profildatensatze.',
+    signUp: 'Hersteller- & Kundenregistrierung (Erstmaliges Registrieren)',
+    signInNote: 'Verwenden Sie Ihre E-Mail oder Ihren Benutzernamen und Ihr Passwort für den Zugang.',
+    signUpNote: 'Erstellen Sie zuerst Ihr Hersteller- oder Kundenkonto, um Ihre eigenen Aluminiumprofile zu verwalten.',
     usernameOrEmail: 'Benutzername oder E-Mail',
     password: 'Passwort',
     signingIn: 'Anmeldung...',
     forgotPassword: 'Passwort vergessen?',
-    backToLogin: 'Zuruck zur Anmeldung',
+    backToLogin: 'Zurück zur Anmeldung',
     sendResetCode: 'Code senden',
     sendingResetCode: 'Code wird gesendet...',
     resetCode: 'Zurucksetzungscode',
@@ -314,8 +314,20 @@ function exportTablePdf(title: string, headers: string[], rows: Array<Array<stri
 function CustomerPage() {
   const { token, user, login, logout, isLoading } = useAuth();
   const { lang, setLang } = useLanguage();
-  const initialMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('mode') === 'sign-up' ? 'sign-up' : 'sign-in';
+  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const initialMode = urlParams && (urlParams.get('mode') === 'sign-up' || urlParams.get('register') === 'true') ? 'sign-up' : 'sign-in';
   const [authMode, setAuthMode] = useState<'sign-in' | 'sign-up'>(initialMode);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const mode = new URLSearchParams(window.location.search).get('mode');
+      if (mode === 'sign-up' || mode === 'register') {
+        setAuthMode('sign-up');
+      } else if (mode === 'sign-in' || mode === 'login') {
+        setAuthMode('sign-in');
+      }
+    }
+  }, []);
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);

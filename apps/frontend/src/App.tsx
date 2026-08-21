@@ -592,12 +592,13 @@ function App() {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2.5">
-          <button
-            onClick={() => setShowManufacturerModal(true)}
-            className="rounded-full bg-[#131c2a] hover:bg-slate-900 text-white text-[12px] font-extrabold px-4 py-2 shadow-sm transition-all border border-slate-700/50 flex items-center gap-1.5 cursor-pointer shrink-0"
-          >
-            <span>{lang === 'de' ? 'Als Hersteller eintragen' : 'Register as Manufacturer'}</span>
-          </button>
+          <Link to="/customer?mode=sign-up">
+            <button
+              className="rounded-full bg-[#131c2a] hover:bg-slate-900 text-white text-[12px] font-extrabold px-4 py-2 shadow-sm transition-all border border-slate-700/50 flex items-center gap-1.5 cursor-pointer shrink-0"
+            >
+              <span>{lang === 'de' ? 'Als Hersteller eintragen' : 'Register as Manufacturer'}</span>
+            </button>
+          </Link>
 
           <Link to="/customer">
             <Button className="rounded-xl bg-[#1e2a3b] hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 shadow-sm transition-all cursor-pointer">
@@ -1324,13 +1325,12 @@ function App() {
                 <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-cyan-400" /> +1 (555) 000-0000</p>
               </div>
               <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowManufacturerModal(true)}
-                  className="rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-xs font-extrabold px-3.5 py-2 transition-all cursor-pointer"
+                <Link
+                  to="/customer?mode=sign-up"
+                  className="inline-block rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-xs font-extrabold px-3.5 py-2 transition-all cursor-pointer"
                 >
                   {lang === 'de' ? 'Als Hersteller eintragen' : 'Register as Manufacturer'}
-                </button>
+                </Link>
               </div>
             </div>
 
