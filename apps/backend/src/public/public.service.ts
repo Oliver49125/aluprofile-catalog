@@ -353,7 +353,9 @@ ${data.message}
   }
 
   async getVisitorLogs(filters?: {
-    timeRange?: 'TODAY' | '7DAYS' | '30DAYS';
+    timeRange?: 'TODAY' | '7DAYS' | '30DAYS' | 'CUSTOM';
+    startDate?: string;
+    endDate?: string;
     userType?: string;
     device?: string;
     country?: string;
@@ -361,16 +363,27 @@ ${data.message}
   }) {
     try {
       const now = new Date();
-      let startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000); // default TODAY
-      if (filters?.timeRange === '7DAYS') {
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      let start: Date;
+      let end: Date = now;
+
+      if (filters?.timeRange === 'CUSTOM' && filters.startDate) {
+        start = new Date(filters.startDate);
+        if (filters.endDate) {
+          end = new Date(filters.endDate);
+          end.setHours(23, 59, 59, 999);
+        }
+      } else if (filters?.timeRange === '7DAYS') {
+        start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       } else if (filters?.timeRange === '30DAYS') {
-        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      } else {
+        start = new Date(now.getTime() - 24 * 60 * 60 * 1000); // default TODAY
       }
 
       const where: any = {
         createdAt: {
-          gte: startDate,
+          gte: start,
+          lte: end,
         },
       };
 

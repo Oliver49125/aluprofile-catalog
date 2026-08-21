@@ -109,7 +109,9 @@ export class PublicController {
 
   @Get('visitor-logs')
   async getVisitorLogs(
-    @Query('timeRange') timeRange?: 'TODAY' | '7DAYS' | '30DAYS',
+    @Query('timeRange') timeRange?: 'TODAY' | '7DAYS' | '30DAYS' | 'CUSTOM',
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
     @Query('userType') userType?: string,
     @Query('device') device?: string,
     @Query('country') country?: string,
@@ -117,6 +119,8 @@ export class PublicController {
   ) {
     return this.publicService.getVisitorLogs({
       timeRange: timeRange || 'TODAY',
+      startDate,
+      endDate,
       userType,
       device,
       country,
