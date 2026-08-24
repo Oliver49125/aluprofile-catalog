@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Body,
+  Req,
   NotFoundException,
   Param,
   ParseIntPipe,
@@ -60,10 +61,15 @@ export class PublicController {
     return profile;
   }
 
+  @Get('site-settings')
+  getSiteSettings() {
+    return this.publicService.getSiteSettings();
+  }
+
   @Post('inquiries')
   async createInquiry(
     @Body() body: {
-      profileId: number;
+      profileId?: number;
       firstName: string;
       lastName: string;
       company?: string;
@@ -73,7 +79,10 @@ export class PublicController {
       requestPurchase?: boolean;
     }
   ) {
-    return this.publicService.createInquiry(body);
+    return this.publicService.createInquiry({
+      ...body,
+      profileId: body.profileId ?? 0,
+    });
   }
 
   @Post('manufacturers')
@@ -92,6 +101,7 @@ export class PublicController {
 
   @Post('visits')
   async incrementVisit(
+    @Req() req: any,
     @Body() body?: {
       visitedPage?: string;
       profileSearched?: string;
@@ -102,9 +112,34 @@ export class PublicController {
       userEmail?: string;
       userName?: string;
       durationSeconds?: number;
+      country?: string;
+      city?: string;
+      timezone?: string;
+      ipAddress?: string;
     }
   ) {
-    return this.publicService.incrementVisit(body);
+    const rawIpHeader =
+      req?.headers?.['x-forwarded-for'] ||
+      req?.headers?.['x-real-ip'] ||
+      req?.headers?.['cf-connecting-ip'] ||
+      req?.socket?.remoteAddress;
+
+    const rawIp = typeof rawIpHeader === 'string'
+      ? rawIpHeader.split(',')[0].trim()
+      : Array.isArray(rawIpHeader)
+      ? rawIpHeader[0]
+      : undefined;
+
+    const cfCountry = req?.headers?.['cf-ipcountry'] as string;
+    const vercelCountry = req?.headers?.['x-vercel-ip-country'] as string;
+    const vercelCity = req?.headers?.['x-vercel-ip-city'] as string;
+
+    return this.publicService.incrementVisit({
+      ...body,
+      ipAddress: body?.ipAddress || rawIp,
+      country: body?.country || vercelCountry || cfCountry,
+      city: body?.city || (vercelCity ? decodeURIComponent(vercelCity) : undefined),
+    });
   }
 
   @Get('visitor-logs')
@@ -126,10 +161,5 @@ export class PublicController {
       country,
       q,
     });
-  }
-
-  @Get('site-settings')
-  getSiteSettings() {
-    return this.publicService.getSiteSettings();
   }
 }

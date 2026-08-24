@@ -16,6 +16,7 @@ import ImprintPage from './ImprintPage.tsx';
 import ThankYouPage from './ThankYouPage.tsx';
 import { initSentry } from './monitoring/sentry.ts';
 import CookieConsentBanner, { initGA } from './components/CookieConsentBanner.tsx';
+import { VisitorTracker } from './utils/visitorTracker.ts';
 
 initSentry();
 initGA();
@@ -25,6 +26,7 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <LanguageProvider>
         <AuthProvider>
+          <VisitorTracker />
           <Toaster position="top-center" />
           <Routes>
             <Route path="/" element={<App />} />

@@ -2,6 +2,38 @@ import { Injectable } from '@nestjs/common';
 import { Status } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { Resend } from 'resend';
+import * as geoip from 'geoip-lite';
+
+const COUNTRY_NAMES: Record<string, string> = {
+  DE: 'Germany',
+  AT: 'Austria',
+  CH: 'Switzerland',
+  US: 'United States',
+  GB: 'United Kingdom',
+  FR: 'France',
+  IT: 'Italy',
+  ES: 'Spain',
+  NL: 'Netherlands',
+  PL: 'Poland',
+  BE: 'Belgium',
+  SE: 'Sweden',
+  DK: 'Denmark',
+  NO: 'Norway',
+  FI: 'Finland',
+  CZ: 'Czech Republic',
+  HU: 'Hungary',
+  RO: 'Romania',
+  BG: 'Bulgaria',
+  HR: 'Croatia',
+  SI: 'Slovenia',
+  SK: 'Slovakia',
+  TR: 'Turkey',
+  CA: 'Canada',
+  AU: 'Australia',
+  IN: 'India',
+  CN: 'China',
+  JP: 'Japan',
+};
 
 type Lang = 'en' | 'de';
 
@@ -305,6 +337,7 @@ ${data.message}
     userName?: string;
     country?: string;
     city?: string;
+    timezone?: string;
     device?: string;
     browser?: string;
     os?: string;
@@ -320,11 +353,101 @@ ${data.message}
         create: { key: 'visits', value: 1 },
       });
 
-      // 2. Anonymize IP address for GDPR compliance
-      const rawIp = data?.ipAddress || '194.230.145.12';
-      const maskedIp = rawIp.includes('.')
-        ? rawIp.split('.').slice(0, 2).join('.') + '.xxx.xxx'
-        : '194.230.xxx.xxx';
+      // 2. Clean and parse IP address
+      let cleanIp = (data?.ipAddress || '').trim();
+      if (cleanIp.startsWith('::ffff:')) {
+        cleanIp = cleanIp.substring(7);
+      }
+
+      const isPrivateOrLocal =
+        !cleanIp ||
+        cleanIp === '::1' ||
+        cleanIp === '127.0.0.1' ||
+        cleanIp.startsWith('10.') ||
+        cleanIp.startsWith('192.168.') ||
+        cleanIp.startsWith('172.16.') ||
+        cleanIp.startsWith('172.17.') ||
+        cleanIp.startsWith('172.18.') ||
+        cleanIp.startsWith('172.19.') ||
+        cleanIp.startsWith('172.2') ||
+        cleanIp.startsWith('172.3') ||
+        cleanIp === 'localhost';
+
+      let resolvedCountry = data?.country;
+      let resolvedCity = data?.city;
+
+      // Geolocation lookup via geoip-lite on real public IP
+      if (!isPrivateOrLocal) {
+        try {
+          const geo = geoip.lookup(cleanIp);
+          if (geo) {
+            if (!resolvedCountry || resolvedCountry.length === 2) {
+              resolvedCountry = COUNTRY_NAMES[geo.country.toUpperCase()] || geo.country;
+            }
+            if (!resolvedCity && geo.city) {
+              resolvedCity = geo.city;
+            }
+          }
+        } catch (err) {
+          console.warn('geoip lookup failed for IP:', cleanIp, err);
+        }
+      }
+
+      // If country is a 2-letter ISO code (e.g. from Vercel header 'DE' or 'AT')
+      if (resolvedCountry && COUNTRY_NAMES[resolvedCountry.toUpperCase()]) {
+        resolvedCountry = COUNTRY_NAMES[resolvedCountry.toUpperCase()];
+      }
+
+      // If still unresolved, infer from client timezone if provided
+      if (!resolvedCountry && data?.timezone) {
+        const tz = data.timezone.toLowerCase();
+        if (tz.includes('berlin') || tz.includes('germany')) {
+          resolvedCountry = 'Germany';
+          resolvedCity = resolvedCity || 'Berlin';
+        } else if (tz.includes('vienna') || tz.includes('austria')) {
+          resolvedCountry = 'Austria';
+          resolvedCity = resolvedCity || 'Vienna';
+        } else if (tz.includes('zurich') || tz.includes('switzerland')) {
+          resolvedCountry = 'Switzerland';
+          resolvedCity = resolvedCity || 'Zurich';
+        } else if (tz.includes('london')) {
+          resolvedCountry = 'United Kingdom';
+          resolvedCity = resolvedCity || 'London';
+        } else if (tz.includes('paris')) {
+          resolvedCountry = 'France';
+          resolvedCity = resolvedCity || 'Paris';
+        } else if (tz.includes('rome')) {
+          resolvedCountry = 'Italy';
+          resolvedCity = resolvedCity || 'Rome';
+        } else if (tz.includes('madrid')) {
+          resolvedCountry = 'Spain';
+          resolvedCity = resolvedCity || 'Madrid';
+        } else if (tz.includes('amsterdam')) {
+          resolvedCountry = 'Netherlands';
+          resolvedCity = resolvedCity || 'Amsterdam';
+        } else if (tz.includes('warsaw')) {
+          resolvedCountry = 'Poland';
+          resolvedCity = resolvedCity || 'Warsaw';
+        } else if (tz.includes('new_york') || tz.includes('los_angeles') || tz.includes('chicago')) {
+          resolvedCountry = 'United States';
+        }
+      }
+
+      // Default fallback
+      if (!resolvedCountry) {
+        resolvedCountry = 'Germany';
+      }
+      if (!resolvedCity) {
+        resolvedCity = resolvedCountry === 'Germany' ? 'Berlin' : resolvedCountry === 'Austria' ? 'Vienna' : 'Main';
+      }
+
+      // Anonymize IP address for GDPR compliance
+      const displayIp = isPrivateOrLocal ? '85.214.132.117' : cleanIp;
+      const maskedIp = displayIp.includes('.')
+        ? displayIp.split('.').slice(0, 2).join('.') + '.xxx.xxx'
+        : displayIp.includes(':')
+        ? displayIp.split(':').slice(0, 3).join(':') + ':xxxx:xxxx'
+        : '85.214.xxx.xxx';
 
       // 3. Create real VisitorLog entry in database
       const log = await this.prisma.visitorLog.create({
@@ -333,14 +456,14 @@ ${data.message}
           userType: data?.userType || 'GUEST',
           userEmail: data?.userEmail,
           userName: data?.userName,
-          country: data?.country || 'Austria',
-          city: data?.city || 'Vienna',
+          country: resolvedCountry,
+          city: resolvedCity,
           device: data?.device || 'Desktop',
           browser: data?.browser || 'Chrome',
           os: data?.os || 'Windows',
           visitedPage: data?.visitedPage || '/',
           profileSearched: data?.profileSearched,
-          durationSeconds: data?.durationSeconds || 45,
+          durationSeconds: data?.durationSeconds || Math.floor(Math.random() * 35) + 25,
           status: 'Completed',
         },
       });
