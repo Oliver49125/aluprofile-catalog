@@ -13,6 +13,7 @@ import {
 
   Boxes,
   Building2,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ExternalLink,
@@ -363,6 +364,7 @@ function App() {
   const [activePill, setActivePill] = useState<'all' | 't-slot' | 'base' | 'angle' | 'u-channel'>('t-slot');
   const [showFullCatalog, setShowFullCatalog] = useState(false);
   const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
+  const [isCatalogDropdownOpen, setIsCatalogDropdownOpen] = useState(false);
 
   useEffect(() => {
     const isMobile = /Mobi|Android/i.test(navigator.userAgent);
@@ -575,12 +577,65 @@ function App() {
           <Link to="/" className="hover:text-blue-600 transition-colors">
             {lang === 'de' ? 'Startseite' : 'Home'}
           </Link>
-          <Link to="/catalog" className="hover:text-blue-600 transition-colors">
-            {lang === 'de' ? 'Suchportal' : 'Search Portal'}
-          </Link>
-          <a href="#solutions" onClick={(e) => { e.preventDefault(); document.getElementById('solutions')?.scrollIntoView({ behavior: 'smooth' }); }} className="hover:text-blue-600 transition-colors">
-            {lang === 'de' ? 'Lösungen' : 'Solutions'}
-          </a>
+
+          {/* Catalog Dropdown Menu */}
+          <div
+            className="relative"
+            onMouseEnter={() => setIsCatalogDropdownOpen(true)}
+            onMouseLeave={() => setIsCatalogDropdownOpen(false)}
+          >
+            <button
+              type="button"
+              onClick={() => setIsCatalogDropdownOpen((prev) => !prev)}
+              className="flex items-center gap-1.5 hover:text-blue-600 transition-colors cursor-pointer py-2 focus:outline-none"
+            >
+              <span>{lang === 'de' ? 'Katalog' : 'Catalog'}</span>
+              <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isCatalogDropdownOpen ? 'rotate-180 text-blue-600' : 'text-slate-400'}`} />
+            </button>
+
+            {isCatalogDropdownOpen && (
+              <div className="absolute left-0 top-full pt-1.5 z-50 w-64 animate-fadeIn">
+                <div className="rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-xl p-2 shadow-xl shadow-slate-900/10 ring-1 ring-black/5 space-y-1">
+                  <Link
+                    to="/catalog"
+                    onClick={() => setIsCatalogDropdownOpen(false)}
+                    className="flex items-start gap-3 rounded-xl p-2.5 hover:bg-slate-50 transition-colors group"
+                  >
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                      <Boxes className="h-4.5 w-4.5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                        {lang === 'de' ? 'Profilkatalog' : 'Profile Catalog'}
+                      </p>
+                      <p className="text-[11px] text-slate-500 font-medium leading-snug">
+                        {lang === 'de' ? 'Alle Standard- & Sonderprofile' : 'All standard & custom profiles'}
+                      </p>
+                    </div>
+                  </Link>
+
+                  <Link
+                    to="/search"
+                    onClick={() => setIsCatalogDropdownOpen(false)}
+                    className="flex items-start gap-3 rounded-xl p-2.5 hover:bg-slate-50 transition-colors group"
+                  >
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-50 text-cyan-600 group-hover:bg-cyan-600 group-hover:text-white transition-colors">
+                      <Search className="h-4.5 w-4.5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-900 group-hover:text-cyan-600 transition-colors">
+                        {lang === 'de' ? 'Erweiterte Suche' : 'Advance Search'}
+                      </p>
+                      <p className="text-[11px] text-slate-500 font-medium leading-snug">
+                        {lang === 'de' ? 'Spezifische Filter & CAD-Suche' : 'Detailed filters & CAD search'}
+                      </p>
+                    </div>
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+
           <a href="#about" onClick={(e) => { e.preventDefault(); document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' }); }} className="hover:text-blue-600 transition-colors">
             {lang === 'de' ? 'Über uns' : 'About'}
           </a>

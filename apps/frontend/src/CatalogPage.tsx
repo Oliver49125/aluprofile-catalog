@@ -9,6 +9,7 @@ import {
   Search,
   SlidersHorizontal,
   X,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Download,
@@ -84,6 +85,7 @@ export default function CatalogPage() {
 
   // Language & Manufacturer Modal State
   const { lang, setLang } = useLanguage();
+  const [isCatalogDropdownOpen, setIsCatalogDropdownOpen] = useState(false);
 
   const [showManufacturerModal, setShowManufacturerModal] = useState(false);
   const [manufacturerForm, setManufacturerForm] = useState({
@@ -262,8 +264,65 @@ export default function CatalogPage() {
         {/* Nav links */}
         <nav className="hidden md:flex items-center gap-7 text-[13px] font-bold text-slate-600">
           <Link to="/" className="hover:text-blue-600 transition-colors">{lang === 'de' ? 'Startseite' : 'Home'}</Link>
-          <Link to="/catalog" className="text-blue-600 font-extrabold border-b-2 border-blue-600 pb-0.5">{lang === 'de' ? 'Suchportal' : 'Search Portal'}</Link>
-          <Link to="/#solutions" className="hover:text-blue-600 transition-colors">{lang === 'de' ? 'Lösungen' : 'Solutions'}</Link>
+
+          {/* Catalog Dropdown Menu */}
+          <div
+            className="relative"
+            onMouseEnter={() => setIsCatalogDropdownOpen(true)}
+            onMouseLeave={() => setIsCatalogDropdownOpen(false)}
+          >
+            <button
+              type="button"
+              onClick={() => setIsCatalogDropdownOpen((prev) => !prev)}
+              className="flex items-center gap-1.5 text-blue-600 font-extrabold border-b-2 border-blue-600 pb-0.5 transition-colors cursor-pointer focus:outline-none"
+            >
+              <span>{lang === 'de' ? 'Katalog' : 'Catalog'}</span>
+              <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isCatalogDropdownOpen ? 'rotate-180 text-blue-600' : 'text-blue-600'}`} />
+            </button>
+
+            {isCatalogDropdownOpen && (
+              <div className="absolute left-0 top-full pt-1.5 z-50 w-64 animate-fadeIn">
+                <div className="rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-xl p-2 shadow-xl shadow-slate-900/10 ring-1 ring-black/5 space-y-1">
+                  <Link
+                    to="/catalog"
+                    onClick={() => setIsCatalogDropdownOpen(false)}
+                    className="flex items-start gap-3 rounded-xl p-2.5 bg-blue-50/60 hover:bg-blue-50 transition-colors group"
+                  >
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white transition-colors">
+                      <Boxes className="h-4.5 w-4.5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-blue-600 transition-colors">
+                        {lang === 'de' ? 'Profilkatalog' : 'Profile Catalog'}
+                      </p>
+                      <p className="text-[11px] text-slate-500 font-medium leading-snug">
+                        {lang === 'de' ? 'Alle Standard- & Sonderprofile' : 'All standard & custom profiles'}
+                      </p>
+                    </div>
+                  </Link>
+
+                  <Link
+                    to="/search"
+                    onClick={() => setIsCatalogDropdownOpen(false)}
+                    className="flex items-start gap-3 rounded-xl p-2.5 hover:bg-slate-50 transition-colors group"
+                  >
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-50 text-cyan-600 group-hover:bg-cyan-600 group-hover:text-white transition-colors">
+                      <Search className="h-4.5 w-4.5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-900 group-hover:text-cyan-600 transition-colors">
+                        {lang === 'de' ? 'Erweiterte Suche' : 'Advance Search'}
+                      </p>
+                      <p className="text-[11px] text-slate-500 font-medium leading-snug">
+                        {lang === 'de' ? 'Spezifische Filter & CAD-Suche' : 'Detailed filters & CAD search'}
+                      </p>
+                    </div>
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+
           <Link to="/#about" className="hover:text-blue-600 transition-colors">{lang === 'de' ? 'Über uns' : 'About'}</Link>
         </nav>
 

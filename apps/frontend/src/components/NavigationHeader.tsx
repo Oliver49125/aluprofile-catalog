@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Boxes, Search, Globe, LogOut, Menu, X } from 'lucide-react';
+import { Boxes, Search, Globe, LogOut, Menu, X, ChevronDown } from 'lucide-react';
 import { Button } from './ui/button';
 
 interface NavigationHeaderProps {
@@ -26,6 +26,7 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
   onOpenAbout,
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCatalogDropdownOpen, setIsCatalogDropdownOpen] = useState(false);
 
   const handleHomeClick = (e: React.MouseEvent) => {
     if (window.location.pathname !== '/') {
@@ -43,23 +44,10 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
     }
     e.preventDefault();
     if (onTabChange) onTabChange('catalog');
-    setTimeout(() => {
-      const el = document.getElementById('catalog-section');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }, 50);
-  };
-
-  const handleSolutionsClick = (e: React.MouseEvent) => {
-    if (window.location.pathname !== '/') {
-      window.location.href = '/#solutions-section';
-      return;
+    const catalogSection = document.getElementById('catalog');
+    if (catalogSection) {
+      catalogSection.scrollIntoView({ behavior: 'smooth' });
     }
-    e.preventDefault();
-    if (onTabChange) onTabChange('home');
-    setTimeout(() => {
-      const el = document.getElementById('solutions-section');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }, 50);
   };
 
   const handleAboutClick = (e: React.MouseEvent) => {
@@ -67,16 +55,25 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
     if (onOpenAbout) {
       onOpenAbout();
     } else {
-      window.location.href = '/?modal=about';
+      const aboutSection = document.getElementById('about');
+      if (aboutSection) {
+        aboutSection.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 
   return (
-    <nav className="sticky top-0 z-50 mb-6 rounded-b-2xl border-b border-slate-200/80 bg-white/95 px-4 py-3 sm:px-6 sm:py-4 shadow-md shadow-slate-900/5 backdrop-blur-xl transition-all">
-      <div className="flex items-center justify-between">
-        {/* Brand & Nav Items */}
-        <div className="flex items-center gap-4 sm:gap-10">
-          <a href="/" onClick={handleHomeClick} className="group flex items-center gap-2.5 text-xl sm:text-2xl font-black text-slate-900 tracking-tighter">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/95 backdrop-blur-md shadow-sm transition-all duration-200">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 h-16 sm:h-20">
+        
+        {/* Left Side: Brand Logo & Desktop Nav */}
+        <div className="flex items-center gap-6 lg:gap-10">
+          <a
+            href="/"
+            onClick={handleHomeClick}
+            className="flex items-center gap-2.5 sm:gap-3 group focus:outline-none"
+            aria-label="AluProfile Home"
+          >
             <span className="relative flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-700 via-blue-600 to-cyan-400 text-white shadow-lg shadow-blue-600/30 group-hover:scale-105 group-hover:shadow-blue-500/50 transition-all duration-300">
               <Boxes className="h-5 w-5 sm:h-5 sm:w-5 group-hover:rotate-12 transition-transform duration-300" />
               <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-cyan-400 border-2 border-white animate-pulse" />
@@ -97,22 +94,69 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
             >
               {lang === 'de' ? 'Startseite' : 'Home'}
             </button>
-            <button
-              onClick={handleCatalogClick}
-              className={`rounded-xl px-4 py-2 transition-all cursor-pointer ${
-                activeTab === 'catalog'
-                  ? 'bg-slate-900 text-white shadow-sm'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-              }`}
+
+            {/* Catalog Dropdown Menu */}
+            <div
+              className="relative"
+              onMouseEnter={() => setIsCatalogDropdownOpen(true)}
+              onMouseLeave={() => setIsCatalogDropdownOpen(false)}
             >
-              {lang === 'de' ? 'Suchportal' : 'Search Portal'}
-            </button>
-            <button
-              onClick={handleSolutionsClick}
-              className="rounded-xl px-4 py-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all cursor-pointer"
-            >
-              {lang === 'de' ? 'Lösungen' : 'Solutions'}
-            </button>
+              <button
+                type="button"
+                onClick={() => setIsCatalogDropdownOpen((prev) => !prev)}
+                className={`flex items-center gap-1.5 rounded-xl px-4 py-2 transition-all cursor-pointer ${
+                  activeTab === 'catalog'
+                    ? 'bg-slate-900 text-white shadow-sm'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+              >
+                <span>{lang === 'de' ? 'Katalog' : 'Catalog'}</span>
+                <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isCatalogDropdownOpen ? 'rotate-180 text-blue-600' : 'text-slate-400'}`} />
+              </button>
+
+              {isCatalogDropdownOpen && (
+                <div className="absolute left-0 top-full pt-1.5 z-50 w-64 animate-fadeIn">
+                  <div className="rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-xl p-2 shadow-xl shadow-slate-900/10 ring-1 ring-black/5 space-y-1">
+                    <a
+                      href="/catalog"
+                      onClick={(e) => { setIsCatalogDropdownOpen(false); handleCatalogClick(e); }}
+                      className="flex items-start gap-3 rounded-xl p-2.5 hover:bg-slate-50 transition-colors group"
+                    >
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                        <Boxes className="h-4.5 w-4.5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                          {lang === 'de' ? 'Profilkatalog' : 'Profile Catalog'}
+                        </p>
+                        <p className="text-[11px] text-slate-500 font-medium leading-snug">
+                          {lang === 'de' ? 'Alle Standard- & Sonderprofile' : 'All standard & custom profiles'}
+                        </p>
+                      </div>
+                    </a>
+
+                    <a
+                      href="/search"
+                      onClick={() => setIsCatalogDropdownOpen(false)}
+                      className="flex items-start gap-3 rounded-xl p-2.5 hover:bg-slate-50 transition-colors group"
+                    >
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-50 text-cyan-600 group-hover:bg-cyan-600 group-hover:text-white transition-colors">
+                        <Search className="h-4.5 w-4.5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-900 group-hover:text-cyan-600 transition-colors">
+                          {lang === 'de' ? 'Erweiterte Suche' : 'Advance Search'}
+                        </p>
+                        <p className="text-[11px] text-slate-500 font-medium leading-snug">
+                          {lang === 'de' ? 'Spezifische Filter & CAD-Suche' : 'Detailed filters & CAD search'}
+                        </p>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <button
               onClick={handleAboutClick}
               className="rounded-xl px-4 py-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all cursor-pointer"
@@ -124,23 +168,18 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
 
         {/* Right Side Desktop Actions */}
         <div className="hidden md:flex items-center gap-3.5">
-          <a href="/search">
-            <Button className="h-10 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md transition-all hover:scale-105 flex items-center gap-1.5 cursor-pointer">
-              <Search className="h-3.5 w-3.5" />
-              <span>{lang === 'de' ? 'Suchportal' : 'Search Portal'}</span>
-            </Button>
+          <a href="/customer?mode=sign-up">
+            <button
+              className="rounded-full bg-[#131c2a] hover:bg-slate-900 text-white text-[12px] font-extrabold px-4 py-2 shadow-sm transition-all border border-slate-700/50 flex items-center gap-1.5 cursor-pointer shrink-0"
+            >
+              <span>{lang === 'de' ? 'Als Hersteller eintragen' : 'Register as Manufacturer'}</span>
+            </button>
           </a>
           <a href="/customer">
             <Button className="h-10 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs shadow-md hover:shadow-lg transition-all hover:scale-105 cursor-pointer">
               {lang === 'de' ? 'Kundenportal' : 'Customer Portal'}
             </Button>
           </a>
-          <a href="/admin">
-            <Button className="h-10 px-5 rounded-xl bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-500 hover:to-sky-500 text-white font-medium text-xs shadow-md hover:scale-105 transition-all cursor-pointer">
-              {lang === 'de' ? 'Admin-Panel' : 'Admin Panel'}
-            </Button>
-          </a>
-
           <label className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700 cursor-pointer hover:bg-slate-100 transition-all">
             <Globe className="h-3.5 w-3.5 text-slate-400" />
             <select
@@ -177,25 +216,29 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
 
       {/* MOBILE NAVIGATION DRAWER */}
       {isMobileMenuOpen && (
-        <div className="mt-4 pt-4 border-t border-slate-200 md:hidden flex flex-col gap-3 animate-fadeIn">
+        <div className="mt-4 pt-4 border-t border-slate-200 md:hidden flex flex-col gap-3 animate-fadeIn px-4 pb-4">
           <button
             onClick={(e) => { setIsMobileMenuOpen(false); handleHomeClick(e); }}
             className="text-left py-2 px-3 rounded-lg font-bold text-sm text-slate-800 hover:bg-slate-100"
           >
             {lang === 'de' ? 'Startseite' : 'Home'}
           </button>
-          <button
+          <a
+            href="/catalog"
             onClick={(e) => { setIsMobileMenuOpen(false); handleCatalogClick(e); }}
-            className="text-left py-2 px-3 rounded-lg font-bold text-sm text-slate-800 hover:bg-slate-100"
+            className="text-left py-2 px-3 rounded-lg font-bold text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2"
           >
-            {lang === 'de' ? 'Suchportal' : 'Search Portal'}
-          </button>
-          <button
-            onClick={(e) => { setIsMobileMenuOpen(false); handleSolutionsClick(e); }}
-            className="text-left py-2 px-3 rounded-lg font-bold text-sm text-slate-800 hover:bg-slate-100"
+            <Boxes className="h-4 w-4" />
+            <span>{lang === 'de' ? 'Profilkatalog' : 'Profile Catalog'}</span>
+          </a>
+          <a
+            href="/search"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="text-left py-2 px-3 rounded-lg font-bold text-sm text-cyan-600 hover:bg-cyan-50 flex items-center gap-2"
           >
-            {lang === 'de' ? 'Lösungen' : 'Solutions'}
-          </button>
+            <Search className="h-4 w-4" />
+            <span>{lang === 'de' ? 'Erweiterte Suche' : 'Advance Search'}</span>
+          </a>
           <button
             onClick={(e) => { setIsMobileMenuOpen(false); handleAboutClick(e); }}
             className="text-left py-2 px-3 rounded-lg font-bold text-sm text-slate-800 hover:bg-slate-100"
@@ -203,11 +246,6 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
             {lang === 'de' ? 'Über uns' : 'About'}
           </button>
           <div className="flex flex-col gap-2 pt-2 border-t border-slate-100">
-            <a href="/search" className="w-full">
-              <Button className="w-full h-10 rounded-xl bg-blue-600 text-white font-bold text-xs">
-                {lang === 'de' ? 'Suchportal' : 'Search Portal'}
-              </Button>
-            </a>
             <a href="/customer" className="w-full">
               <Button className="w-full h-10 rounded-xl bg-slate-900 text-white font-medium text-xs">
                 {lang === 'de' ? 'Kundenportal' : 'Customer Portal'}
@@ -239,6 +277,6 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
           </div>
         </div>
       )}
-    </nav>
+    </header>
   );
 };
