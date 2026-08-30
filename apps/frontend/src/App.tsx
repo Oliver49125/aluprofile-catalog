@@ -576,9 +576,6 @@ function App() {
             {lang === 'de' ? 'Startseite' : 'Home'}
           </Link>
           <Link to="/catalog" className="hover:text-blue-600 transition-colors">
-            {lang === 'de' ? 'Katalog' : 'Catalog'}
-          </Link>
-          <Link to="/search" className="hover:text-blue-600 transition-colors">
             {lang === 'de' ? 'Suchportal' : 'Search Portal'}
           </Link>
           <a href="#solutions" onClick={(e) => { e.preventDefault(); document.getElementById('solutions')?.scrollIntoView({ behavior: 'smooth' }); }} className="hover:text-blue-600 transition-colors">

@@ -260,11 +260,9 @@ export default function CatalogPage() {
         </Link>
 
         {/* Nav links */}
-        {/* Nav links */}
         <nav className="hidden md:flex items-center gap-7 text-[13px] font-bold text-slate-600">
           <Link to="/" className="hover:text-blue-600 transition-colors">{lang === 'de' ? 'Startseite' : 'Home'}</Link>
-          <Link to="/catalog" className="text-blue-600 font-extrabold border-b-2 border-blue-600 pb-0.5">{lang === 'de' ? 'Katalog' : 'Catalog'}</Link>
-          <Link to="/search" className="hover:text-blue-600 transition-colors">{lang === 'de' ? 'Suchportal' : 'Search Portal'}</Link>
+          <Link to="/catalog" className="text-blue-600 font-extrabold border-b-2 border-blue-600 pb-0.5">{lang === 'de' ? 'Suchportal' : 'Search Portal'}</Link>
           <Link to="/#solutions" className="hover:text-blue-600 transition-colors">{lang === 'de' ? 'Lösungen' : 'Solutions'}</Link>
           <Link to="/#about" className="hover:text-blue-600 transition-colors">{lang === 'de' ? 'Über uns' : 'About'}</Link>
         </nav>

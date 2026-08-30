@@ -105,7 +105,7 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
-              {lang === 'de' ? 'Katalog' : 'Catalog'}
+              {lang === 'de' ? 'Suchportal' : 'Search Portal'}
             </button>
             <button
               onClick={handleSolutionsClick}
@@ -188,7 +188,7 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
             onClick={(e) => { setIsMobileMenuOpen(false); handleCatalogClick(e); }}
             className="text-left py-2 px-3 rounded-lg font-bold text-sm text-slate-800 hover:bg-slate-100"
           >
-            {lang === 'de' ? 'Katalog' : 'Catalog'}
+            {lang === 'de' ? 'Suchportal' : 'Search Portal'}
           </button>
           <button
             onClick={(e) => { setIsMobileMenuOpen(false); handleSolutionsClick(e); }}
