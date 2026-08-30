@@ -1417,6 +1417,30 @@ function App() {
                   : 'Many listed aluminum profiles comply with modular grid standards (20, 30, 40, 45, 50, and 60 mm series) and are fully compatible with standard T-slot hardware, brackets, and accessories.'}
               </p>
             </div>
+
+            <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-6 space-y-2.5 transition-all hover:bg-white hover:shadow-md hover:border-slate-200">
+              <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-black">5</span>
+                {lang === 'de' ? 'Sind Aluminiumprofile und Hersteller für Österreich (Austria) gelistet?' : 'Are aluminium profiles and companies in Austria listed?'}
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                {lang === 'de'
+                  ? 'Ja, AluProfileBiz deckt die gesamte DACH-Region (Österreich, Deutschland, Schweiz) und Europa ab. Sie finden führende Unternehmen der Aluminiumindustrie, zertifizierte Strangpressprofile und direkten Kontakt zu österreichischen und europäischen Lieferanten.'
+                  : 'Yes, AluProfileBiz comprehensively serves the Austrian and European aluminium industries. Engineers can locate certified aluminium companies in Austria and Europe, compare structural profiles, and download engineering CAD files directly.'}
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-6 space-y-2.5 transition-all hover:bg-white hover:shadow-md hover:border-slate-200">
+              <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-black">6</span>
+                {lang === 'de' ? 'Wie können Unternehmen der Aluminiumindustrie in Österreich ihre Profile listen?' : 'How can aluminium companies in Austria list their profiles?'}
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                {lang === 'de'
+                  ? 'Über unser B2B-Kundenportal können Hersteller und Händler aus Österreich ihre Aluminiumprofile, Datenblätter und 3D-CAD-Modelle hochladen und für tausende Ingenieure und Einkäufer weltweit sichtbar machen.'
+                  : 'Through our B2B Customer Portal, aluminium extrusion companies and suppliers in Austria and Europe can publish their profiles, technical data sheets, and 3D CAD files to reach industrial buyers globally.'}
+              </p>
+            </div>
           </div>
         </section>
 

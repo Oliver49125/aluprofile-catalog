@@ -785,6 +785,18 @@ export default function CatalogPage() {
                   : 'Click on any profile card to open the technical detail view. You can instantly download 3D STEP (.stp) models, 2D DXF drawings, and PDF engineering datasheets.'}
               </p>
             </div>
+
+            <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-6 space-y-2.5 transition-all hover:bg-white hover:shadow-md hover:border-slate-200">
+              <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-black">3</span>
+                {lang === 'de' ? 'Sind Profile für Kunden & Unternehmen in Österreich verfügbar?' : 'Are profiles available for customers & industries in Austria?'}
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                {lang === 'de'
+                  ? 'Ja, AluProfileBiz verbindet Kunden und den Maschinenbau in Österreich (Austria) direkt mit zertifizierten Herstellern und Lagerbeständen in ganz Europa.'
+                  : 'Yes, AluProfileBiz connects machine builders and structural engineers in Austria and Europe directly with certified extrusion manufacturers and inventory.'}
+              </p>
+            </div>
           </div>
         </section>
 

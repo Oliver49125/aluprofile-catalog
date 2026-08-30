@@ -1,8 +1,10 @@
 /**
  * AluProfileBiz Dynamic SEO & Meta Manager
  * Ensures optimal search engine crawling, title tags, and rich social sharing.
- * Highly tuned for keywords: "aluprofile", "aluprofilebiz", "Alu Profile Biz",
- * "Alu Profile", "Aluminium Profile", "AluminiumProfile", "aluminium profile", "Aluminium Profiles".
+ * Highly tuned for regional & keyword queries:
+ * - "aluminium profile in austria", "aluminium industries in austria", "aluminium companies in austria"
+ * - "Aluminiumprofile Österreich", "Aluminium Industrie Österreich", "Aluminium Hersteller Österreich"
+ * - "aluprofile", "aluprofilebiz", "Alu Profile Biz", "Alu Profile", "Aluminium Profile", "AluminiumProfile", "aluminium profile", "Aluminium Profiles"
  */
 
 export interface PageSeoConfig {
@@ -12,54 +14,54 @@ export interface PageSeoConfig {
   canonical?: string;
 }
 
-const COMMON_KEYWORDS = 'aluprofile, aluprofilebiz, Alu Profile Biz, Alu Profile, Aluminium Profile, AluminiumProfile, aluminium profile, Aluminium Profiles, Aluminiumprofile, Aluminum Profile, Aluminum Extrusions, Alu Profil Suche, CAD Profile, Nut 8, Nut 10, Bosch Rexroth kompatibel, Item kompatibel, Maschinenbau, B2B Aluminium Profile';
+const COMMON_KEYWORDS = 'aluminium profile in austria, aluminium industries in austria, aluminium companies in austria, aluminium suppliers austria, Aluminiumprofile Österreich, Aluminium Hersteller Österreich, Aluminium Industrie Österreich, aluprofile, aluprofilebiz, Alu Profile Biz, Alu Profile, Aluminium Profile, AluminiumProfile, aluminium profile, Aluminium Profiles, Aluminiumprofile, Aluminum Profile, Aluminum Extrusions, Alu Profil Suche, CAD Profile, Nut 8, Nut 10, Bosch Rexroth kompatibel, Item kompatibel, Maschinenbau, B2B Aluminium Profile';
 
 const SEO_DEFAULTS: Record<string, Record<'de' | 'en', PageSeoConfig>> = {
   home: {
     de: {
-      title: 'AluProfileBiz - Aluprofile & Aluminium Profile Suchmaschine, CAD Katalog',
-      description: 'AluProfileBiz: Finden und vergleichen Sie Aluprofile und Aluminium Profile nach Maßen, Nutgröße und Trägheitsmoment. 3D-CAD-Downloads (STEP, DXF) und direkte B2B-Anfragen.',
+      title: 'AluProfileBiz - Aluminiumprofile Österreich, Aluprofile & CAD Katalog',
+      description: 'AluProfileBiz: Führende Plattform für Aluminiumprofile in Österreich, Deutschland & Europa. Finden Sie Profile nach Maßen, Nutgröße und CAD-Downloads (STEP, DXF).',
       keywords: COMMON_KEYWORDS,
     },
     en: {
-      title: 'AluProfileBiz - Aluminum Profile, Aluminium Profiles & CAD Catalog Search',
-      description: 'AluProfileBiz: Search, discover, and compare industrial aluminium profiles, aluminum extrusions, and download 3D STEP & 2D DXF CAD models with structural engineering specs.',
+      title: 'AluProfileBiz - Aluminium Profile in Austria, Aluminum Extrusions & CAD Search',
+      description: 'AluProfileBiz: Discover aluminium profile in Austria and top European aluminium companies. Search industrial extrusions, download 3D STEP & 2D DXF CAD models.',
       keywords: COMMON_KEYWORDS,
     },
   },
   catalog: {
     de: {
-      title: 'Aluminium Profile & Aluprofile Suche - AluProfileBiz Technischer Katalog',
-      description: 'Durchsuchen Sie den kompletten B2B-Katalog für Aluprofile und Aluminium Profile. Filtern Sie nach Abmessungen, Nut 8 / Nut 10 und Trägheitsmomenten auf AluProfileBiz.',
+      title: 'Aluminiumprofile Suche & Hersteller Österreich - AluProfileBiz Katalog',
+      description: 'Durchsuchen Sie den kompletten B2B-Katalog für Aluprofile und Aluminiumprofile in Österreich & Europa. Filtern Sie nach Abmessungen, Nut 8 / Nut 10 und CAD-Daten.',
       keywords: COMMON_KEYWORDS,
     },
     en: {
-      title: 'Aluminium Profiles & Aluminum Profile Search - AluProfileBiz Catalog',
-      description: 'Search, filter, and compare standard and custom aluminium profiles with full technical datasheets, CAD models, and manufacturer details on AluProfileBiz.',
+      title: 'Aluminium Profile in Austria & Extrusions Catalog - AluProfileBiz',
+      description: 'Search, filter, and compare standard and custom aluminium profiles with full technical datasheets, CAD models, and verified manufacturers in Austria & Europe.',
       keywords: COMMON_KEYWORDS,
     },
   },
   search: {
     de: {
-      title: 'Erweiterte Aluminium Profile Suche & CAD Portal - AluProfileBiz',
-      description: 'Erweiterte parametrische Profilsuche für Aluprofile und Aluminium Profile: Berechnen Sie Trägheitsmomente, Nut-Systeme und laden Sie CAD STEP/DXF-Dateien herunter.',
+      title: 'Erweiterte Aluminium Profile Suche Österreich & CAD Portal - AluProfileBiz',
+      description: 'Erweiterte parametrische Profilsuche für Aluprofile und Aluminiumprofile: Berechnen Sie Trägheitsmomente, Nut-Systeme und laden Sie CAD STEP/DXF-Dateien herunter.',
       keywords: COMMON_KEYWORDS,
     },
     en: {
       title: 'Advance Aluminium Profile Search & 3D CAD Portal - AluProfileBiz',
-      description: 'Parametric search engine for aluminium profiles and aluminum extrusions: filter by moments of inertia, slot sizes, and download instant CAD files on AluProfileBiz.',
+      description: 'Parametric search engine for aluminium profiles, aluminium industries in Austria, and extrusions: filter by moments of inertia, slot sizes, and download CAD.',
       keywords: COMMON_KEYWORDS,
     },
   },
   customer: {
     de: {
-      title: 'Hersteller- & Kundenportal für Aluminium Profile - AluProfileBiz',
-      description: 'Verwalten und listen Sie Ihre Aluminiumprofile und Aluprofile auf dem AluProfileBiz B2B-Marktplatz für Maschinenbau und Industrie.',
+      title: 'Hersteller- & Kundenportal für Aluminium Profile Österreich - AluProfileBiz',
+      description: 'Verwalten und listen Sie Ihre Aluminiumprofile auf dem AluProfileBiz B2B-Marktplatz für Maschinenbau in Österreich und ganz Europa.',
       keywords: COMMON_KEYWORDS,
     },
     en: {
-      title: 'Manufacturer & Customer Portal for Aluminium Profiles - AluProfileBiz',
-      description: 'Manage, publish, and distribute your custom aluminium profile catalog to structural engineers worldwide on AluProfileBiz.',
+      title: 'Manufacturer & Customer Portal for Aluminium Companies in Austria - AluProfileBiz',
+      description: 'Manage, publish, and distribute your custom aluminium profile catalog to structural engineers across Austria, Germany, and worldwide.',
       keywords: COMMON_KEYWORDS,
     },
   },
