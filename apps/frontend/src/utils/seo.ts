@@ -1,6 +1,8 @@
 /**
  * AluProfileBiz Dynamic SEO & Meta Manager
  * Ensures optimal search engine crawling, title tags, and rich social sharing.
+ * Highly tuned for keywords: "aluprofile", "aluprofilebiz", "Alu Profile Biz",
+ * "Alu Profile", "Aluminium Profile", "AluminiumProfile", "aluminium profile", "Aluminium Profiles".
  */
 
 export interface PageSeoConfig {
@@ -10,83 +12,91 @@ export interface PageSeoConfig {
   canonical?: string;
 }
 
+const COMMON_KEYWORDS = 'aluprofile, aluprofilebiz, Alu Profile Biz, Alu Profile, Aluminium Profile, AluminiumProfile, aluminium profile, Aluminium Profiles, Aluminiumprofile, Aluminum Profile, Aluminum Extrusions, Alu Profil Suche, CAD Profile, Nut 8, Nut 10, Bosch Rexroth kompatibel, Item kompatibel, Maschinenbau, B2B Aluminium Profile';
+
 const SEO_DEFAULTS: Record<string, Record<'de' | 'en', PageSeoConfig>> = {
   home: {
     de: {
-      title: 'AluProfileBiz - B2B Aluminium-Profilsuche & CAD Datenblätter',
-      description: 'AluProfileBiz: Finden Sie Standard- und Sonderprofile aus Aluminium, vergleichen Sie technische Datenblätter, CAD-Dateien (STEP, DXF) und senden Sie direkte Preisanfragen.',
-      keywords: 'AluProfileBiz, Aluminiumprofile, Profilsuche, CAD Modelle, Nut 8, Nut 10, Bosch Rexroth kompatibel, Item kompatibel, Maschinenbau',
+      title: 'AluProfileBiz - Aluprofile & Aluminium Profile Suchmaschine, CAD Katalog',
+      description: 'AluProfileBiz: Finden und vergleichen Sie Aluprofile und Aluminium Profile nach Maßen, Nutgröße und Trägheitsmoment. 3D-CAD-Downloads (STEP, DXF) und direkte B2B-Anfragen.',
+      keywords: COMMON_KEYWORDS,
     },
     en: {
-      title: 'AluProfileBiz - Leading Aluminum Profile Search & CAD Engineering Catalog',
-      description: 'AluProfileBiz: Discover and compare standard and custom aluminum extrusion profiles with technical data sheets, 3D CAD files (STEP, DXF), and direct supplier B2B inquiries.',
-      keywords: 'AluProfileBiz, aluminum profiles, extrusion search, CAD models, slot 8, slot 10, Bosch Rexroth compatible, Item compatible, structural profiles',
+      title: 'AluProfileBiz - Aluminum Profile, Aluminium Profiles & CAD Catalog Search',
+      description: 'AluProfileBiz: Search, discover, and compare industrial aluminium profiles, aluminum extrusions, and download 3D STEP & 2D DXF CAD models with structural engineering specs.',
+      keywords: COMMON_KEYWORDS,
     },
   },
   catalog: {
     de: {
-      title: 'Aluminium-Profilsuche - AluProfileBiz Technischer Datenkatalog',
-      description: 'Durchsuchen und filtern Sie den vollständigen Aluminium-Profilkatalog von AluProfileBiz mit Filtern nach Nutgröße, Abmessungen, Gewicht und Legierung.',
-      keywords: 'AluProfileBiz Profilsuche, Aluminiumprofil Katalog, T-Nut Profile, Konstruktionsprofile, Strangpressprofile',
+      title: 'Aluminium Profile & Aluprofile Suche - AluProfileBiz Technischer Katalog',
+      description: 'Durchsuchen Sie den kompletten B2B-Katalog für Aluprofile und Aluminium Profile. Filtern Sie nach Abmessungen, Nut 8 / Nut 10 und Trägheitsmomenten auf AluProfileBiz.',
+      keywords: COMMON_KEYWORDS,
     },
     en: {
-      title: 'Aluminum Profile Search - AluProfileBiz Technical Engineering Catalog',
-      description: 'Search, filter, and inspect structural aluminum extrusion profiles with full technical data sheets, CAD dimensions, and supplier details on AluProfileBiz.',
-      keywords: 'AluProfileBiz profile search, aluminum extrusion catalog, t-slot profiles, structural framing profiles',
+      title: 'Aluminium Profiles & Aluminum Profile Search - AluProfileBiz Catalog',
+      description: 'Search, filter, and compare standard and custom aluminium profiles with full technical datasheets, CAD models, and manufacturer details on AluProfileBiz.',
+      keywords: COMMON_KEYWORDS,
     },
   },
   search: {
     de: {
-      title: 'Erweiterte Profilsuche & CAD Portal - AluProfileBiz',
-      description: 'Nutzen Sie die erweiterte parametrische Profilsuche von AluProfileBiz: Filtern nach Querschnitten, Trägheitsmomenten, Nutgrößen und CAD-Downloads.',
-      keywords: 'AluProfileBiz Erweiterte Profilsuche, Parametrische Suche, CAD Download, DXF, STEP, Aluminiumprofile',
+      title: 'Erweiterte Aluminium Profile Suche & CAD Portal - AluProfileBiz',
+      description: 'Erweiterte parametrische Profilsuche für Aluprofile und Aluminium Profile: Berechnen Sie Trägheitsmomente, Nut-Systeme und laden Sie CAD STEP/DXF-Dateien herunter.',
+      keywords: COMMON_KEYWORDS,
     },
     en: {
-      title: 'Advance Profile Search & CAD Portal - AluProfileBiz',
-      description: 'Use the advanced parametric search on AluProfileBiz: filter by moment of inertia, slot size, dimensions, and download 2D/3D CAD files instantly.',
-      keywords: 'AluProfileBiz advance profile search, parametric aluminum search, CAD engineering portal, STEP download',
+      title: 'Advance Aluminium Profile Search & 3D CAD Portal - AluProfileBiz',
+      description: 'Parametric search engine for aluminium profiles and aluminum extrusions: filter by moments of inertia, slot sizes, and download instant CAD files on AluProfileBiz.',
+      keywords: COMMON_KEYWORDS,
     },
   },
   customer: {
     de: {
-      title: 'Hersteller- & Kundenportal - AluProfileBiz',
-      description: 'Verwalten Sie Ihre eigenen Aluminiumprofile, listen Sie Produkte im AluProfileBiz B2B-Marktplatz und bearbeiten Sie technische Daten.',
-      keywords: 'AluProfileBiz Kundenportal, Hersteller B2B, Aluprofile verwalten',
+      title: 'Hersteller- & Kundenportal für Aluminium Profile - AluProfileBiz',
+      description: 'Verwalten und listen Sie Ihre Aluminiumprofile und Aluprofile auf dem AluProfileBiz B2B-Marktplatz für Maschinenbau und Industrie.',
+      keywords: COMMON_KEYWORDS,
     },
     en: {
-      title: 'Manufacturer & Customer Portal - AluProfileBiz',
-      description: 'Manage and publish your custom aluminum extrusion profiles on the AluProfileBiz B2B network.',
-      keywords: 'AluProfileBiz customer portal, manufacturer workspace, list profiles',
+      title: 'Manufacturer & Customer Portal for Aluminium Profiles - AluProfileBiz',
+      description: 'Manage, publish, and distribute your custom aluminium profile catalog to structural engineers worldwide on AluProfileBiz.',
+      keywords: COMMON_KEYWORDS,
     },
   },
   imprint: {
     de: {
-      title: 'Impressum - AluProfileBiz',
-      description: 'Rechtliche Angaben und Kontaktinformationen für AluProfileBiz.',
+      title: 'Impressum - AluProfileBiz Aluminium Profile Plattform',
+      description: 'Rechtliche Angaben und Kontaktinformationen für die B2B-Plattform AluProfileBiz.',
+      keywords: COMMON_KEYWORDS,
     },
     en: {
-      title: 'Imprint - AluProfileBiz',
+      title: 'Imprint - AluProfileBiz Aluminum Profile Platform',
       description: 'Legal notices and corporate contact information for AluProfileBiz.',
+      keywords: COMMON_KEYWORDS,
     },
   },
   privacy: {
     de: {
-      title: 'Datenschutzerklärung - AluProfileBiz',
+      title: 'Datenschutzerklärung - AluProfileBiz Aluminium Profile',
       description: 'Datenschutzbestimmungen und DSGVO-Konformität von AluProfileBiz.',
+      keywords: COMMON_KEYWORDS,
     },
     en: {
-      title: 'Privacy Policy - AluProfileBiz',
+      title: 'Privacy Policy - AluProfileBiz Aluminum Profiles',
       description: 'Privacy policy and GDPR compliance statement for AluProfileBiz.',
+      keywords: COMMON_KEYWORDS,
     },
   },
   terms: {
     de: {
       title: 'Allgemeine Geschäftsbedingungen (AGB) - AluProfileBiz',
-      description: 'Nutzungsbedingungen und AGB der B2B-Plattform AluProfileBiz.',
+      description: 'Nutzungsbedingungen und AGB der B2B-Plattform AluProfileBiz für Aluminiumprofile.',
+      keywords: COMMON_KEYWORDS,
     },
     en: {
-      title: 'Terms of Service - AluProfileBiz',
+      title: 'Terms of Service - AluProfileBiz Aluminum Profiles',
       description: 'General terms and B2B platform conditions for AluProfileBiz.',
+      keywords: COMMON_KEYWORDS,
     },
   },
 };
@@ -125,14 +135,12 @@ export function updatePageSeo(pageKey: string, lang: 'de' | 'en' = 'de', customC
   let twitterDesc = document.querySelector('meta[property="twitter:description"]');
   if (twitterDesc) twitterDesc.setAttribute('content', config.description);
 
-  // 4. Update Keywords if provided
-  if (config.keywords) {
-    let metaKeywords = document.querySelector('meta[name="keywords"]');
-    if (!metaKeywords) {
-      metaKeywords = document.createElement('meta');
-      metaKeywords.setAttribute('name', 'keywords');
-      document.head.appendChild(metaKeywords);
-    }
-    metaKeywords.setAttribute('content', config.keywords);
+  // 4. Update Keywords
+  let metaKeywords = document.querySelector('meta[name="keywords"]');
+  if (!metaKeywords) {
+    metaKeywords = document.createElement('meta');
+    metaKeywords.setAttribute('name', 'keywords');
+    document.head.appendChild(metaKeywords);
   }
+  metaKeywords.setAttribute('content', config.keywords || COMMON_KEYWORDS);
 }

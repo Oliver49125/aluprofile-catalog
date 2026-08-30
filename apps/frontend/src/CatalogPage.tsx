@@ -25,6 +25,7 @@ import {
   Mail,
   Sparkles,
   ExternalLink,
+  HelpCircle,
 } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
@@ -740,6 +741,52 @@ export default function CatalogPage() {
         </div>
 
 
+
+        {/* ── SEO FAQ SECTION ── */}
+        <section id="faq" className="mt-16 space-y-8 rounded-3xl border border-slate-200/80 bg-white/90 p-8 sm:p-12 shadow-sm backdrop-blur-md">
+          <div className="max-w-3xl space-y-3">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-200 px-3.5 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-blue-600 shadow-sm">
+              <HelpCircle className="h-3.5 w-3.5 text-blue-600" />
+              {lang === 'de' ? 'Häufig gestellte Fragen (FAQ)' : 'Frequently Asked Questions (FAQ)'}
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+              {lang === 'de' 
+                ? 'Aluprofile & Aluminium Profile Katalog – Technische B2B Plattform'
+                : 'Aluminium Profile & Extrusion Catalog – Technical Engineering Specifications'}
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed font-medium">
+              {lang === 'de'
+                ? 'Vergleichen Sie Nutgrößen, Trägheitsmomente, 3D STEP / 2D DXF CAD-Dateien und fordern Sie Preisangebote direkt über AluProfileBiz an.'
+                : 'Search exact slot sizes, moments of inertia, download 3D STEP CAD files, and request quotations on AluProfileBiz.'}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+            <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-6 space-y-2.5 transition-all hover:bg-white hover:shadow-md hover:border-slate-200">
+              <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-black">1</span>
+                {lang === 'de' ? 'Welche Aluminiumprofile sind im Katalog gelistet?' : 'Which aluminium profiles are listed in the catalog?'}
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                {lang === 'de'
+                  ? 'Der Katalog umfasst Konstruktionsprofile, Nutprofile (Nut 5 bis Nut 10), schwere Industrieprofile, Sonderquerschnitte und Zubehör von zertifizierten Herstellern.'
+                  : 'The catalog contains structural framing extrusions, modular slot profiles (Slot 5 to 10), heavy-duty machine bases, custom geometries, and modular hardware.'}
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-6 space-y-2.5 transition-all hover:bg-white hover:shadow-md hover:border-slate-200">
+              <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-black">2</span>
+                {lang === 'de' ? 'Wie kann ich technische Datenblätter und CAD-Dateien herunterladen?' : 'How do I download technical datasheets and CAD models?'}
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                {lang === 'de'
+                  ? 'Klicken Sie auf ein beliebiges Profil, um die Detailansicht zu öffnen. Sie können dort direkt 3D STEP (.stp), 2D DXF (.dxf) und PDF-Datenblätter kostenlos herunterladen.'
+                  : 'Click on any profile card to open the technical detail view. You can instantly download 3D STEP (.stp) models, 2D DXF drawings, and PDF engineering datasheets.'}
+              </p>
+            </div>
+          </div>
+        </section>
 
       </main>
 

@@ -36,6 +36,7 @@ import {
   FileSpreadsheet,
   FileIcon,
   Download,
+  HelpCircle,
 } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
@@ -1334,6 +1335,76 @@ function App() {
             )}
           </div>
         )}
+
+        {/* ── SEO FAQ SECTION (OPTIMIZED FOR GOOGLE SEARCH & SNIPPETS) ── */}
+        <section id="faq" className="mt-16 space-y-8 rounded-3xl border border-slate-200/80 bg-white/90 p-8 sm:p-12 shadow-sm backdrop-blur-md">
+          <div className="max-w-3xl space-y-3">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-200 px-3.5 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-blue-600 shadow-sm">
+              <HelpCircle className="h-3.5 w-3.5 text-blue-600" />
+              {lang === 'de' ? 'Häufig gestellte Fragen (FAQ)' : 'Frequently Asked Questions (FAQ)'}
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+              {lang === 'de' 
+                ? 'Aluprofile & Aluminium Profile – Technische B2B Suchmaschine'
+                : 'Aluminium Profiles & Aluminum Extrusions – Technical Engineering Catalog'}
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed font-medium">
+              {lang === 'de'
+                ? 'Alles Wissenswerte zur Suche, den CAD-Downloads (STEP, DXF) und den technischen Spezifikationen von Aluminiumprofilen auf AluProfileBiz.'
+                : 'Find instant answers about searching, 3D CAD models, structural calculations, and supplier inquiries on AluProfileBiz.'}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+            <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-6 space-y-2.5 transition-all hover:bg-white hover:shadow-md hover:border-slate-200">
+              <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-black">1</span>
+                {lang === 'de' ? 'Was ist AluProfileBiz für Aluminiumprofile?' : 'What is AluProfileBiz for Aluminium Profiles?'}
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                {lang === 'de'
+                  ? 'AluProfileBiz ist die führende europäische B2B-Suchmaschine und Plattform für Aluminiumprofile, Aluprofile, Konstruktionsprofile und Baukastensysteme. Konstrukteure und Einkäufer können Profile millimetergenau vergleichen und Datenblätter herunterladen.'
+                  : 'AluProfileBiz is the premier B2B search engine and catalog for industrial aluminium profiles, aluminum extrusions, and modular framing systems, connecting engineers directly with verified manufacturers.'}
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-6 space-y-2.5 transition-all hover:bg-white hover:shadow-md hover:border-slate-200">
+              <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-black">2</span>
+                {lang === 'de' ? 'Wie filtere ich Aluprofile nach Nutgröße und Maßen?' : 'How do I filter aluminium profiles by slot size & dimensions?'}
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                {lang === 'de'
+                  ? 'Nutzen Sie unsere intelligente Filtersuche nach Nutgröße (Nut 5, Nut 6, Nut 8, Nut 10), Außenabmessungen (z.B. 20x20, 40x40, 80x80), Trägheitsmomenten (Ix, Iy) und spezifischem Gewicht pro Meter (kg/m).'
+                  : 'Use our parametric filter to find exact profiles by slot sizes (Slot 5, 6, 8, 10), dimensions (e.g. 20x20, 40x40, 80x80 mm), moments of inertia (Ix, Iy), and weight per meter.'}
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-6 space-y-2.5 transition-all hover:bg-white hover:shadow-md hover:border-slate-200">
+              <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-black">3</span>
+                {lang === 'de' ? 'Sind 3D CAD-Dateien (STEP) und 2D-Zeichnungen (DXF) verfügbar?' : 'Are 3D STEP and 2D DXF CAD files available for download?'}
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                {lang === 'de'
+                  ? 'Ja, für die gelisteten Aluminiumprofile stehen 3D STEP-Dateien (.stp), 2D DXF-Vektorzeichnungen und PDF-Datenblätter zum direkten Download für SolidWorks, Autodesk Inventor, Siemens NX und AutoCAD bereit.'
+                  : 'Yes, listed profiles include 3D STEP (.stp) models, 2D DXF CAD outlines, and PDF technical datasheets for direct integration into SolidWorks, Inventor, CATIA, and AutoCAD.'}
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-6 space-y-2.5 transition-all hover:bg-white hover:shadow-md hover:border-slate-200">
+              <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-black">4</span>
+                {lang === 'de' ? 'Sind die Profile kompatibel mit Bosch Rexroth und Item?' : 'Are the profiles compatible with Bosch Rexroth & Item systems?'}
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                {lang === 'de'
+                  ? 'Viele unserer Aluminiumprofile entsprechen den Industriestandards der Raster 20, 30, 40, 45, 50 und 60 mm und sind mit Standard-Systemnut-Verbindern, T-Nutensteinen und Baukästen kompatibel.'
+                  : 'Many listed aluminum profiles comply with modular grid standards (20, 30, 40, 45, 50, and 60 mm series) and are fully compatible with standard T-slot hardware, brackets, and accessories.'}
+              </p>
+            </div>
+          </div>
+        </section>
 
       </div>{/* end max-w-screen-xl content */}
 
