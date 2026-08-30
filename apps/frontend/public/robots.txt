@@ -17,5 +17,6 @@ Allow: /terms
 User-agent: Bingbot
 Allow: /
 
-# XML Sitemap Location
+# XML Sitemap Locations
+Sitemap: https://www.aluprofile.biz/sitemap.xml
 Sitemap: https://aluprofile.biz/sitemap.xml
