@@ -584,7 +584,7 @@ export default function CatalogPage() {
                           </td>
                           <td className="px-5 py-4 whitespace-nowrap">
                             <span className="font-extrabold text-sm text-slate-900">
-                              {p.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(p.price)} ${p.currency?.symbol ?? '€'}` : (lang === 'de' ? 'Auf Anfrage' : 'On Request')}
+                              {p.price ? `${p.currency?.symbol ?? '€'} ${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(p.price)}` : (lang === 'de' ? 'Auf Anfrage' : 'On Request')}
                             </span>
                           </td>
                           <td className="px-5 py-4 whitespace-nowrap">
@@ -661,7 +661,7 @@ export default function CatalogPage() {
                         <div>
                           <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">{lang === 'de' ? 'Preis' : 'Price'}</p>
                           <p className="text-sm font-extrabold text-slate-900">
-                            {p.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(p.price)} ${p.currency?.symbol ?? '€'}` : (lang === 'de' ? 'Auf Anfrage' : 'On Request')}
+                            {p.price ? `${p.currency?.symbol ?? '€'} ${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(p.price)}` : (lang === 'de' ? 'Auf Anfrage' : 'On Request')}
                           </p>
                           <p className="text-[11px] font-bold text-slate-600 mt-0.5 flex items-center gap-1">
                             <Building2 className="h-3 w-3 text-blue-600" />
@@ -889,7 +889,7 @@ export default function CatalogPage() {
                       {detail.status}
                     </span>
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      💰 {detail.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(detail.price)} ${detail.currency?.symbol ?? '€'}` : (lang === 'de' ? 'Preis auf Anfrage' : 'Price on Request')}
+                      💰 {detail.price ? `${detail.currency?.symbol ?? '€'} ${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(detail.price)}` : (lang === 'de' ? 'Preis auf Anfrage' : 'Price on Request')}
                     </span>
                   </div>
                   <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1.5">

@@ -703,7 +703,7 @@ export default function SearchPortalPage() {
                       const alloy = profile.material || 'Aluminum Alloy 6063-T5';
                       const visual = profile.photoUrl || profile.drawingUrl || '/hero-3d-profile.png';
                       const priceVal = profile.price !== null && profile.price !== undefined && profile.price > 0
-                        ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(profile.price)} ${profile.currency?.symbol || '€'}`
+                        ? `${profile.currency?.symbol || '€'} ${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(profile.price)}`
                         : (lang === 'de' ? 'Auf Anfrage' : 'On Request');
 
                       return (
@@ -904,7 +904,7 @@ export default function SearchPortalPage() {
                       {selectedProfile.status}
                     </span>
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      💰 {selectedProfile.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(selectedProfile.price)} ${selectedProfile.currency?.symbol ?? '€'}` : (lang === 'de' ? 'Preis auf Anfrage' : 'Price on Request')}
+                      💰 {selectedProfile.price ? `${selectedProfile.currency?.symbol ?? '€'} ${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(selectedProfile.price)}` : (lang === 'de' ? 'Preis auf Anfrage' : 'Price on Request')}
                     </span>
                   </div>
                   <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">

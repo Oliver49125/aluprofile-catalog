@@ -761,7 +761,7 @@ function CustomerPage() {
       item.materialDe ? (item.material || '-') + ' / ' + item.materialDe : item.material || '-',
       item.weightPerMeter ?? '-',
       item.lengthMm ?? '-',
-      item.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.price)} ${item.currency ? item.currency.symbol : ''}` : '-',
+      item.price ? `${item.currency ? item.currency.symbol : '€'} ${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.price)}` : '-',
     ]);
 
     if (kind === 'excel') {
@@ -1648,7 +1648,7 @@ function CustomerPage() {
                                 <td className="px-4 py-3 text-slate-600">{profile.weightPerMeter ? new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(profile.weightPerMeter) : '-'}</td>
                                 <td className="px-4 py-3 text-slate-600">{profile.lengthMm ? new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(profile.lengthMm) : '-'}</td>
                                 <td className="px-4 py-3 font-extrabold text-slate-900">
-                                  {profile.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(profile.price)} ${profile.currency ? profile.currency.symbol : '€'}` : '-'}
+                                  {profile.price ? `${profile.currency ? profile.currency.symbol : '€'} ${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(profile.price)}` : '-'}
                                 </td>
                                 <td className="px-4 py-3 text-right">
                                   <div className="flex items-center justify-end gap-1.5">

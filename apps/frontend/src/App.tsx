@@ -903,7 +903,7 @@ function App() {
                     <div className="flex items-center justify-between pt-2.5 border-t border-slate-200/70">
                       <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wide">{lang === 'de' ? 'Preis' : 'Price'}</span>
                       <span className="text-xs font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-lg shadow-sm">
-                        {p.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(p.price)} ${p.currency?.symbol ?? '€'}` : (lang === 'de' ? 'Auf Anfrage' : 'On Request')}
+                        {p.price ? `${p.currency?.symbol ?? '€'} ${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(p.price)}` : (lang === 'de' ? 'Auf Anfrage' : 'On Request')}
                       </span>
                     </div>
 
@@ -1185,7 +1185,7 @@ function App() {
                                   <div>
                                     <p className="text-[10px] text-slate-400 uppercase tracking-wide">{t.price}</p>
                                     <p className="text-xs font-semibold text-slate-900">
-                                      {p.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(p.price)} ${p.currency?.symbol ?? '€'}` : t.onRequest}
+                                      {p.price ? `${p.currency?.symbol ?? '€'} ${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(p.price)}` : t.onRequest}
                                     </p>
                                   </div>
                                   <Button size="sm" className="ml-auto text-xs" onClick={(e) => { e.stopPropagation(); setShowInquiryModal(p); }}>{t.inquiry}</Button>
@@ -1254,7 +1254,7 @@ function App() {
                                       <div>
                                         <p className="text-[10px] text-slate-400 uppercase tracking-wide">{t.price}</p>
                                         <p className="text-sm font-semibold text-slate-900">
-                                          {p.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(p.price)} ${p.currency?.symbol ?? '€'}` : t.onRequest}
+                                          {p.price ? `${p.currency?.symbol ?? '€'} ${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(p.price)}` : t.onRequest}
                                         </p>
                                       </div>
                                       <Button size="sm" onClick={(e) => { e.stopPropagation(); setShowInquiryModal(p); }} className="w-full text-xs">{t.inquiry}</Button>
@@ -1297,7 +1297,7 @@ function App() {
                                     <div>
                                       <p className="text-[10px] text-slate-400 uppercase tracking-wide">{t.price}</p>
                                       <p className="text-sm font-semibold text-slate-900">
-                                        {p.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(p.price)} ${p.currency?.symbol ?? ''}` : t.onRequest}
+                                        {p.price ? `${p.currency?.symbol ?? '€'} ${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(p.price)}` : t.onRequest}
                                       </p>
                                     </div>
                                     <div className="flex gap-2">
@@ -1782,7 +1782,7 @@ function App() {
                     </span>
                     {detail.price ? (
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-black bg-blue-50 text-blue-700 border border-blue-200">
-                        {new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US').format(detail.price)} {detail.currency?.symbol ?? '€'}
+                        {detail.currency?.symbol ?? '€'} {new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(detail.price)}
                       </span>
                     ) : null}
                   </div>

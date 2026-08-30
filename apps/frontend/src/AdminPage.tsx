@@ -2830,14 +2830,14 @@ function AdminPage() {
                         </select>
                         <Button
                           variant="outline"
-                          onClick={() => exportAdminSection('excel', t.profileControls, [t.name, t.status, t.dimensions, t.price], filteredProfiles.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.status, item.dimensions || '-', item.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.price)} ${item.currency ? item.currency.symbol : ''}` : '-']))}
+                          onClick={() => exportAdminSection('excel', t.profileControls, [t.name, t.status, t.dimensions, t.price], filteredProfiles.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.status, item.dimensions || '-', item.price ? `${item.currency ? item.currency.symbol : '€'} ${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.price)}` : '-']))}
                           className="border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs rounded-xl"
                         >
                           {t.exportExcel}
                         </Button>
                         <Button
                           variant="outline"
-                          onClick={() => exportAdminSection('pdf', t.profileControls, [t.name, t.status, t.dimensions, t.price], filteredProfiles.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.status, item.dimensions || '-', item.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.price)} ${item.currency ? item.currency.symbol : ''}` : '-']))}
+                          onClick={() => exportAdminSection('pdf', t.profileControls, [t.name, t.status, t.dimensions, t.price], filteredProfiles.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.status, item.dimensions || '-', item.price ? `${item.currency ? item.currency.symbol : '€'} ${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.price)}` : '-']))}
                           className="border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs rounded-xl"
                         >
                           {t.exportPdf}
@@ -2898,10 +2898,10 @@ function AdminPage() {
                                   </td>
                                   <td className="px-5 py-4 text-xs font-extrabold text-slate-900">
                                     {item.price
-                                      ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', {
+                                      ? `${item.currency ? item.currency.symbol : '€'} ${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', {
                                           minimumFractionDigits: 2,
                                           maximumFractionDigits: 2,
-                                        }).format(item.price)} ${item.currency ? item.currency.symbol : '€'}`
+                                        }).format(item.price)}`
                                       : '-'}
                                   </td>
                                   <td className="px-5 py-4 text-right">
