@@ -485,7 +485,7 @@ export default function CatalogPage() {
               <div className="p-8 text-center text-sm font-semibold text-slate-500">{lang === 'de' ? 'Katalogprofile werden geladen...' : 'Loading catalog profiles...'}</div>
             ) : viewMode === 'table' ? (
               <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left min-w-[760px]">
+                <table className="w-full text-sm text-left min-w-[860px]">
                   <thead className="bg-slate-50 text-slate-600 font-extrabold text-xs uppercase tracking-wider">
                     <tr>
                       <th className="px-5 py-3.5">{lang === 'de' ? 'Zeichnung' : 'Drawing'}</th>
@@ -493,7 +493,8 @@ export default function CatalogPage() {
                       <th className="px-5 py-3.5">{lang === 'de' ? 'Anwendung' : 'Application'}</th>
                       <th className="px-5 py-3.5">{lang === 'de' ? 'Status' : 'Status'}</th>
                       <th className="px-5 py-3.5">{lang === 'de' ? 'Preis' : 'Price'}</th>
-                      <th className="px-5 py-3.5 text-right">{lang === 'de' ? 'Aktionen' : 'Actions'}</th>
+                      <th className="px-5 py-3.5">{lang === 'de' ? 'Unternehmen' : 'Company'}</th>
+                      <th className="px-5 py-3.5 text-right">{lang === 'de' ? 'Aktion' : 'Action'}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -529,28 +530,24 @@ export default function CatalogPage() {
                               {p.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(p.price)} ${p.currency?.symbol ?? '€'}` : (lang === 'de' ? 'Auf Anfrage' : 'On Request')}
                             </span>
                           </td>
-                          <td className="px-5 py-4 text-right">
-                            <div className="flex items-center justify-end gap-2">
+                          <td className="px-5 py-4 whitespace-nowrap">
+                            <span className="inline-flex items-center gap-1.5 font-bold text-xs text-slate-800 bg-slate-100 border border-slate-200/80 px-2.5 py-1.5 rounded-xl shadow-xs">
+                              <Building2 className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+                              <span>{p.supplier?.name || (lang === 'de' ? 'Aluprofile Direkt' : 'Aluprofile Direct')}</span>
+                            </span>
+                          </td>
+                          <td className="px-5 py-4 text-right whitespace-nowrap">
+                            <div className="flex items-center justify-end">
                               <Button
                                 size="sm"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setShowInquiryModal(p);
                                 }}
-                                className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-sm px-3.5 py-2 flex items-center gap-1.5 cursor-pointer"
+                                className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-sm px-4 py-2 flex items-center gap-1.5 cursor-pointer hover:scale-105 transition-all"
                               >
                                 <Mail className="h-3.5 w-3.5" />
                                 <span>{lang === 'de' ? 'Anfrage' : 'Inquiry'}</span>
-                              </Button>
-                              <Button
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  openDetail(p.id);
-                                }}
-                                className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl px-3.5 py-2 cursor-pointer"
-                              >
-                                {lang === 'de' ? 'Details ansehen' : 'View Technical Data'} &rarr;
                               </Button>
                             </div>
                           </td>
@@ -609,6 +606,10 @@ export default function CatalogPage() {
                           <p className="text-sm font-extrabold text-slate-900">
                             {p.price ? `${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(p.price)} ${p.currency?.symbol ?? '€'}` : (lang === 'de' ? 'Auf Anfrage' : 'On Request')}
                           </p>
+                          <p className="text-[11px] font-bold text-slate-600 mt-0.5 flex items-center gap-1">
+                            <Building2 className="h-3 w-3 text-blue-600" />
+                            <span>{p.supplier?.name || (lang === 'de' ? 'Aluprofile Direkt' : 'Aluprofile Direct')}</span>
+                          </p>
                         </div>
                         <div className="flex items-center gap-2">
                           <Button
@@ -617,21 +618,10 @@ export default function CatalogPage() {
                               e.stopPropagation();
                               setShowInquiryModal(p);
                             }}
-                            className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-2 px-3 rounded-xl shadow-sm flex items-center gap-1 cursor-pointer"
+                            className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-2 px-3.5 rounded-xl shadow-sm flex items-center gap-1.5 cursor-pointer hover:scale-105 transition-all"
                           >
                             <Mail className="h-3.5 w-3.5" />
-                            <span>Inquiry</span>
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openDetail(p.id);
-                            }}
-                            className="bg-[#131c2a] group-hover:bg-slate-800 text-white font-bold text-xs py-2 px-3 rounded-xl shadow-sm transition-all duration-200 flex items-center gap-1 cursor-pointer"
-                          >
-                            <span>Technical Data</span>
-                            <ChevronRight className="h-3.5 w-3.5" />
+                            <span>{lang === 'de' ? 'Anfrage' : 'Inquiry'}</span>
                           </Button>
                         </div>
                       </div>
