@@ -78,8 +78,7 @@ export default function NotFoundPage() {
 
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-400">
-        <p>&copy; 2026 AluProfile. System Error Imprint.</p>
-
+        <p>&copy; 2026 AluProfileBiz. System Error Imprint.</p>
       </footer>
     </div>
   );

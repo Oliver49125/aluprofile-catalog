@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <!-- Homepage -->
+  <url>
+    <loc>https://aluprofile.biz/</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="de" href="https://aluprofile.biz/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://aluprofile.biz/?lang=en" />
+  </url>
+
+  <!-- Profile Search / Catalog Page -->
+  <url>
+    <loc>https://aluprofile.biz/catalog</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+    <xhtml:link rel="alternate" hreflang="de" href="https://aluprofile.biz/catalog?lang=de" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://aluprofile.biz/catalog?lang=en" />
+  </url>
+
+  <!-- Advance Profile Search Portal -->
+  <url>
+    <loc>https://aluprofile.biz/search</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="de" href="https://aluprofile.biz/search?lang=de" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://aluprofile.biz/search?lang=en" />
+  </url>
+
+  <!-- Customer & Manufacturer Portal -->
+  <url>
+    <loc>https://aluprofile.biz/customer</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+    <xhtml:link rel="alternate" hreflang="de" href="https://aluprofile.biz/customer?lang=de" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://aluprofile.biz/customer?lang=en" />
+  </url>
+
+  <!-- Legal: Imprint (Impressum) -->
+  <url>
+    <loc>https://aluprofile.biz/imprint</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.50</priority>
+  </url>
+
+  <!-- Legal: Privacy Policy (Datenschutz) -->
+  <url>
+    <loc>https://aluprofile.biz/privacy</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.50</priority>
+  </url>
+
+  <!-- Legal: Terms of Service (AGB) -->
+  <url>
+    <loc>https://aluprofile.biz/terms</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.50</priority>
+  </url>
+
+</urlset>

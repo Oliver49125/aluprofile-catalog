@@ -1,0 +1,21 @@
+# Robots.txt for AluProfileBiz
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin
+
+# Googlebot & Bingbot Specific Rules
+User-agent: Googlebot
+Allow: /
+Allow: /catalog
+Allow: /search
+Allow: /customer
+Allow: /imprint
+Allow: /privacy
+Allow: /terms
+
+User-agent: Bingbot
+Allow: /
+
+# XML Sitemap Location
+Sitemap: https://aluprofile.biz/sitemap.xml

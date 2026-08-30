@@ -1,11 +1,17 @@
+import { useEffect } from 'react';
 import { ArrowLeft, Shield, CheckCircle, Globe, Mail, FileText, Lock } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Card, CardContent } from './components/ui/card';
 import { NavigationHeader } from './components/NavigationHeader';
 import { useLanguage } from './LanguageContext';
+import { updatePageSeo } from './utils/seo';
 
 export default function PrivacyPage() {
   const { lang, setLang } = useLanguage();
+
+  useEffect(() => {
+    updatePageSeo('privacy', lang);
+  }, [lang]);
 
   const handleLangChange = (newLang: 'en' | 'de') => {
     setLang(newLang);
@@ -16,11 +22,11 @@ export default function PrivacyPage() {
       back: 'Back to Catalog',
       title: 'Data Privacy Policy',
       subtitle: 'Compliant with EU General Data Protection Regulation (GDPR / DSGVO).',
-      lastUpdated: 'Last Updated: July 25, 2026',
-      intro: 'AluProfile is committed to protecting your personal data. This policy explains how we collect, process, and secure information when you search our aluminum profile catalog or submit inquiries.',
+      lastUpdated: 'Last Updated: August 30, 2026',
+      intro: 'AluProfileBiz is committed to protecting your personal data. This policy explains how we collect, process, and secure information when you search our aluminum profile catalog or submit inquiries.',
       section1Title: '1. Controller & Contact Information',
       section1Content: 'The controller responsible for processing data on this website under EU data protection laws is:',
-      companyName: 'AluProfile GmbH',
+      companyName: 'AluProfileBiz GmbH',
       companyAddress: 'Industrial Park 4, 80331 Munich, Germany',
       companyEmail: 'privacy@aluprofile.biz',
       section2Title: '2. Data We Collect & How We Collect It',
@@ -50,11 +56,11 @@ export default function PrivacyPage() {
       back: 'Zurück zum Katalog',
       title: 'Datenschutzerklärung',
       subtitle: 'Konform mit der EU-Datenschutz-Grundverordnung (DSGVO).',
-      lastUpdated: 'Letzte Aktualisierung: 25. Juli 2026',
-      intro: 'AluProfile verpflichtet sich zum Schutz Ihrer persönlichen Daten. Diese Richtlinie erklärt, wie wir Informationen erfassen, verarbeiten und sichern, wenn Sie unseren Aluminiumprofil-Katalog durchsuchen oder Anfragen senden.',
+      lastUpdated: 'Letzte Aktualisierung: 30. August 2026',
+      intro: 'AluProfileBiz verpflichtet sich zum Schutz Ihrer persönlichen Daten. Diese Richtlinie erklärt, wie wir Informationen erfassen, verarbeiten und sichern, wenn Sie unseren Aluminiumprofil-Katalog durchsuchen oder Anfragen senden.',
       section1Title: '1. Verantwortlicher & Kontaktinformationen',
       section1Content: 'Der für die Datenverarbeitung auf dieser Website verantwortliche Controller im Sinne der EU-Datenschutzgesetze ist:',
-      companyName: 'AluProfile GmbH',
+      companyName: 'AluProfileBiz GmbH',
       companyAddress: 'Industriepark 4, 80331 München, Deutschland',
       companyEmail: 'privacy@aluprofile.biz',
       section2Title: '2. Welche Daten wir erfassen & wie wir sie erfassen',
@@ -208,7 +214,7 @@ export default function PrivacyPage() {
       
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-400">
-        <p>&copy; 2026 AluProfile Platform. All Rights Reserved. DSGVO Compliance Certified.</p>
+        <p>&copy; 2026 AluProfileBiz Platform. All Rights Reserved. DSGVO Compliance Certified.</p>
       </footer>
     </div>
   );

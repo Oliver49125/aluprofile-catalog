@@ -1,11 +1,17 @@
+import { useEffect } from 'react';
 import { ArrowLeft, BookOpen, CheckSquare, Globe, Scale, HelpCircle, FileText, AlertTriangle } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Card, CardContent } from './components/ui/card';
 import { NavigationHeader } from './components/NavigationHeader';
 import { useLanguage } from './LanguageContext';
+import { updatePageSeo } from './utils/seo';
 
 export default function TermsPage() {
   const { lang, setLang } = useLanguage();
+
+  useEffect(() => {
+    updatePageSeo('terms', lang);
+  }, [lang]);
 
   const handleLangChange = (newLang: 'en' | 'de') => {
     setLang(newLang);
@@ -16,18 +22,18 @@ export default function TermsPage() {
       back: 'Back to Catalog',
       title: 'Terms & Conditions',
       subtitle: 'Standard Commercial Terms of Service for B2B Industrial Catalog usage.',
-      lastUpdated: 'Last Updated: July 25, 2026',
+      lastUpdated: 'Last Updated: August 30, 2026',
       section1Title: '1. Platform Scope & User Eligibility',
-      section1Content: 'AluProfile operates strictly as a B2B platform connecting mechanical designers, structural engineers, and procurement agents with certified profile manufacturers. By accessing this catalog, you warrant that you are acting as an active business entity or representative.',
+      section1Content: 'AluProfileBiz operates strictly as a B2B platform connecting mechanical designers, structural engineers, and procurement agents with certified profile manufacturers. By accessing this catalog, you warrant that you are acting as an active business entity or representative.',
       section2Title: '2. Accuracy of CAD Models & Structural Calculations',
       section2Content: 'Moment of Inertia (Ix, Iy) and Section Modulus (Wx, Wy) calculations displayed on the datasheets are provided for reference purposes under DIN EN 12020-2 standards.',
       warningNote: 'Important Warning: Calculations must be verified independently by a licensed structural engineer before integrating profiles into load-bearing assemblies, frames, or moving gantries.',
       section3Title: '3. Intellectual Property & File Usage License',
-      section3Content: 'All 3D STEP models, 2D DXF outlines, and manufacturer logos rendered on AluProfile remain the exclusive intellectual property of the respective extrusion partners. Users are granted a non-exclusive, non-transferable, revocable license to import models into CAD workspaces for assembly designs.',
+      section3Content: 'All 3D STEP models, 2D DXF outlines, and manufacturer logos rendered on AluProfileBiz remain the exclusive intellectual property of the respective extrusion partners. Users are granted a non-exclusive, non-transferable, revocable license to import models into CAD workspaces for assembly designs.',
       section4Title: '4. Inquiry & Request for Quote (RFQ) System',
       section4Content: 'Inquiries sent through our portal represent non-binding technical requests. Quotations returned by manufacturing partners do not constitute a legal supply contract until a separate purchase agreement is formally signed.',
       section5Title: '5. Limitation of Liability',
-      section5Content: 'AluProfile is not liable for structural failures, delay costs, or supply-chain interruptions caused by dimensions mismatches or catalog discrepancies. The platform is provided "as is" without warranty of continuous uptime.',
+      section5Content: 'AluProfileBiz is not liable for structural failures, delay costs, or supply-chain interruptions caused by dimensions mismatches or catalog discrepancies. The platform is provided "as is" without warranty of continuous uptime.',
       section6Title: '6. Place of Jurisdiction',
       section6Content: 'All disputes arising from or in connection with the usage of this platform shall be governed exclusively by the laws of Munich, Germany.',
     },
@@ -35,9 +41,9 @@ export default function TermsPage() {
       back: 'Zurück zum Katalog',
       title: 'Allgemeine Geschäftsbedingungen (AGB)',
       subtitle: 'Nutzungsbedingungen für die B2B-Plattform zur Profilsuche und CAD-Download.',
-      lastUpdated: 'Letzte Aktualisierung: 25. Juli 2026',
+      lastUpdated: 'Letzte Aktualisierung: 30. August 2026',
       section1Title: '1. Plattform-Geltungsbereich & Berechtigung',
-      section1Content: 'AluProfile fungiert ausschließlich als B2B-Plattform zur Vernetzung von Maschinenbauern, Konstrukteuren und Einkäufern mit verifizierten Profilherstellern.',
+      section1Content: 'AluProfileBiz fungiert ausschließlich als B2B-Plattform zur Vernetzung von Maschinenbauern, Konstrukteuren und Einkäufern mit verifizierten Profilherstellern.',
       section2Title: '2. Genauigkeit der CAD-Modelle & Statik-Berechnungen',
       section2Content: 'Die auf den Datenblättern angezeigten Trägheitsmomente (Ix, Iy) und Widerstandsmomente (Wx, Wy) dienen als Referenzwerte.',
       warningNote: 'Wichtiger Warnhinweis: Alle Berechnungen müssen vor der Integration in tragende Baugruppen überprüft werden.',
@@ -46,7 +52,7 @@ export default function TermsPage() {
       section4Title: '4. Anfragesystem & Angebot (RFQ)',
       section4Content: 'Über das Portal gesendete Anfragen sind unverbindlich.',
       section5Title: '5. Haftungsbeschränkung',
-      section5Content: 'AluProfile haftet nicht für Konstruktionsfehler oder Lieferausfälle.',
+      section5Content: 'AluProfileBiz haftet nicht für Konstruktionsfehler oder Lieferausfälle.',
       section6Title: '6. Gerichtsstand',
       section6Content: 'Gerichtsstand ist München, Deutschland.',
     }
@@ -117,7 +123,7 @@ export default function TermsPage() {
       </div>
 
       <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-400">
-        <p>&copy; 2026 AluProfile Platform. All Rights Reserved. General Terms & Conditions applicable.</p>
+        <p>&copy; 2026 AluProfileBiz Platform. All Rights Reserved. General Terms & Conditions applicable.</p>
       </footer>
     </div>
   );

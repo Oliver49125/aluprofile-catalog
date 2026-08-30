@@ -7,6 +7,7 @@ import { useLanguage } from './LanguageContext';
 import { LogOut } from 'lucide-react';
 import toast from 'react-hot-toast';
 import CookieConsentModal from './components/CookieConsentModal';
+import { updatePageSeo } from './utils/seo';
 
 
 import {
@@ -483,6 +484,7 @@ function App() {
 
 
   useEffect(() => {
+    updatePageSeo('home', lang);
     loadPublic().catch((err) => {
       setIsLoading(false);
       toast.error(parseApiError(err));
@@ -1037,15 +1039,15 @@ function App() {
           <div className="max-w-3xl mx-auto text-center space-y-3 relative z-10">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-400/10 border border-cyan-400/20 px-3.5 py-1 text-[11px] font-black uppercase tracking-[0.25em] text-cyan-400 shadow-sm">
               <Sparkles className="h-3 w-3 text-cyan-400" />
-              {lang === 'de' ? 'Über AluProfile' : 'About AluProfile'}
+              {lang === 'de' ? 'Über AluProfileBiz' : 'About AluProfileBiz'}
             </span>
             <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-white">
               {siteSettings.aboutTitle || (lang === 'de' ? 'Der führende globale B2B-Katalog für Aluminiumprofile' : 'The Leading Global B2B Aluminum Profile Search Engine')}
             </h2>
             <p className="text-slate-300 text-xs sm:text-sm leading-relaxed font-medium">
               {siteSettings.aboutSubtitle || (lang === 'de' 
-                ? 'AluProfile verbindet Maschinenbauingenieure, Konstrukteure und Einkäufer direkt mit verifizierten Aluminiumprofil-Herstellern weltweit. Suchen Sie nach exakten Maßen, laden Sie CAD-Zeichnungen herunter und fordern Sie technische Datenblätter an.'
-                : 'AluProfile connects mechanical engineers, structural designers, and procurement agents directly with certified aluminum profile manufacturers worldwide. Instantly search exact dimensions, download CAD 3D STEP & 2D DXF models, and request technical data sheets.')}
+                ? 'AluProfileBiz verbindet Maschinenbauingenieure, Konstrukteure und Einkäufer direkt mit verifizierten Aluminiumprofil-Herstellern weltweit. Suchen Sie nach exakten Maßen, laden Sie CAD-Zeichnungen herunter und fordern Sie technische Datenblätter an.'
+                : 'AluProfileBiz connects mechanical engineers, structural designers, and procurement agents directly with certified aluminum profile manufacturers worldwide. Instantly search exact dimensions, download CAD 3D STEP & 2D DXF models, and request technical data sheets.')}
             </p>
 
           </div>
@@ -1416,7 +1418,7 @@ function App() {
 
           {/* Bottom copyright bar */}
           <div className="mt-10 pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400 font-medium">
-            <p>{lang === 'de' ? '© 2026 AluProfile. Alle Rechte vorbehalten.' : '© 2026 AluProfile, Inc. All rights reserved.'}</p>
+            <p>{lang === 'de' ? '© 2026 AluProfileBiz. Alle Rechte vorbehalten.' : '© 2026 AluProfileBiz, Inc. All rights reserved.'}</p>
             <div className="flex flex-wrap gap-5">
               <Link to="/imprint" className="hover:text-slate-200 transition-colors">{lang === 'de' ? 'Impressum' : 'Imprint'}</Link>
               <Link to="/privacy" className="hover:text-slate-200 transition-colors">{lang === 'de' ? 'Datenschutz' : 'Privacy'}</Link>

@@ -1,29 +1,43 @@
 <!doctype html>
-<html lang="de-AT">
+<html lang="de-DE">
 
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AluProfile - High-Quality Aluminum Profiles Catalog</title>
-  <meta name="description" content="Entdecken Sie unseren umfangreichen Aluprofile-Katalog. Finden und vergleichen Sie hochwertige Aluminiumprofile für Industrie, Handwerk und Architektur." />
-  <meta name="keywords" content="Aluprofile, Aluminiumprofile, Alu Katalog, Profile Suchen, Österreich, Industrie" />
-  <meta name="robots" content="index, follow" />
   
-  <!-- Open Graph / Facebook -->
+  <!-- Primary SEO Meta Tags -->
+  <title>AluProfileBiz - B2B Aluminium Profile Search & Engineering CAD Catalog</title>
+  <meta name="title" content="AluProfileBiz - B2B Aluminium Profile Search & Engineering CAD Catalog" />
+  <meta name="description" content="AluProfileBiz ist die führende B2B-Plattform für Aluminiumprofile, Konstruktionsprofile, CAD-Downloads (STEP, DXF) und parametrische Profilsuche. Kompatibel mit Bosch Rexroth & Item." />
+  <meta name="keywords" content="AluProfileBiz, Aluprofile, Aluminiumprofile, Aluminium Profile Search, CAD Profile, Konstruktionsprofile, Strangpressprofile, Nut 8, Nut 10, Bosch Rexroth kompatibel, Item kompatibel, Maschinenbau, B2B Profile Search" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <meta name="author" content="AluProfileBiz" />
+  <meta name="publisher" content="AluProfileBiz" />
+  <link rel="canonical" href="https://aluprofile.biz/" />
+
+  <!-- Open Graph / Facebook / LinkedIn -->
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://aluprofile-catalog.example.at/" />
-  <meta property="og:title" content="Aluprofile Katalog - Hochwertige Aluminiumprofile" />
-  <meta property="og:description" content="Entdecken Sie unseren umfangreichen Aluprofile-Katalog. Finden und vergleichen Sie hochwertige Aluminiumprofile für Industrie, Handwerk und Architektur." />
-  
-  <!-- Twitter -->
+  <meta property="og:url" content="https://aluprofile.biz/" />
+  <meta property="og:site_name" content="AluProfileBiz" />
+  <meta property="og:title" content="AluProfileBiz - B2B Aluminium Profile Search & Engineering CAD Catalog" />
+  <meta property="og:description" content="Entdecken und vergleichen Sie Standard- und Sonderprofile aus Aluminium mit 3D CAD Modellen, technischen Datenblättern und direktem Herstellerkontakt." />
+  <meta property="og:image" content="https://aluprofile.biz/hero-3d-profile.png" />
+  <meta property="og:image:alt" content="AluProfileBiz Industrial Aluminum Extrusion Profiles" />
+  <meta property="og:locale" content="de_DE" />
+  <meta property="og:locale:alternate" content="en_US" />
+
+  <!-- Twitter Meta Tags -->
   <meta property="twitter:card" content="summary_large_image" />
-  <meta property="twitter:url" content="https://aluprofile-catalog.example.at/" />
-  <meta property="twitter:title" content="Aluprofile Katalog - Hochwertige Aluminiumprofile" />
-  <meta property="twitter:description" content="Entdecken Sie unseren umfangreichen Aluprofile-Katalog. Finden und vergleichen Sie hochwertige Aluminiumprofile für Industrie, Handwerk und Architektur." />
+  <meta property="twitter:url" content="https://aluprofile.biz/" />
+  <meta property="twitter:title" content="AluProfileBiz - B2B Aluminium Profile Search & Engineering CAD Catalog" />
+  <meta property="twitter:description" content="High-precision aluminum extrusion profile search, 3D CAD data, technical specifications, and manufacturer B2B inquiries." />
+  <meta property="twitter:image" content="https://aluprofile.biz/hero-3d-profile.png" />
+
   <!-- Google Fonts: Plus Jakarta Sans & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-5FEVSRGPSV"></script>
   <script>
@@ -32,9 +46,53 @@
     gtag('js', new Date());
     gtag('config', 'G-5FEVSRGPSV');
   </script>
+
+  <!-- Schema.org JSON-LD Structured Data for Google Search Ranking -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://aluprofile.biz/#organization",
+        "name": "AluProfileBiz",
+        "url": "https://aluprofile.biz",
+        "logo": "https://aluprofile.biz/hero-3d-profile.png",
+        "email": "contact@aluprofile.biz",
+        "description": "Leading European B2B platform for industrial aluminum profiles, CAD downloads, and engineering specifications."
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://aluprofile.biz/#website",
+        "url": "https://aluprofile.biz/",
+        "name": "AluProfileBiz",
+        "publisher": {
+          "@id": "https://aluprofile.biz/#organization"
+        },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://aluprofile.biz/catalog?search={search_term_string}",
+          "query-input": "required name=search_term_string"
+        },
+        "inLanguage": ["de-DE", "en-US"]
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://aluprofile.biz/#application",
+        "name": "AluProfileBiz Aluminum Profile Search Engine",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "All",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "EUR"
+        },
+        "description": "Search, filter, and inspect structural aluminum extrusion profiles with technical data sheets and 3D CAD files."
+      }
+    ]
+  }
+  </script>
 </head>
-
-
 
 <body>
   <div id="root"></div>

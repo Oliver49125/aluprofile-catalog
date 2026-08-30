@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from './AuthContext';
 import { useLanguage } from './LanguageContext';
 import { API_BASE } from './utils/apiBase';
+import { updatePageSeo } from './utils/seo';
 import {
   Boxes,
   Eye,
@@ -563,9 +564,10 @@ function CustomerPage() {
   }
 
   useEffect(() => {
+    updatePageSeo('customer', lang);
     if (!user) return;
     loadCustomerData();
-  }, [user]);
+  }, [user, lang]);
 
   function resetProfileForm() {
     setEditId(null);
@@ -867,7 +869,7 @@ function CustomerPage() {
                   <form onSubmit={handleLogin} className="w-full rounded-3xl border border-slate-700/80 bg-[#131c2a]/95 p-8 shadow-2xl backdrop-blur-xl space-y-5">
                     <div className="text-center space-y-2">
                       <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/10 border border-blue-400/20 px-3.5 py-1 text-[11px] font-extrabold uppercase tracking-[0.24em] text-cyan-400 shadow-sm">
-                        <Boxes className="h-3.5 w-3.5" /> AluProfile System
+                        <Boxes className="h-3.5 w-3.5" /> AluProfileBiz System
                       </div>
                       <h2 className="text-3xl font-extrabold text-white tracking-tight">{t.signIn}</h2>
                       <p className="text-xs text-slate-400 leading-relaxed max-w-xs mx-auto">{t.signInNote}</p>
@@ -936,7 +938,7 @@ function CustomerPage() {
                   <form onSubmit={handleForgotPasswordRequest} className="w-full rounded-3xl border border-slate-700/80 bg-[#131c2a]/95 p-8 shadow-2xl backdrop-blur-xl space-y-5">
                     <div className="text-center space-y-2">
                       <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/10 border border-blue-400/20 px-3.5 py-1 text-[11px] font-extrabold uppercase tracking-[0.24em] text-cyan-400 shadow-sm">
-                        <Boxes className="h-3.5 w-3.5" /> AluProfile System
+                        <Boxes className="h-3.5 w-3.5" /> AluProfileBiz System
                       </div>
                       <h2 className="text-3xl font-extrabold text-white tracking-tight">{t.forgotPassword}</h2>
                     </div>
@@ -958,7 +960,7 @@ function CustomerPage() {
                   <form onSubmit={handleForgotPasswordReset} className="w-full rounded-3xl border border-slate-700/80 bg-[#131c2a]/95 p-8 shadow-2xl backdrop-blur-xl space-y-5">
                     <div className="text-center space-y-2">
                       <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/10 border border-blue-400/20 px-3.5 py-1 text-[11px] font-extrabold uppercase tracking-[0.24em] text-cyan-400 shadow-sm">
-                        <Boxes className="h-3.5 w-3.5" /> AluProfile System
+                        <Boxes className="h-3.5 w-3.5" /> AluProfileBiz System
                       </div>
                       <h2 className="text-3xl font-extrabold text-white tracking-tight">{t.forgotPassword}</h2>
                     </div>
@@ -994,7 +996,7 @@ function CustomerPage() {
                 <form onSubmit={handleSignUp} className="w-full rounded-3xl border border-slate-700/80 bg-[#131c2a]/95 p-8 shadow-2xl backdrop-blur-xl space-y-5">
                   <div className="text-center space-y-2">
                     <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/10 border border-blue-400/20 px-3.5 py-1 text-[11px] font-extrabold uppercase tracking-[0.24em] text-cyan-400 shadow-sm">
-                      <Boxes className="h-3.5 w-3.5" /> AluProfile System
+                      <Boxes className="h-3.5 w-3.5" /> AluProfileBiz System
                     </div>
                     <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight leading-tight">{t.signUp}</h2>
                     <p className="text-xs text-slate-400 leading-relaxed max-w-xs mx-auto">{t.signUpNote}</p>
@@ -1042,7 +1044,7 @@ function CustomerPage() {
                 <form onSubmit={handleSignUpVerification} className="w-full rounded-3xl border border-slate-700/80 bg-[#131c2a]/95 p-8 shadow-2xl backdrop-blur-xl space-y-5">
                   <div className="text-center space-y-2">
                     <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/10 border border-blue-400/20 px-3.5 py-1 text-[11px] font-extrabold uppercase tracking-[0.24em] text-cyan-400 shadow-sm">
-                      <Boxes className="h-3.5 w-3.5" /> AluProfile System
+                      <Boxes className="h-3.5 w-3.5" /> AluProfileBiz System
                     </div>
                     <h2 className="text-3xl font-extrabold text-white tracking-tight">{t.verifyEmail}</h2>
                     <p className="text-xs text-slate-400 leading-relaxed max-w-xs mx-auto">{t.verifyEmailNote}</p>
@@ -1125,7 +1127,7 @@ function CustomerPage() {
                     <div className="space-y-1.5">
                       <label className="block text-xs font-bold text-slate-700">{t.name} (EN) *</label>
                       <Input
-                        placeholder="e.g. Aluprofile Systems GmbH"
+                        placeholder="e.g. AluProfileBiz Systems GmbH"
                         value={supplierForm.name}
                         onChange={(e) => setSupplierForm({ ...supplierForm, name: e.target.value })}
                         className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-amber-500/20"

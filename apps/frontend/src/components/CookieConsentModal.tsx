@@ -91,7 +91,7 @@ export default function CookieConsentModal({ onSave }: CookieConsentProps) {
 
       {/* Main Title & Notice */}
       <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
-        AluProfile - Datenschutz-Einstellungen
+        AluProfileBiz - Datenschutz-Einstellungen
       </h3>
 
       <p className="text-[11px] sm:text-xs text-slate-600 leading-relaxed font-normal mt-1 max-w-3xl">

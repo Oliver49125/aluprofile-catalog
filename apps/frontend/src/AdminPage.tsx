@@ -466,7 +466,7 @@ function AdminPage() {
     howItWorksTitle: 'How It Works',
     howItWorksSubtitle: 'Seamlessly Find and Integrate Your Profiles',
     aboutTitle: 'The Leading Global B2B Aluminum Profile Search Engine',
-    aboutSubtitle: 'AluProfile connects mechanical engineers, structural designers, and procurement agents directly with certified aluminum profile manufacturers worldwide.',
+    aboutSubtitle: 'AluProfileBiz connects mechanical engineers, structural designers, and procurement agents directly with certified aluminum profile manufacturers worldwide.',
   });
 
   const [isSavingSettings, setIsSavingSettings] = useState(false);
@@ -1275,7 +1275,7 @@ function AdminPage() {
                           autoFocus
                           value={identifier}
                           onChange={(e) => setIdentifier(e.target.value)}
-                          placeholder="admin@aluprofile.com"
+                          placeholder="admin@aluprofile.biz"
                         />
                       </div>
 
@@ -1319,7 +1319,7 @@ function AdminPage() {
                   <form onSubmit={handleForgotPasswordRequest} className="w-full rounded-3xl border border-slate-700/80 bg-[#131c2a]/95 p-8 shadow-2xl backdrop-blur-xl space-y-5">
                     <div className="text-center space-y-2">
                       <div className="inline-flex items-center gap-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 px-3.5 py-1 text-[11px] font-extrabold uppercase tracking-[0.24em] text-cyan-400 shadow-sm">
-                        <Boxes className="h-3.5 w-3.5" /> AluProfile Admin
+                        <Boxes className="h-3.5 w-3.5" /> AluProfileBiz Admin
                       </div>
                       <h2 className="text-3xl font-extrabold text-white tracking-tight">{t.forgotPassword}</h2>
                       <p className="text-xs text-slate-400 leading-relaxed max-w-xs mx-auto">{t.resetPasswordHelp}</p>
@@ -1335,7 +1335,7 @@ function AdminPage() {
                         autoFocus
                         value={identifier}
                         onChange={(e) => setIdentifier(e.target.value)}
-                        placeholder="admin@aluprofile.com"
+                        placeholder="admin@aluprofile.biz"
                       />
                     </div>
 

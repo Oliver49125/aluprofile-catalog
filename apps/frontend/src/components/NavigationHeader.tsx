@@ -72,14 +72,14 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
             href="/"
             onClick={handleHomeClick}
             className="flex items-center gap-2.5 sm:gap-3 group focus:outline-none"
-            aria-label="AluProfile Home"
+            aria-label="AluProfileBiz Home"
           >
             <span className="relative flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-700 via-blue-600 to-cyan-400 text-white shadow-lg shadow-blue-600/30 group-hover:scale-105 group-hover:shadow-blue-500/50 transition-all duration-300">
               <Boxes className="h-5 w-5 sm:h-5 sm:w-5 group-hover:rotate-12 transition-transform duration-300" />
               <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-cyan-400 border-2 border-white animate-pulse" />
             </span>
             <span className="flex items-center text-slate-900 font-extrabold tracking-tight text-xl sm:text-2xl">
-              Alu<span className="bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-400 bg-clip-text text-transparent font-black">Profile</span>
+              Alu<span className="bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-400 bg-clip-text text-transparent font-black">ProfileBiz</span>
             </span>
           </a>
 

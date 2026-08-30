@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useLanguage } from './LanguageContext';
 import { API_BASE } from './utils/apiBase';
+import { updatePageSeo } from './utils/seo';
 
 import {
   Boxes,
@@ -158,6 +159,7 @@ export default function SearchPortalPage() {
         setIsLoading(false);
       }
     }
+    updatePageSeo('search', lang);
     loadData();
   }, [lang]);
 
@@ -1453,8 +1455,8 @@ export default function SearchPortalPage() {
             <form onSubmit={handleRegisterManufacturer} className="p-6 space-y-4">
               <p className="text-xs text-slate-500 leading-relaxed">
                 {lang === 'de'
-                  ? 'Werden Sie gelisteter Hersteller in AluProfile. Reichen Sie Ihr Unternehmensprofil ein, um Ihre Aluprofile T-Nut & Systemprofile anzubieten.'
-                  : 'Join AluProfile as a verified manufacturer. Submit your company details to list your aluminum profile catalog.'}
+                  ? 'Werden Sie gelisteter Hersteller in AluProfileBiz. Reichen Sie Ihr Unternehmensprofil ein, um Ihre Aluprofile T-Nut & Systemprofile anzubieten.'
+                  : 'Join AluProfileBiz as a verified manufacturer. Submit your company details to list your aluminum profile catalog.'}
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -1,11 +1,17 @@
+import { useEffect } from 'react';
 import { ArrowLeft, Building2, Globe, Mail, Scale, Phone } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Card, CardContent } from './components/ui/card';
 import { NavigationHeader } from './components/NavigationHeader';
 import { useLanguage } from './LanguageContext';
+import { updatePageSeo } from './utils/seo';
 
 export default function ImprintPage() {
   const { lang, setLang } = useLanguage();
+
+  useEffect(() => {
+    updatePageSeo('imprint', lang);
+  }, [lang]);
 
   const handleLangChange = (newLang: 'en' | 'de') => {
     setLang(newLang);
@@ -17,7 +23,7 @@ export default function ImprintPage() {
       title: 'Legal Imprint',
       subtitle: 'Information pursuant to Section 5 of the German Telemedia Act (TMG).',
       section1Title: 'Information about the Company',
-      companyName: 'AluProfile GmbH',
+      companyName: 'AluProfileBiz GmbH',
       companyAddress: 'Industrial Park 4, 80331 Munich, Germany',
       representativesTitle: 'Authorized Representatives',
       representatives: 'Dr. Markus Weber (Chief Executive Officer)\nElena Rostova (Chief Technology Officer)',
@@ -36,7 +42,7 @@ export default function ImprintPage() {
       title: 'Impressum',
       subtitle: 'Angaben gemäß § 5 TMG (Telemediengesetz) für die Online-Plattform.',
       section1Title: 'Angaben über das Unternehmen',
-      companyName: 'AluProfile GmbH',
+      companyName: 'AluProfileBiz GmbH',
       companyAddress: 'Industriepark 4, 80331 München, Deutschland',
       representativesTitle: 'Vertreten durch die Geschäftsführer',
       representatives: 'Dr. Markus Weber (Geschäftsführer)\nElena Rostova (Technische Leiterin)',
@@ -131,7 +137,7 @@ export default function ImprintPage() {
 
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-400">
-        <p>&copy; 2026 AluProfile Platform. Imprint disclosures compliant with EU digital services legislation.</p>
+        <p>&copy; 2026 AluProfileBiz Platform. Imprint disclosures compliant with EU digital services legislation.</p>
       </footer>
     </div>
   );

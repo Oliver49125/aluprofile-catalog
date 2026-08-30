@@ -124,7 +124,7 @@ export default function ThankYouPage() {
       
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-400">
-        <p>&copy; 2026 AluProfile Platform. Thank you for your interest in our products.</p>
+        <p>&copy; 2026 AluProfileBiz Platform. Thank you for your interest in our products.</p>
       </footer>
     </div>
   );
