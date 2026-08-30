@@ -276,7 +276,7 @@ export default function CatalogPage() {
               onClick={() => setIsCatalogDropdownOpen((prev) => !prev)}
               className="flex items-center gap-1.5 text-blue-600 font-extrabold border-b-2 border-blue-600 pb-0.5 transition-colors cursor-pointer focus:outline-none"
             >
-              <span>{lang === 'de' ? 'Katalog' : 'Catalog'}</span>
+              <span>{lang === 'de' ? 'Suchportal' : 'Search Portal'}</span>
               <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isCatalogDropdownOpen ? 'rotate-180 text-blue-600' : 'text-blue-600'}`} />
             </button>
 
@@ -856,7 +856,7 @@ export default function CatalogPage() {
               <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
                 <span className="text-slate-400">Home</span>
                 <span className="text-slate-300">&gt;</span>
-                <span className="text-slate-400">{lang === 'de' ? 'Katalog' : 'Catalog'}</span>
+                <span className="text-slate-400">{lang === 'de' ? 'Suchportal' : 'Search Portal'}</span>
                 <span className="text-slate-300">&gt;</span>
                 <span className="text-blue-600 font-extrabold">{detail.name}</span>
               </div>

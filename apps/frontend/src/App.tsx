@@ -589,7 +589,7 @@ function App() {
               onClick={() => setIsCatalogDropdownOpen((prev) => !prev)}
               className="flex items-center gap-1.5 hover:text-blue-600 transition-colors cursor-pointer py-2 focus:outline-none"
             >
-              <span>{lang === 'de' ? 'Katalog' : 'Catalog'}</span>
+              <span>{lang === 'de' ? 'Suchportal' : 'Search Portal'}</span>
               <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isCatalogDropdownOpen ? 'rotate-180 text-blue-600' : 'text-slate-400'}`} />
             </button>
 

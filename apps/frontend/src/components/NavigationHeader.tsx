@@ -110,7 +110,7 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                 }`}
               >
-                <span>{lang === 'de' ? 'Katalog' : 'Catalog'}</span>
+                <span>{lang === 'de' ? 'Suchportal' : 'Search Portal'}</span>
                 <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isCatalogDropdownOpen ? 'rotate-180 text-blue-600' : 'text-slate-400'}`} />
               </button>
 
