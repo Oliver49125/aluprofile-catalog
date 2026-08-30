@@ -366,10 +366,10 @@ export default function CatalogPage() {
           <div className="space-y-2 relative z-10">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-400/10 border border-cyan-400/20 px-3.5 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-cyan-400 shadow-sm">
               <Sparkles className="h-3 w-3 text-cyan-400" />
-              {lang === 'de' ? 'Technischer Datenkatalog' : 'Technical Data Catalog'}
+              {lang === 'de' ? 'Technisches Daten-Suchportal' : 'Technical Data Search'}
             </span>
             <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
-              {lang === 'de' ? 'Aluminium-Profilkatalog' : 'Aluminum Profile Catalog'}
+              {lang === 'de' ? 'Aluminium-Profilsuche' : 'Aluminum Profile Search'}
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 font-medium max-w-xl leading-relaxed">
               {lang === 'de' 
