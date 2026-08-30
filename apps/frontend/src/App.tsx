@@ -606,7 +606,7 @@ function App() {
                     </div>
                     <div>
                       <p className="text-xs font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
-                        {lang === 'de' ? 'Profilkatalog' : 'Profile Catalog'}
+                        {lang === 'de' ? 'Profilsuche' : 'Profile Search'}
                       </p>
                       <p className="text-[11px] text-slate-500 font-medium leading-snug">
                         {lang === 'de' ? 'Alle Standard- & Sonderprofile' : 'All standard & custom profiles'}
@@ -624,7 +624,7 @@ function App() {
                     </div>
                     <div>
                       <p className="text-xs font-bold text-slate-900 group-hover:text-cyan-600 transition-colors">
-                        {lang === 'de' ? 'Erweiterte Suche' : 'Advance Search'}
+                        {lang === 'de' ? 'Erweiterte Profilsuche' : 'Advance Profile Search'}
                       </p>
                       <p className="text-[11px] text-slate-500 font-medium leading-snug">
                         {lang === 'de' ? 'Spezifische Filter & CAD-Suche' : 'Detailed filters & CAD search'}

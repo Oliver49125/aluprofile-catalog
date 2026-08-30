@@ -127,7 +127,7 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
                       </div>
                       <div>
                         <p className="text-xs font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
-                          {lang === 'de' ? 'Profilkatalog' : 'Profile Catalog'}
+                          {lang === 'de' ? 'Profilsuche' : 'Profile Search'}
                         </p>
                         <p className="text-[11px] text-slate-500 font-medium leading-snug">
                           {lang === 'de' ? 'Alle Standard- & Sonderprofile' : 'All standard & custom profiles'}
@@ -145,7 +145,7 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
                       </div>
                       <div>
                         <p className="text-xs font-bold text-slate-900 group-hover:text-cyan-600 transition-colors">
-                          {lang === 'de' ? 'Erweiterte Suche' : 'Advance Search'}
+                          {lang === 'de' ? 'Erweiterte Profilsuche' : 'Advance Profile Search'}
                         </p>
                         <p className="text-[11px] text-slate-500 font-medium leading-snug">
                           {lang === 'de' ? 'Spezifische Filter & CAD-Suche' : 'Detailed filters & CAD search'}
@@ -229,7 +229,7 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
             className="text-left py-2 px-3 rounded-lg font-bold text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2"
           >
             <Boxes className="h-4 w-4" />
-            <span>{lang === 'de' ? 'Profilkatalog' : 'Profile Catalog'}</span>
+            <span>{lang === 'de' ? 'Profilsuche' : 'Profile Search'}</span>
           </a>
           <a
             href="/search"
@@ -237,7 +237,7 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
             className="text-left py-2 px-3 rounded-lg font-bold text-sm text-cyan-600 hover:bg-cyan-50 flex items-center gap-2"
           >
             <Search className="h-4 w-4" />
-            <span>{lang === 'de' ? 'Erweiterte Suche' : 'Advance Search'}</span>
+            <span>{lang === 'de' ? 'Erweiterte Profilsuche' : 'Advance Profile Search'}</span>
           </a>
           <button
             onClick={(e) => { setIsMobileMenuOpen(false); handleAboutClick(e); }}
