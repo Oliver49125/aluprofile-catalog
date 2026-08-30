@@ -452,21 +452,35 @@ function AdminPage() {
 
   const [siteSettingsForm, setSiteSettingsForm] = useState<Record<string, string>>({
     heroTitle: 'Industrial Aluminum Extrusions, Found Instantly.',
+    heroTitleDe: 'Industrielle Aluminiumprofile, sofort gefunden.',
     heroSubtitle: 'Search and access detailed specifications, technical data, and instant downloads for standard and custom aluminum profiles.',
+    heroSubtitleDe: 'Detaillierte Spezifikationen, technische Daten und sofortige CAD-Downloads für Standard- und Sonderprofile.',
     heroImageUrl: '/hero-3d-profile.png',
     heroSearchPlaceholder: 'Search by ID, dimensions, or material...',
+    heroSearchPlaceholderDe: 'Nach Profil, Abmessungen oder Material suchen...',
     stat1Label: '150+ Profiles',
+    stat1LabelDe: '150+ Profile',
     stat1Sub: 'Standard & Custom',
+    stat1SubDe: 'Standard & Sonderprofile',
     stat2Label: '12+ Partners',
+    stat2LabelDe: '12+ Partner',
     stat2Sub: 'Global Manufacturing Network',
+    stat2SubDe: 'Herstellernetzwerk',
     stat3Label: '9,850+ Downloads',
+    stat3LabelDe: '9.850+ Downloads',
     stat3Sub: 'Technical Data Sheets',
+    stat3SubDe: 'Technische Datenblätter',
     heroBgColor: '#3c4a5c',
     featuredTitle: 'Featured Aluminum Profiles',
+    featuredTitleDe: 'Ausgewählte Aluminiumprofile',
     howItWorksTitle: 'How It Works',
+    howItWorksTitleDe: 'So funktioniert es',
     howItWorksSubtitle: 'Seamlessly Find and Integrate Your Profiles',
+    howItWorksSubtitleDe: 'Profile nahtlos finden, prüfen und integrieren',
     aboutTitle: 'The Leading Global B2B Aluminum Profile Search Engine',
+    aboutTitleDe: 'Der führende globale B2B-Katalog für Aluminiumprofile',
     aboutSubtitle: 'AluProfileBiz connects mechanical engineers, structural designers, and procurement agents directly with certified aluminum profile manufacturers worldwide.',
+    aboutSubtitleDe: 'AluProfileBiz verbindet Maschinenbauingenieure, Konstrukteure und Einkäufer direkt mit verifizierten Aluminiumprofil-Herstellern weltweit.',
   });
 
   const [isSavingSettings, setIsSavingSettings] = useState(false);
@@ -1711,13 +1725,51 @@ function AdminPage() {
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-6 pt-6">
+                        {/* HERO CONFIGURATION */}
                         <div className="space-y-4">
-                          <h4 className="font-extrabold text-[#0284c7] text-xs uppercase tracking-wider border-b border-slate-200 pb-2">Hero Banner Configuration</h4>
+                          <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                            <h4 className="font-extrabold text-[#0284c7] text-xs uppercase tracking-wider">Hero Banner Configuration</h4>
+                            <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">Bilingual (EN / DE)</span>
+                          </div>
+
+                          {/* Hero Titles */}
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <label className="block text-xs font-bold text-slate-700">
-                              Hero Title
-                              <Input className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20" value={siteSettingsForm.heroTitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, heroTitle: e.target.value }))} />
+                              Hero Title (EN)
+                              <Input className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20" value={siteSettingsForm.heroTitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, heroTitle: e.target.value }))} placeholder="Industrial Aluminum Extrusions, Found Instantly." />
                             </label>
+                            <label className="block text-xs font-bold text-slate-700">
+                              Hero Title (DE)
+                              <Input className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20" value={siteSettingsForm.heroTitleDe || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, heroTitleDe: e.target.value }))} placeholder="Industrielle Aluminiumprofile, sofort gefunden." />
+                            </label>
+                          </div>
+
+                          {/* Hero Subtitles */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <label className="block text-xs font-bold text-slate-700">
+                              Hero Subtitle (EN)
+                              <textarea className="mt-1 block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:ring-2 focus:ring-blue-500/20 focus:outline-none" rows={2} value={siteSettingsForm.heroSubtitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, heroSubtitle: e.target.value }))} placeholder="Search and access detailed specifications, technical data, and instant downloads..." />
+                            </label>
+                            <label className="block text-xs font-bold text-slate-700">
+                              Hero Subtitle (DE)
+                              <textarea className="mt-1 block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:ring-2 focus:ring-blue-500/20 focus:outline-none" rows={2} value={siteSettingsForm.heroSubtitleDe || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, heroSubtitleDe: e.target.value }))} placeholder="Detaillierte Spezifikationen, technische Daten und sofortige CAD-Downloads..." />
+                            </label>
+                          </div>
+
+                          {/* Search Placeholders */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <label className="block text-xs font-bold text-slate-700">
+                              Search Box Placeholder (EN)
+                              <Input className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20" value={siteSettingsForm.heroSearchPlaceholder || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, heroSearchPlaceholder: e.target.value }))} placeholder="Search by ID, dimensions, or material..." />
+                            </label>
+                            <label className="block text-xs font-bold text-slate-700">
+                              Search Box Placeholder (DE)
+                              <Input className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20" value={siteSettingsForm.heroSearchPlaceholderDe || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, heroSearchPlaceholderDe: e.target.value }))} placeholder="Nach Profil, Abmessungen oder Material suchen..." />
+                            </label>
+                          </div>
+
+                          {/* Background Color & Hero Image */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                             <label className="block text-xs font-bold text-slate-700">
                               Hero Background Color
                               <div className="flex items-center gap-2 mt-1">
@@ -1725,14 +1777,7 @@ function AdminPage() {
                                 <Input className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20" value={siteSettingsForm.heroBgColor || '#3c4a5c'} onChange={e => setSiteSettingsForm(f => ({ ...f, heroBgColor: e.target.value }))} />
                               </div>
                             </label>
-                          </div>
 
-                          <label className="block text-xs font-bold text-slate-700">
-                            Hero Subtitle
-                            <textarea className="mt-1 block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:ring-2 focus:ring-blue-500/20 focus:outline-none" rows={2} value={siteSettingsForm.heroSubtitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, heroSubtitle: e.target.value }))} />
-                          </label>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <label className="block text-xs font-bold text-slate-700">
                               Hero Image URL / File Upload
                               <div className="flex items-center gap-2 mt-1">
@@ -1754,63 +1799,103 @@ function AdminPage() {
                                 </label>
                               </div>
                             </label>
-
-                            <label className="block text-xs font-bold text-slate-700">
-                              Search Box Placeholder Text
-                              <Input className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20" value={siteSettingsForm.heroSearchPlaceholder || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, heroSearchPlaceholder: e.target.value }))} />
-                            </label>
                           </div>
                         </div>
 
+                        {/* STATS CARDS SETTINGS */}
                         <div className="space-y-4 pt-4 border-t border-slate-200">
-                          <h4 className="font-extrabold text-[#0284c7] text-xs uppercase tracking-wider border-b border-slate-200 pb-2">Stats Cards Settings</h4>
+                          <h4 className="font-extrabold text-[#0284c7] text-xs uppercase tracking-wider border-b border-slate-200 pb-2">Stats Cards Configuration (EN / DE)</h4>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="space-y-2 p-3.5 bg-slate-50 rounded-xl border border-slate-200">
-                              <span className="text-xs font-bold text-slate-800">Stat Card 1</span>
-                              <Input placeholder="Main label (e.g. 150+ Profiles)" className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs" value={siteSettingsForm.stat1Label || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat1Label: e.target.value }))} />
-                              <Input placeholder="Subtitle (e.g. Standard & Custom)" className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs" value={siteSettingsForm.stat1Sub || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat1Sub: e.target.value }))} />
+                              <span className="text-xs font-bold text-slate-800">Stat Card 1 (Profiles)</span>
+                              <Input placeholder="Main label EN (e.g. 150+ Profiles)" className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs" value={siteSettingsForm.stat1Label || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat1Label: e.target.value }))} />
+                              <Input placeholder="Main label DE (z.B. 150+ Profile)" className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs" value={siteSettingsForm.stat1LabelDe || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat1LabelDe: e.target.value }))} />
+                              <Input placeholder="Subtitle EN (e.g. Standard & Custom)" className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs" value={siteSettingsForm.stat1Sub || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat1Sub: e.target.value }))} />
+                              <Input placeholder="Subtitle DE (z.B. Standard & Sonderprofile)" className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs" value={siteSettingsForm.stat1SubDe || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat1SubDe: e.target.value }))} />
                             </div>
 
                             <div className="space-y-2 p-3.5 bg-slate-50 rounded-xl border border-slate-200">
-                              <span className="text-xs font-bold text-slate-800">Stat Card 2</span>
-                              <Input placeholder="Main label (e.g. 12+ Partners)" className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs" value={siteSettingsForm.stat2Label || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat2Label: e.target.value }))} />
-                              <Input placeholder="Subtitle (e.g. Global Network)" className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs" value={siteSettingsForm.stat2Sub || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat2Sub: e.target.value }))} />
+                              <span className="text-xs font-bold text-slate-800">Stat Card 2 (Partners)</span>
+                              <Input placeholder="Main label EN (e.g. 12+ Partners)" className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs" value={siteSettingsForm.stat2Label || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat2Label: e.target.value }))} />
+                              <Input placeholder="Main label DE (z.B. 12+ Partner)" className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs" value={siteSettingsForm.stat2LabelDe || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat2LabelDe: e.target.value }))} />
+                              <Input placeholder="Subtitle EN (e.g. Global Network)" className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs" value={siteSettingsForm.stat2Sub || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat2Sub: e.target.value }))} />
+                              <Input placeholder="Subtitle DE (z.B. Herstellernetzwerk)" className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs" value={siteSettingsForm.stat2SubDe || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat2SubDe: e.target.value }))} />
                             </div>
 
                             <div className="space-y-2 p-3.5 bg-slate-50 rounded-xl border border-slate-200">
-                              <span className="text-xs font-bold text-slate-800">Stat Card 3</span>
-                              <Input placeholder="Main label (e.g. 9,850+ Downloads)" className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs" value={siteSettingsForm.stat3Label || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat3Label: e.target.value }))} />
-                              <Input placeholder="Subtitle (e.g. Datasheets)" className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs" value={siteSettingsForm.stat3Sub || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat3Sub: e.target.value }))} />
+                              <span className="text-xs font-bold text-slate-800">Stat Card 3 (Downloads)</span>
+                              <Input placeholder="Main label EN (e.g. 9,850+ Downloads)" className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs" value={siteSettingsForm.stat3Label || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat3Label: e.target.value }))} />
+                              <Input placeholder="Main label DE (z.B. 9.850+ Downloads)" className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs" value={siteSettingsForm.stat3LabelDe || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat3LabelDe: e.target.value }))} />
+                              <Input placeholder="Subtitle EN (e.g. Technical Data Sheets)" className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs" value={siteSettingsForm.stat3Sub || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat3Sub: e.target.value }))} />
+                              <Input placeholder="Subtitle DE (z.B. Technische Datenblätter)" className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs" value={siteSettingsForm.stat3SubDe || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, stat3SubDe: e.target.value }))} />
                             </div>
                           </div>
                         </div>
 
+                        {/* SECTION TITLES & CONTENT */}
                         <div className="space-y-4 pt-4 border-t border-slate-200">
-                          <h4 className="font-extrabold text-[#0284c7] text-xs uppercase tracking-wider border-b border-slate-200 pb-2">Section Titles & Content</h4>
+                          <h4 className="font-extrabold text-[#0284c7] text-xs uppercase tracking-wider border-b border-slate-200 pb-2">Featured & How It Works Sections (EN / DE)</h4>
+                          
+                          {/* Featured Titles */}
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <label className="block text-xs font-bold text-slate-700">
-                              Featured Section Title
-                              <Input className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20" value={siteSettingsForm.featuredTitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, featuredTitle: e.target.value }))} />
+                              Featured Section Title (EN)
+                              <Input className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20" value={siteSettingsForm.featuredTitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, featuredTitle: e.target.value }))} placeholder="Featured Aluminum Profiles" />
                             </label>
                             <label className="block text-xs font-bold text-slate-700">
-                              How It Works Title
-                              <Input className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20" value={siteSettingsForm.howItWorksTitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, howItWorksTitle: e.target.value }))} />
+                              Featured Section Title (DE)
+                              <Input className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20" value={siteSettingsForm.featuredTitleDe || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, featuredTitleDe: e.target.value }))} placeholder="Ausgewählte Aluminiumprofile" />
                             </label>
                           </div>
-                          <label className="block text-xs font-bold text-slate-700">
-                            How It Works Subtitle
-                            <Input className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20" value={siteSettingsForm.howItWorksSubtitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, howItWorksSubtitle: e.target.value }))} />
-                          </label>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                          {/* How It Works Titles */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <label className="block text-xs font-bold text-slate-700">
-                              About Section Title
-                              <Input className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20" value={siteSettingsForm.aboutTitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, aboutTitle: e.target.value }))} />
+                              How It Works Title (EN)
+                              <Input className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20" value={siteSettingsForm.howItWorksTitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, howItWorksTitle: e.target.value }))} placeholder="How It Works" />
                             </label>
                             <label className="block text-xs font-bold text-slate-700">
-                              About Section Subtitle / Description
-                              <textarea className="mt-1 block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:ring-2 focus:ring-blue-500/20 focus:outline-none" rows={2} value={siteSettingsForm.aboutSubtitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, aboutSubtitle: e.target.value }))} />
+                              How It Works Title (DE)
+                              <Input className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20" value={siteSettingsForm.howItWorksTitleDe || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, howItWorksTitleDe: e.target.value }))} placeholder="So funktioniert es" />
                             </label>
+                          </div>
+
+                          {/* How It Works Subtitles */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <label className="block text-xs font-bold text-slate-700">
+                              How It Works Subtitle (EN)
+                              <Input className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20" value={siteSettingsForm.howItWorksSubtitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, howItWorksSubtitle: e.target.value }))} placeholder="Seamlessly Find and Integrate Your Profiles" />
+                            </label>
+                            <label className="block text-xs font-bold text-slate-700">
+                              How It Works Subtitle (DE)
+                              <Input className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20" value={siteSettingsForm.howItWorksSubtitleDe || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, howItWorksSubtitleDe: e.target.value }))} placeholder="Profile nahtlos finden, prüfen und integrieren" />
+                            </label>
+                          </div>
+
+                          {/* About Section */}
+                          <div className="pt-2 border-t border-slate-200 space-y-4">
+                            <h4 className="font-extrabold text-[#0284c7] text-xs uppercase tracking-wider">About Section (EN / DE)</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <label className="block text-xs font-bold text-slate-700">
+                                About Section Title (EN)
+                                <Input className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20" value={siteSettingsForm.aboutTitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, aboutTitle: e.target.value }))} placeholder="The Leading Global B2B Aluminum Profile Search Engine" />
+                              </label>
+                              <label className="block text-xs font-bold text-slate-700">
+                                About Section Title (DE)
+                                <Input className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20" value={siteSettingsForm.aboutTitleDe || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, aboutTitleDe: e.target.value }))} placeholder="Der führende globale B2B-Katalog für Aluminiumprofile" />
+                              </label>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <label className="block text-xs font-bold text-slate-700">
+                                About Subtitle / Description (EN)
+                                <textarea className="mt-1 block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:ring-2 focus:ring-blue-500/20 focus:outline-none" rows={3} value={siteSettingsForm.aboutSubtitle || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, aboutSubtitle: e.target.value }))} placeholder="AluProfileBiz connects mechanical engineers, structural designers..." />
+                              </label>
+                              <label className="block text-xs font-bold text-slate-700">
+                                About Subtitle / Description (DE)
+                                <textarea className="mt-1 block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:ring-2 focus:ring-blue-500/20 focus:outline-none" rows={3} value={siteSettingsForm.aboutSubtitleDe || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, aboutSubtitleDe: e.target.value }))} placeholder="AluProfileBiz verbindet Maschinenbauingenieure, Konstrukteure und Einkäufer..." />
+                              </label>
+                            </div>
                           </div>
                         </div>
 

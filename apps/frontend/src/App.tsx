@@ -749,13 +749,15 @@ function App() {
                   <div className="rounded-2xl bg-[#152238]/90 border border-cyan-500/30 shadow-[0_0_20px_rgba(6,182,212,0.12)] p-3.5 space-y-1 hover:border-cyan-400 hover:shadow-[0_0_25px_rgba(6,182,212,0.25)] transition-all cursor-pointer group">
                     <div className="flex items-center justify-between">
                       <p className="text-base sm:text-lg font-black text-white leading-tight">
-                        {siteSettings.stat1Label ? siteSettings.stat1Label : `${overview?.totals?.profiles ?? profiles.length ?? 0}+ ${lang === 'de' ? 'Profile' : 'Profiles'}`}
+                        {lang === 'de'
+                          ? (siteSettings.stat1LabelDe || siteSettings.stat1Label || `${overview?.totals?.profiles ?? profiles.length ?? 0}+ Profile`)
+                          : (siteSettings.stat1Label || `${overview?.totals?.profiles ?? profiles.length ?? 0}+ Profiles`)}
                       </p>
                       <Boxes className="h-4 w-4 text-cyan-400 group-hover:scale-110 transition-transform" />
                     </div>
                     <p className="text-[10px] text-slate-400 font-semibold tracking-wide">
                       {lang === 'de'
-                        ? (siteSettings.stat1SubDe || 'Standard & Sonderprofile')
+                        ? (siteSettings.stat1SubDe || siteSettings.stat1Sub || 'Standard & Sonderprofile')
                         : (siteSettings.stat1Sub || 'Standard & Custom')}
                     </p>
                   </div>
@@ -763,13 +765,15 @@ function App() {
                   <div className="rounded-2xl bg-[#152238]/90 border border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.12)] p-3.5 space-y-1 hover:border-blue-400 hover:shadow-[0_0_25px_rgba(59,130,246,0.25)] transition-all cursor-pointer group">
                     <div className="flex items-center justify-between">
                       <p className="text-base sm:text-lg font-black text-white leading-tight">
-                        {siteSettings.stat2Label ? siteSettings.stat2Label : `${overview?.totals?.suppliers ?? overview?.applications?.length ?? 0}+ ${lang === 'de' ? 'Partner' : 'Partners'}`}
+                        {lang === 'de'
+                          ? (siteSettings.stat2LabelDe || siteSettings.stat2Label || `${overview?.totals?.suppliers ?? overview?.applications?.length ?? 0}+ Partner`)
+                          : (siteSettings.stat2Label || `${overview?.totals?.suppliers ?? overview?.applications?.length ?? 0}+ Partners`)}
                       </p>
                       <Building2 className="h-4 w-4 text-blue-400 group-hover:scale-110 transition-transform" />
                     </div>
                     <p className="text-[10px] text-slate-400 font-semibold tracking-wide">
                       {lang === 'de'
-                        ? (siteSettings.stat2SubDe || 'Herstellernetzwerk')
+                        ? (siteSettings.stat2SubDe || siteSettings.stat2Sub || 'Herstellernetzwerk')
                         : (siteSettings.stat2Sub || 'Global Manufacturing Network')}
                     </p>
                   </div>
@@ -777,13 +781,15 @@ function App() {
                   <div className="rounded-2xl bg-[#152238]/90 border border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.12)] p-3.5 space-y-1 hover:border-emerald-400 hover:shadow-[0_0_25px_rgba(16,185,129,0.25)] transition-all cursor-pointer group">
                     <div className="flex items-center justify-between">
                       <p className="text-base sm:text-lg font-black text-white leading-tight">
-                        {siteSettings.stat3Label ? siteSettings.stat3Label : `${(((overview?.totals?.profiles ?? profiles.length ?? 0) * 120) + 150).toLocaleString()}+ ${lang === 'de' ? 'Downloads' : 'Downloads'}`}
+                        {lang === 'de'
+                          ? (siteSettings.stat3LabelDe || siteSettings.stat3Label || `${(((overview?.totals?.profiles ?? profiles.length ?? 0) * 120) + 150).toLocaleString()}+ Downloads`)
+                          : (siteSettings.stat3Label || `${(((overview?.totals?.profiles ?? profiles.length ?? 0) * 120) + 150).toLocaleString()}+ Downloads`)}
                       </p>
                       <Download className="h-4 w-4 text-emerald-400 group-hover:scale-110 transition-transform" />
                     </div>
                     <p className="text-[10px] text-slate-400 font-semibold tracking-wide">
                       {lang === 'de'
-                        ? (siteSettings.stat3SubDe || 'Technische Datenblätter')
+                        ? (siteSettings.stat3SubDe || siteSettings.stat3Sub || 'Technische Datenblätter')
                         : (siteSettings.stat3Sub || 'Technical Data Sheets')}
                     </p>
                   </div>
@@ -811,7 +817,9 @@ function App() {
                 {lang === 'de' ? 'Produkt-Highlights' : 'Product Highlights'}
               </span>
               <h2 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight mt-0.5">
-                {siteSettings.featuredTitle || (lang === 'de' ? 'Ausgewählte Aluminiumprofile' : 'Featured Aluminum Profiles')}
+                {lang === 'de'
+                  ? (siteSettings.featuredTitleDe || siteSettings.featuredTitle || 'Ausgewählte Aluminiumprofile')
+                  : (siteSettings.featuredTitle || siteSettings.featuredTitleDe || 'Featured Aluminum Profiles')}
               </h2>
             </div>
 
@@ -944,10 +952,14 @@ function App() {
               {lang === 'de' ? 'Workflow-Lösungen' : 'Workflow Solutions'}
             </span>
             <h2 className="text-2xl sm:text-4xl font-black text-slate-950 tracking-tight">
-              {siteSettings.howItWorksTitle || (lang === 'de' ? 'So funktioniert es' : 'How It Works')}
+              {lang === 'de'
+                ? (siteSettings.howItWorksTitleDe || siteSettings.howItWorksTitle || 'So funktioniert es')
+                : (siteSettings.howItWorksTitle || siteSettings.howItWorksTitleDe || 'How It Works')}
             </h2>
             <p className="text-slate-500 text-xs sm:text-sm font-medium leading-relaxed">
-              {siteSettings.howItWorksSubtitle || (lang === 'de' ? 'Profile nahtlos finden, prüfen und integrieren' : 'Seamlessly Find and Integrate Your Profiles')}
+              {lang === 'de'
+                ? (siteSettings.howItWorksSubtitleDe || siteSettings.howItWorksSubtitle || 'Profile nahtlos finden, prüfen und integrieren')
+                : (siteSettings.howItWorksSubtitle || siteSettings.howItWorksSubtitleDe || 'Seamlessly Find and Integrate Your Profiles')}
             </p>
           </div>
 
@@ -1043,12 +1055,14 @@ function App() {
               {lang === 'de' ? 'Über AluProfileBiz' : 'About AluProfileBiz'}
             </span>
             <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-white">
-              {siteSettings.aboutTitle || (lang === 'de' ? 'Der führende globale B2B-Katalog für Aluminiumprofile' : 'The Leading Global B2B Aluminum Profile Search Engine')}
+              {lang === 'de'
+                ? (siteSettings.aboutTitleDe || siteSettings.aboutTitle || 'Der führende globale B2B-Katalog für Aluminiumprofile')
+                : (siteSettings.aboutTitle || siteSettings.aboutTitleDe || 'The Leading Global B2B Aluminum Profile Search Engine')}
             </h2>
             <p className="text-slate-300 text-xs sm:text-sm leading-relaxed font-medium">
-              {siteSettings.aboutSubtitle || (lang === 'de' 
-                ? 'AluProfileBiz verbindet Maschinenbauingenieure, Konstrukteure und Einkäufer direkt mit verifizierten Aluminiumprofil-Herstellern weltweit. Suchen Sie nach exakten Maßen, laden Sie CAD-Zeichnungen herunter und fordern Sie technische Datenblätter an.'
-                : 'AluProfileBiz connects mechanical engineers, structural designers, and procurement agents directly with certified aluminum profile manufacturers worldwide. Instantly search exact dimensions, download CAD 3D STEP & 2D DXF models, and request technical data sheets.')}
+              {lang === 'de' 
+                ? (siteSettings.aboutSubtitleDe || siteSettings.aboutSubtitle || 'AluProfileBiz verbindet Maschinenbauingenieure, Konstrukteure und Einkäufer direkt mit verifizierten Aluminiumprofil-Herstellern weltweit. Suchen Sie nach exakten Maßen, laden Sie CAD-Zeichnungen herunter und fordern Sie technische Datenblätter an.')
+                : (siteSettings.aboutSubtitle || siteSettings.aboutSubtitleDe || 'AluProfileBiz connects mechanical engineers, structural designers, and procurement agents directly with certified aluminum profile manufacturers worldwide. Instantly search exact dimensions, download CAD 3D STEP & 2D DXF models, and request technical data sheets.')}
             </p>
 
           </div>
