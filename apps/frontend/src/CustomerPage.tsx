@@ -1137,7 +1137,7 @@ function CustomerPage() {
                     <div className="space-y-1.5">
                       <label className="block text-xs font-bold text-slate-700">{t.name} (DE)</label>
                       <Input
-                        placeholder="z.B. Aluprofile Systeme GmbH"
+                        placeholder="z.B. AluProfileBiz Systeme GmbH"
                         value={supplierForm.nameDe}
                         onChange={(e) => setSupplierForm({ ...supplierForm, nameDe: e.target.value })}
                         className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-amber-500/20"

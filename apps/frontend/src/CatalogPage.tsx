@@ -259,7 +259,7 @@ export default function CatalogPage() {
             <Boxes className="h-4 w-4" />
           </div>
           <span className="text-lg font-black text-slate-900 tracking-tight">
-            Alu<span className="bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-400 bg-clip-text text-transparent font-black">Profile</span>
+            Alu<span className="bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-400 bg-clip-text text-transparent font-black">ProfileBiz</span>
           </span>
         </Link>
 
@@ -758,7 +758,7 @@ export default function CatalogPage() {
                   <Boxes className="h-4 w-4" />
                 </div>
                 <span className="text-lg font-black tracking-tight text-white">
-                  Alu<span className="bg-gradient-to-r from-blue-400 via-sky-400 to-cyan-300 bg-clip-text text-transparent font-black">Profile</span>
+                  Alu<span className="bg-gradient-to-r from-blue-400 via-sky-400 to-cyan-300 bg-clip-text text-transparent font-black">ProfileBiz</span>
                 </span>
               </Link>
               <p className="text-slate-400 text-xs leading-relaxed font-medium">

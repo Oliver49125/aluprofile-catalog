@@ -85,7 +85,7 @@ export default function CookieConsentModal({ onSave }: CookieConsentProps) {
           A
         </div>
         <span className="text-xl font-black text-slate-900 tracking-tight">
-          Alu<span className="text-blue-600">Profile</span>
+          Alu<span className="text-blue-600">ProfileBiz</span>
         </span>
       </div>
 

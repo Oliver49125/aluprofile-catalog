@@ -343,7 +343,7 @@ export default function SearchPortalPage() {
               <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-cyan-400 border-2 border-slate-900 animate-pulse" />
             </div>
             <span className="text-xl font-extrabold text-white tracking-tight">
-              Alu<span className="bg-gradient-to-r from-blue-400 via-sky-400 to-cyan-300 bg-clip-text text-transparent font-black">Profile</span>
+              Alu<span className="bg-gradient-to-r from-blue-400 via-sky-400 to-cyan-300 bg-clip-text text-transparent font-black">ProfileBiz</span>
             </span>
           </Link>
 
