@@ -202,14 +202,22 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
           )}
         </div>
 
-        {/* Mobile Hamburger Toggle */}
+        {/* Mobile 3-Bar Hamburger Toggle (|||) */}
         <div className="flex md:hidden items-center gap-2">
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 rounded-xl bg-slate-100 text-slate-800 hover:bg-slate-200 transition-all focus:outline-none"
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-95 text-white transition-all shadow-md shadow-slate-900/20 cursor-pointer focus:outline-none"
             aria-label="Toggle Mobile Menu"
           >
-            {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {isMobileMenuOpen ? (
+              <X className="h-5 w-5 text-white" />
+            ) : (
+              <div className="flex flex-col items-center justify-center gap-1 w-5" aria-hidden="true">
+                <span className="block h-0.5 w-5 rounded-full bg-white transition-all"></span>
+                <span className="block h-0.5 w-5 rounded-full bg-white transition-all"></span>
+                <span className="block h-0.5 w-5 rounded-full bg-white transition-all"></span>
+              </div>
+            )}
           </button>
         </div>
       </div>

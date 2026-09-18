@@ -354,7 +354,7 @@ export default function CatalogPage() {
               </button>
             </Link>
 
-            <Link to="/customer">
+            <Link to="/customer" className="hidden sm:inline-flex">
               <Button className="rounded-xl bg-[#1e2a3b] hover:bg-slate-800 text-white text-[11px] sm:text-xs font-bold px-2.5 sm:px-4 py-1.5 sm:py-2 shadow-sm transition-all cursor-pointer">
                 {lang === 'de' ? 'Kundenportal' : 'Customer Portal'}
               </Button>
@@ -368,14 +368,22 @@ export default function CatalogPage() {
               </select>
             </label>
 
-            {/* Mobile Hamburger Toggle Button */}
+            {/* Mobile 3-Bar Hamburger Toggle Button (|||) */}
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-              className="md:hidden flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 transition-all border border-slate-200 cursor-pointer focus:outline-none ml-1"
+              className="md:hidden flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-95 text-white transition-all shadow-md shadow-slate-900/20 cursor-pointer focus:outline-none ml-1"
               aria-label="Toggle Mobile Menu"
             >
-              {isMobileMenuOpen ? <X className="h-4.5 w-4.5 text-slate-900" /> : <Menu className="h-4.5 w-4.5 text-slate-900" />}
+              {isMobileMenuOpen ? (
+                <X className="h-5 w-5 text-white" />
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-1 w-5" aria-hidden="true">
+                  <span className="block h-0.5 w-5 rounded-full bg-white transition-all"></span>
+                  <span className="block h-0.5 w-5 rounded-full bg-white transition-all"></span>
+                  <span className="block h-0.5 w-5 rounded-full bg-white transition-all"></span>
+                </div>
+              )}
             </button>
           </div>
         </div>
