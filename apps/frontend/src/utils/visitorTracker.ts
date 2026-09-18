@@ -42,7 +42,7 @@ export function recordVisit(pathname?: string) {
         timezone,
       }),
     }).catch(() => {});
-  } catch (err) {
+  } catch (_err) {
     // Non-blocking telemetry
   }
 }

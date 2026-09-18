@@ -125,16 +125,16 @@ export function updatePageSeo(pageKey: string, lang: 'de' | 'en' = 'de', customC
   metaDesc.setAttribute('content', config.description);
 
   // 3. Update OG Title & Description
-  let ogTitle = document.querySelector('meta[property="og:title"]');
+  const ogTitle = document.querySelector('meta[property="og:title"]');
   if (ogTitle) ogTitle.setAttribute('content', config.title);
 
-  let ogDesc = document.querySelector('meta[property="og:description"]');
+  const ogDesc = document.querySelector('meta[property="og:description"]');
   if (ogDesc) ogDesc.setAttribute('content', config.description);
 
-  let twitterTitle = document.querySelector('meta[property="twitter:title"]');
+  const twitterTitle = document.querySelector('meta[property="twitter:title"]');
   if (twitterTitle) twitterTitle.setAttribute('content', config.title);
 
-  let twitterDesc = document.querySelector('meta[property="twitter:description"]');
+  const twitterDesc = document.querySelector('meta[property="twitter:description"]');
   if (twitterDesc) twitterDesc.setAttribute('content', config.description);
 
   // 4. Update Keywords
