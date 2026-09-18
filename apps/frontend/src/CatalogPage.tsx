@@ -275,7 +275,7 @@ export default function CatalogPage() {
               <Boxes className="h-4 w-4" />
             </div>
             <span className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
-              Alu<span className="bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-400 bg-clip-text text-transparent font-black">ProfileBiz</span>
+              Alu<span className="bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-400 bg-clip-text text-transparent font-black">Profile.biz</span>
             </span>
           </Link>
 
@@ -922,8 +922,8 @@ export default function CatalogPage() {
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 leading-relaxed font-medium">
               {lang === 'de'
-                ? 'Vergleichen Sie Nutgrößen, Trägheitsmomente, 3D STEP / 2D DXF CAD-Dateien und fordern Sie Preisangebote direkt über AluProfileBiz an.'
-                : 'Search exact slot sizes, moments of inertia, download 3D STEP CAD files, and request quotations on AluProfileBiz.'}
+                ? 'Vergleichen Sie Nutgrößen, Trägheitsmomente, 3D STEP / 2D DXF CAD-Dateien und fordern Sie Preisangebote direkt über AluProfile.biz an.'
+                : 'Search exact slot sizes, moments of inertia, download 3D STEP CAD files, and request quotations on AluProfile.biz.'}
             </p>
           </div>
 
@@ -959,8 +959,8 @@ export default function CatalogPage() {
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed">
                 {lang === 'de'
-                  ? 'Ja, AluProfileBiz verbindet Kunden und den Maschinenbau in Österreich (Austria) direkt mit zertifizierten Herstellern und Lagerbeständen in ganz Europa.'
-                  : 'Yes, AluProfileBiz connects machine builders and structural engineers in Austria and Europe directly with certified extrusion manufacturers and inventory.'}
+                  ? 'Ja, AluProfile.biz verbindet Kunden und den Maschinenbau in Österreich (Austria) direkt mit zertifizierten Herstellern und Lagerbeständen in ganz Europa.'
+                  : 'Yes, AluProfile.biz connects machine builders and structural engineers in Austria and Europe directly with certified extrusion manufacturers and inventory.'}
               </p>
             </div>
           </div>
@@ -983,7 +983,7 @@ export default function CatalogPage() {
                   <Boxes className="h-4 w-4" />
                 </div>
                 <span className="text-lg font-black tracking-tight text-white">
-                  Alu<span className="bg-gradient-to-r from-blue-400 via-sky-400 to-cyan-300 bg-clip-text text-transparent font-black">ProfileBiz</span>
+                  Alu<span className="bg-gradient-to-r from-blue-400 via-sky-400 to-cyan-300 bg-clip-text text-transparent font-black">Profile.biz</span>
                 </span>
               </Link>
               <p className="text-slate-400 text-xs leading-relaxed font-medium">
@@ -1049,7 +1049,7 @@ export default function CatalogPage() {
 
           {/* Bottom copyright bar */}
           <div className="mt-10 pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400 font-medium">
-            <p>{lang === 'de' ? '© 2026 AluProfileBiz. Alle Rechte vorbehalten.' : '© 2026 AluProfileBiz, Inc. All rights reserved.'}</p>
+            <p>{lang === 'de' ? '© 2026 AluProfile.biz. Alle Rechte vorbehalten.' : '© 2026 AluProfile.biz, Inc. All rights reserved.'}</p>
             <div className="flex flex-wrap gap-5">
               <Link to="/imprint" className="hover:text-slate-200 transition-colors">{lang === 'de' ? 'Impressum' : 'Imprint'}</Link>
               <Link to="/privacy" className="hover:text-slate-200 transition-colors">{lang === 'de' ? 'Datenschutz' : 'Privacy'}</Link>
@@ -1717,8 +1717,8 @@ export default function CatalogPage() {
             <form onSubmit={handleRegisterManufacturer} className="p-6 space-y-4">
               <p className="text-xs text-slate-500 leading-relaxed">
                 {lang === 'de'
-                  ? 'Werden Sie gelisteter Hersteller in AluProfileBiz. Reichen Sie Ihr Unternehmensprofil ein, um Ihre Aluprofile T-Nut & Systemprofile anzubieten.'
-                  : 'Join AluProfileBiz as a verified manufacturer. Submit your company details to list your aluminum profile catalog.'}
+                  ? 'Werden Sie gelisteter Hersteller in AluProfile.biz. Reichen Sie Ihr Unternehmensprofil ein, um Ihre Aluprofile T-Nut & Systemprofile anzubieten.'
+                  : 'Join AluProfile.biz as a verified manufacturer. Submit your company details to list your aluminum profile catalog.'}
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

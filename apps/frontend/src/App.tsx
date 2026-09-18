@@ -635,7 +635,7 @@ function App() {
               <Boxes className="h-4 w-4" />
             </div>
             <span className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
-              Alu<span className="bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-400 bg-clip-text text-transparent font-black">ProfileBiz</span>
+              Alu<span className="bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-400 bg-clip-text text-transparent font-black">Profile.biz</span>
             </span>
           </Link>
 
@@ -1464,7 +1464,7 @@ function App() {
           <div className="max-w-3xl mx-auto text-center space-y-3 relative z-10">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-400/10 border border-cyan-400/20 px-3.5 py-1 text-[11px] font-black uppercase tracking-[0.25em] text-cyan-400 shadow-sm">
               <Sparkles className="h-3 w-3 text-cyan-400" />
-              {lang === 'de' ? 'Über AluProfileBiz' : 'About AluProfileBiz'}
+              {lang === 'de' ? 'Über AluProfile.biz' : 'About AluProfile.biz'}
             </span>
             <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-white">
               {lang === 'de'
@@ -1473,8 +1473,8 @@ function App() {
             </h2>
             <p className="text-slate-300 text-xs sm:text-sm leading-relaxed font-medium">
               {lang === 'de' 
-                ? (siteSettings.aboutSubtitleDe || siteSettings.aboutSubtitle || 'AluProfileBiz verbindet Maschinenbauingenieure, Konstrukteure und Einkäufer direkt mit verifizierten Aluminiumprofil-Herstellern weltweit. Suchen Sie nach exakten Maßen, laden Sie CAD-Zeichnungen herunter und fordern Sie technische Datenblätter an.')
-                : (siteSettings.aboutSubtitle || siteSettings.aboutSubtitleDe || 'AluProfileBiz connects mechanical engineers, structural designers, and procurement agents directly with certified aluminum profile manufacturers worldwide. Instantly search exact dimensions, download CAD 3D STEP & 2D DXF models, and request technical data sheets.')}
+                ? (siteSettings.aboutSubtitleDe || siteSettings.aboutSubtitle || 'AluProfile.biz verbindet Maschinenbauingenieure, Konstrukteure und Einkäufer direkt mit verifizierten Aluminiumprofil-Herstellern weltweit. Suchen Sie nach exakten Maßen, laden Sie CAD-Zeichnungen herunter und fordern Sie technische Datenblätter an.')
+                : (siteSettings.aboutSubtitle || siteSettings.aboutSubtitleDe || 'AluProfile.biz connects mechanical engineers, structural designers, and procurement agents directly with certified aluminum profile manufacturers worldwide. Instantly search exact dimensions, download CAD 3D STEP & 2D DXF models, and request technical data sheets.')}
             </p>
 
           </div>
@@ -1776,8 +1776,8 @@ function App() {
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 leading-relaxed font-medium">
               {lang === 'de'
-                ? 'Alles Wissenswerte zur Suche, den CAD-Downloads (STEP, DXF) und den technischen Spezifikationen von Aluminiumprofilen auf AluProfileBiz.'
-                : 'Find instant answers about searching, 3D CAD models, structural calculations, and supplier inquiries on AluProfileBiz.'}
+                ? 'Alles Wissenswerte zur Suche, den CAD-Downloads (STEP, DXF) und den technischen Spezifikationen von Aluminiumprofilen auf AluProfile.biz.'
+                : 'Find instant answers about searching, 3D CAD models, structural calculations, and supplier inquiries on AluProfile.biz.'}
             </p>
           </div>
 
@@ -1785,12 +1785,12 @@ function App() {
             <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-6 space-y-2.5 transition-all hover:bg-white hover:shadow-md hover:border-slate-200">
               <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-black">1</span>
-                {lang === 'de' ? 'Was ist AluProfileBiz für Aluminiumprofile?' : 'What is AluProfileBiz for Aluminium Profiles?'}
+                {lang === 'de' ? 'Was ist AluProfile.biz für Aluminiumprofile?' : 'What is AluProfile.biz for Aluminium Profiles?'}
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed">
                 {lang === 'de'
-                  ? 'AluProfileBiz ist die führende europäische B2B-Suchmaschine und Plattform für Aluminiumprofile, Aluprofile, Konstruktionsprofile und Baukastensysteme. Konstrukteure und Einkäufer können Profile millimetergenau vergleichen und Datenblätter herunterladen.'
-                  : 'AluProfileBiz is the premier B2B search engine and catalog for industrial aluminium profiles, aluminum extrusions, and modular framing systems, connecting engineers directly with verified manufacturers.'}
+                  ? 'AluProfile.biz ist die führende europäische B2B-Suchmaschine und Plattform für Aluminiumprofile, Aluprofile, Konstruktionsprofile und Baukastensysteme. Konstrukteure und Einkäufer können Profile millimetergenau vergleichen und Datenblätter herunterladen.'
+                  : 'AluProfile.biz is the premier B2B search engine and catalog for industrial aluminium profiles, aluminum extrusions, and modular framing systems, connecting engineers directly with verified manufacturers.'}
               </p>
             </div>
 
@@ -1837,8 +1837,8 @@ function App() {
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed">
                 {lang === 'de'
-                  ? 'Ja, AluProfileBiz deckt die gesamte DACH-Region (Österreich, Deutschland, Schweiz) und Europa ab. Sie finden führende Unternehmen der Aluminiumindustrie, zertifizierte Strangpressprofile und direkten Kontakt zu österreichischen und europäischen Lieferanten.'
-                  : 'Yes, AluProfileBiz comprehensively serves the Austrian and European aluminium industries. Engineers can locate certified aluminium companies in Austria and Europe, compare structural profiles, and download engineering CAD files directly.'}
+                  ? 'Ja, AluProfile.biz deckt die gesamte DACH-Region (Österreich, Deutschland, Schweiz) und Europa ab. Sie finden führende Unternehmen der Aluminiumindustrie, zertifizierte Strangpressprofile und direkten Kontakt zu österreichischen und europäischen Lieferanten.'
+                  : 'Yes, AluProfile.biz comprehensively serves the Austrian and European aluminium industries. Engineers can locate certified aluminium companies in Austria and Europe, compare structural profiles, and download engineering CAD files directly.'}
               </p>
             </div>
 
@@ -1873,7 +1873,7 @@ function App() {
                   <Boxes className="h-4 w-4" />
                 </div>
                 <span className="text-lg font-black tracking-tight text-white">
-                  Alu<span className="bg-gradient-to-r from-blue-400 via-sky-400 to-cyan-300 bg-clip-text text-transparent font-black">ProfileBiz</span>
+                  Alu<span className="bg-gradient-to-r from-blue-400 via-sky-400 to-cyan-300 bg-clip-text text-transparent font-black">Profile.biz</span>
                 </span>
               </Link>
               <p className="text-slate-400 text-xs leading-relaxed font-medium">
@@ -1939,7 +1939,7 @@ function App() {
 
           {/* Bottom copyright bar */}
           <div className="mt-10 pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400 font-medium">
-            <p>{lang === 'de' ? '© 2026 AluProfileBiz. Alle Rechte vorbehalten.' : '© 2026 AluProfileBiz, Inc. All rights reserved.'}</p>
+            <p>{lang === 'de' ? '© 2026 AluProfile.biz. Alle Rechte vorbehalten.' : '© 2026 AluProfile.biz, Inc. All rights reserved.'}</p>
             <div className="flex flex-wrap gap-5">
               <Link to="/imprint" className="hover:text-slate-200 transition-colors">{lang === 'de' ? 'Impressum' : 'Imprint'}</Link>
               <Link to="/privacy" className="hover:text-slate-200 transition-colors">{lang === 'de' ? 'Datenschutz' : 'Privacy'}</Link>

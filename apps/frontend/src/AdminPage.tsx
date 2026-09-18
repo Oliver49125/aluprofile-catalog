@@ -479,8 +479,15 @@ function AdminPage() {
     howItWorksSubtitleDe: 'Profile nahtlos finden, prüfen und integrieren',
     aboutTitle: 'The Leading Global B2B Aluminum Profile Search Engine',
     aboutTitleDe: 'Der führende globale B2B-Katalog für Aluminiumprofile',
-    aboutSubtitle: 'AluProfileBiz connects mechanical engineers, structural designers, and procurement agents directly with certified aluminum profile manufacturers worldwide.',
-    aboutSubtitleDe: 'AluProfileBiz verbindet Maschinenbauingenieure, Konstrukteure und Einkäufer direkt mit verifizierten Aluminiumprofil-Herstellern weltweit.',
+    aboutSubtitle: 'AluProfile.biz connects mechanical engineers, structural designers, and procurement agents directly with certified aluminum profile manufacturers worldwide.',
+    aboutSubtitleDe: 'AluProfile.biz verbindet Maschinenbauingenieure, Konstrukteure und Einkäufer direkt mit verifizierten Aluminiumprofil-Herstellern weltweit.',
+    imprintOwner: 'Oliver Kascha',
+    imprintCompanyName: 'Aluprofile.biz',
+    imprintAddress: 'Vorgartenstrasse 120a/Top28\nA-1020 Wien, Österreich',
+    imprintEmail: 'support@aluprofile.biz',
+    imprintPhone: '',
+    imprintVatId: '',
+    imprintRegister: '',
   });
 
   const [isSavingSettings, setIsSavingSettings] = useState(false);
@@ -1094,7 +1101,7 @@ function AdminPage() {
   const filteredProfiles = useMemo(() => {
     const query = normalizeForSearch(profileFilter);
     return [...adminProfiles]
-      .filter((item) => !query || [item.name, item.nameDe, item.dimensions, item.material, item.materialDe, item.status].some((value) => normalizeForSearch(value).includes(query)))
+      .filter((item) => !query || [item.name, item.nameDe, item.dimensions, item.material, item.materialDe, item.status, item.supplier?.name].some((value) => normalizeForSearch(value).includes(query)))
       .sort((a, b) => {
         if (profileSort === 'name-desc') return compareText(b.name, a.name);
 
@@ -1894,6 +1901,85 @@ function AdminPage() {
                               <label className="block text-xs font-bold text-slate-700">
                                 About Subtitle / Description (DE)
                                 <textarea className="mt-1 block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:ring-2 focus:ring-blue-500/20 focus:outline-none" rows={3} value={siteSettingsForm.aboutSubtitleDe || ''} onChange={e => setSiteSettingsForm(f => ({ ...f, aboutSubtitleDe: e.target.value }))} placeholder="AluProfileBiz verbindet Maschinenbauingenieure, Konstrukteure und Einkäufer..." />
+                              </label>
+                            </div>
+                          </div>
+                          {/* SECTION 7: Impressum & Legal Disclosures (Self-Management) */}
+                          <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-5 shadow-sm">
+                            <h4 className="font-extrabold text-[#0284c7] text-xs uppercase tracking-wider border-b border-slate-200 pb-2 flex items-center justify-between">
+                              <span>Impressum & Rechtliche Angaben (Self-Service)</span>
+                              <span className="text-[10px] text-slate-400 font-normal">Wird live auf /imprint angezeigt</span>
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <label className="block text-xs font-bold text-slate-700">
+                                Inhaber / Vertreten durch (Name) *
+                                <Input
+                                  className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20"
+                                  value={siteSettingsForm.imprintOwner || ''}
+                                  onChange={e => setSiteSettingsForm(f => ({ ...f, imprintOwner: e.target.value }))}
+                                  placeholder="Oliver Kascha"
+                                />
+                              </label>
+                              <label className="block text-xs font-bold text-slate-700">
+                                Website / Plattformname *
+                                <Input
+                                  className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20"
+                                  value={siteSettingsForm.imprintCompanyName || ''}
+                                  onChange={e => setSiteSettingsForm(f => ({ ...f, imprintCompanyName: e.target.value }))}
+                                  placeholder="Aluprofile.biz"
+                                />
+                              </label>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <label className="block text-xs font-bold text-slate-700">
+                                Anschrift / Adresse *
+                                <textarea
+                                  className="mt-1 block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                                  rows={2}
+                                  value={siteSettingsForm.imprintAddress || ''}
+                                  onChange={e => setSiteSettingsForm(f => ({ ...f, imprintAddress: e.target.value }))}
+                                  placeholder="Vorgartenstrasse 120a/Top28&#10;A-1020 Wien, Österreich"
+                                />
+                              </label>
+                              <div className="space-y-3">
+                                <label className="block text-xs font-bold text-slate-700">
+                                  Kontakt E-Mail *
+                                  <Input
+                                    className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20"
+                                    value={siteSettingsForm.imprintEmail || ''}
+                                    onChange={e => setSiteSettingsForm(f => ({ ...f, imprintEmail: e.target.value }))}
+                                    placeholder="support@aluprofile.biz"
+                                  />
+                                </label>
+                                <label className="block text-xs font-bold text-slate-700">
+                                  Telefonnummer (Optional)
+                                  <Input
+                                    className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20"
+                                    value={siteSettingsForm.imprintPhone || ''}
+                                    onChange={e => setSiteSettingsForm(f => ({ ...f, imprintPhone: e.target.value }))}
+                                    placeholder="z.B. +43 (0) 1 234 5678"
+                                  />
+                                </label>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <label className="block text-xs font-bold text-slate-700">
+                                Umsatzsteuer-Identifikationsnummer (Optional - leer lassen zum Überspringen)
+                                <Input
+                                  className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20"
+                                  value={siteSettingsForm.imprintVatId || ''}
+                                  onChange={e => setSiteSettingsForm(f => ({ ...f, imprintVatId: e.target.value }))}
+                                  placeholder="Leer lassen, falls keine UID erforderlich"
+                                />
+                              </label>
+                              <label className="block text-xs font-bold text-slate-700">
+                                Registereintrag (Optional)
+                                <Input
+                                  className="mt-1 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20"
+                                  value={siteSettingsForm.imprintRegister || ''}
+                                  onChange={e => setSiteSettingsForm(f => ({ ...f, imprintRegister: e.target.value }))}
+                                  placeholder="z.B. Handelsgericht Wien..."
+                                />
                               </label>
                             </div>
                           </div>
@@ -2915,14 +3001,14 @@ function AdminPage() {
                         </select>
                         <Button
                           variant="outline"
-                          onClick={() => exportAdminSection('excel', t.profileControls, [t.name, t.status, t.dimensions, t.price], filteredProfiles.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.status, item.dimensions || '-', item.price ? `${item.currency ? item.currency.symbol : '€'} ${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.price)}` : '-']))}
+                          onClick={() => exportAdminSection('excel', t.profileControls, [t.name, t.supplier, t.status, t.dimensions, t.price], filteredProfiles.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.supplier?.name || '-', item.status, item.dimensions || '-', item.price ? `${item.currency ? item.currency.symbol : '€'} ${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.price)}` : '-']))}
                           className="border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs rounded-xl"
                         >
                           {t.exportExcel}
                         </Button>
                         <Button
                           variant="outline"
-                          onClick={() => exportAdminSection('pdf', t.profileControls, [t.name, t.status, t.dimensions, t.price], filteredProfiles.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.status, item.dimensions || '-', item.price ? `${item.currency ? item.currency.symbol : '€'} ${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.price)}` : '-']))}
+                          onClick={() => exportAdminSection('pdf', t.profileControls, [t.name, t.supplier, t.status, t.dimensions, t.price], filteredProfiles.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.supplier?.name || '-', item.status, item.dimensions || '-', item.price ? `${item.currency ? item.currency.symbol : '€'} ${new Intl.NumberFormat(lang === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.price)}` : '-']))}
                           className="border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs rounded-xl"
                         >
                           {t.exportPdf}
@@ -2935,6 +3021,7 @@ function AdminPage() {
                           <thead className="bg-slate-50/80 text-slate-600 font-extrabold text-xs uppercase tracking-wider border-b border-slate-200">
                             <tr>
                               <th className="px-5 py-3.5">{t.name}</th>
+                              <th className="px-5 py-3.5">{t.supplier}</th>
                               <th className="px-5 py-3.5">{t.status}</th>
                               <th className="px-5 py-3.5">{t.dimensions}</th>
                               <th className="px-5 py-3.5">{t.currency}</th>
@@ -2945,7 +3032,7 @@ function AdminPage() {
                           <tbody className="divide-y divide-slate-100">
                             {profileRows.items.length === 0 ? (
                               <tr>
-                                <td colSpan={6} className="px-5 py-8 text-center text-sm font-semibold text-slate-500">
+                                <td colSpan={7} className="px-5 py-8 text-center text-sm font-semibold text-slate-500">
                                   No profiles found for current filter.
                                 </td>
                               </tr>
@@ -2960,6 +3047,16 @@ function AdminPage() {
                                       <p className="text-xs text-slate-500 font-medium">
                                         {item.nameDe}
                                       </p>
+                                    )}
+                                  </td>
+                                  <td className="px-5 py-4">
+                                    {item.supplier?.name ? (
+                                      <div className="flex items-center gap-1.5">
+                                        <Building2 className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+                                        <span className="font-bold text-slate-800 text-xs">{item.supplier.name}</span>
+                                      </div>
+                                    ) : (
+                                      <span className="text-slate-400 text-xs italic">-</span>
                                     )}
                                   </td>
                                   <td className="px-5 py-4">
