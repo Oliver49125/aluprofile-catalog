@@ -147,6 +147,10 @@ export class PublicService {
         OR: [
           { name: { contains: filters.q, mode: 'insensitive' } },
           { nameDe: { contains: filters.q, mode: 'insensitive' } },
+          { dimensions: { contains: filters.q, mode: 'insensitive' } },
+          { slotSize: { contains: filters.q, mode: 'insensitive' } },
+          { material: { contains: filters.q, mode: 'insensitive' } },
+          { materialDe: { contains: filters.q, mode: 'insensitive' } },
           { description: { contains: filters.q, mode: 'insensitive' } },
           { descriptionDe: { contains: filters.q, mode: 'insensitive' } },
           { usage: { contains: filters.q, mode: 'insensitive' } },

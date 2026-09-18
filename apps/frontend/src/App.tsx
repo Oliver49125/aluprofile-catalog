@@ -1,6 +1,6 @@
 import { parseApiError } from './utils/apiError';
 import { API_BASE } from './utils/apiBase';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { useLanguage } from './LanguageContext';
@@ -11,9 +11,10 @@ import { updatePageSeo } from './utils/seo';
 
 
 import {
-
+  ArrowDown,
   Boxes,
   Building2,
+  CheckCircle2,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -51,14 +52,18 @@ type Lang = 'en' | 'de';
 type Profile = {
   id: number;
   name: string;
+  nameDe?: string;
   description?: string;
+  descriptionDe?: string;
   usage?: string;
+  usageDe?: string;
   drawingUrl?: string;
   photoUrl?: string;
   logoUrl?: string;
   dimensions?: string;
   weightPerMeter?: number;
   material?: string;
+  materialDe?: string;
   lengthMm?: number;
   status: string;
   supplier?: {
@@ -367,6 +372,19 @@ function App() {
   const [showFullCatalog, setShowFullCatalog] = useState(false);
   const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
   const [isCatalogDropdownOpen, setIsCatalogDropdownOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const [allProfiles, setAllProfiles] = useState<Profile[]>([]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setIsSearchOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const isMobile = /Mobi|Android/i.test(navigator.userAgent);
@@ -444,6 +462,9 @@ function App() {
       const profileList = profileData as Profile[];
       setOverview(overviewData);
       setProfiles(profileList);
+      if (!filters.q && !filters.dimensions && !filters.material && !filters.applicationId && !filters.crossSectionId) {
+        setAllProfiles(profileList);
+      }
 
       setPage(1);
       setPage(1);
@@ -506,6 +527,41 @@ function App() {
 
   const pagedProfiles = useMemo(() => paginateItems(sortedProfiles, page), [sortedProfiles, page]);
 
+  const searchMatchedProfiles = useMemo(() => {
+    const q = (filters.q || '').trim().toLowerCase();
+    if (!q) return [];
+    const source = allProfiles.length > 0 ? allProfiles : profiles;
+    return source.filter((p) => {
+      const name = (p.name || '').toLowerCase();
+      const nameDe = (p.nameDe || '').toLowerCase();
+      const dims = (p.dimensions || '').toLowerCase();
+      const slot = (p.slotSize || '').toLowerCase();
+      const mat = (p.material || '').toLowerCase();
+      const matDe = (p.materialDe || '').toLowerCase();
+      const desc = (p.description || '').toLowerCase();
+      const descDe = (p.descriptionDe || '').toLowerCase();
+      const usage = (p.usage || '').toLowerCase();
+      const usageDe = (p.usageDe || '').toLowerCase();
+      return (
+        name.includes(q) ||
+        nameDe.includes(q) ||
+        dims.includes(q) ||
+        slot.includes(q) ||
+        mat.includes(q) ||
+        matDe.includes(q) ||
+        desc.includes(q) ||
+        descDe.includes(q) ||
+        usage.includes(q) ||
+        usageDe.includes(q)
+      );
+    });
+  }, [allProfiles, profiles, filters.q]);
+
+  const searchMatchCount = useMemo(() => {
+    if (!filters.q.trim()) return 0;
+    return Math.max(searchMatchedProfiles.length, profiles.length);
+  }, [filters.q, searchMatchedProfiles.length, profiles.length]);
+
   useEffect(() => {
     if (page !== pagedProfiles.page) setPage(pagedProfiles.page);
   }, [page, pagedProfiles.page]);
@@ -561,16 +617,16 @@ function App() {
   const [modalMediaTab, setModalMediaTab] = useState<'drawing' | 'photo'>('drawing');
 
   return (
-    <div className="min-h-screen bg-[#f0f2f5] font-sans antialiased text-slate-800">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#f0f2f5] font-sans antialiased text-slate-800">
 
       {/* ── TOP NAVIGATION BAR ── */}
-      <header className="w-full bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-6 lg:px-10 py-3 flex items-center justify-between shadow-sm sticky top-0 z-50">
+      <header className="w-full bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-3.5 sm:px-6 lg:px-10 py-2.5 sm:py-3 flex items-center justify-between shadow-sm sticky top-0 z-50">
         {/* Brand Logo */}
-        <Link to="/" className="flex items-center gap-2.5 cursor-pointer hover:opacity-90 transition-opacity">
+        <Link to="/" className="flex items-center gap-2 cursor-pointer hover:opacity-90 transition-opacity shrink-0">
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-slate-800 to-slate-600 text-white shadow shadow-slate-900/20">
             <Boxes className="h-4 w-4" />
           </div>
-          <span className="text-lg font-black text-slate-900 tracking-tight">
+          <span className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
             Alu<span className="bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-400 bg-clip-text text-transparent font-black">ProfileBiz</span>
           </span>
         </Link>
@@ -646,22 +702,22 @@ function App() {
 
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2.5">
-          <Link to="/customer?mode=sign-up">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          <Link to="/customer?mode=sign-up" className="hidden md:inline-flex">
             <button
-              className="rounded-full bg-[#131c2a] hover:bg-slate-900 text-white text-[12px] font-extrabold px-4 py-2 shadow-sm transition-all border border-slate-700/50 flex items-center gap-1.5 cursor-pointer shrink-0"
+              className="rounded-full bg-[#131c2a] hover:bg-slate-900 text-white text-[12px] font-extrabold px-3.5 py-2 shadow-sm transition-all border border-slate-700/50 flex items-center gap-1.5 cursor-pointer shrink-0"
             >
               <span>{lang === 'de' ? 'Als Hersteller eintragen' : 'Register as Manufacturer'}</span>
             </button>
           </Link>
 
           <Link to="/customer">
-            <Button className="rounded-xl bg-[#1e2a3b] hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 shadow-sm transition-all cursor-pointer">
+            <Button className="rounded-xl bg-[#1e2a3b] hover:bg-slate-800 text-white text-[11px] sm:text-xs font-bold px-2.5 sm:px-4 py-1.5 sm:py-2 shadow-sm transition-all cursor-pointer">
               {lang === 'de' ? 'Kundenportal' : 'Customer Portal'}
             </Button>
           </Link>
 
-          <label className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 cursor-pointer bg-slate-100/80 hover:bg-slate-200/80 px-2.5 py-1.5 rounded-xl transition-all border border-slate-200">
+          <label className="inline-flex items-center gap-1 text-xs font-bold text-slate-700 cursor-pointer bg-slate-100/80 hover:bg-slate-200/80 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl transition-all border border-slate-200">
             <Globe className="h-3.5 w-3.5 text-slate-500" />
             <select value={lang} onChange={(e) => setLang(e.target.value as Lang)} className="bg-transparent border-0 font-bold focus:outline-none cursor-pointer text-xs">
               <option value="en">EN</option>
@@ -681,14 +737,14 @@ function App() {
 
       {/* ── FULL-WIDTH HERO BANNER (ULTRA MODERN INDUSTRIAL GLASSMORPHISM) ── */}
       <section
-        className="w-full text-white relative overflow-hidden bg-gradient-to-br from-[#0b1320] via-[#152238] to-[#0f172a] py-10 lg:py-14 border-b border-slate-800"
+        className="w-full max-w-full text-white relative overflow-hidden bg-gradient-to-br from-[#0b1320] via-[#152238] to-[#0f172a] py-8 sm:py-10 lg:py-14 border-b border-slate-800"
       >
         {/* Glowing Background Light Orbs */}
         <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-blue-600/10 blur-3xl pointer-events-none" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] rounded-full bg-sky-500/5 blur-[120px] pointer-events-none" />
 
-        <div className="max-w-screen-xl mx-auto px-6 lg:px-10 relative z-10">
+        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-10 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
 
             {/* Left: Headline + subtitle + modern search bar */}
@@ -710,22 +766,180 @@ function App() {
                   : (siteSettings.heroSubtitle || 'Search and access detailed specifications, technical data, and instant downloads for standard and custom aluminum profiles.')}
               </p>
 
-              <div className="relative max-w-md w-full">
-                <input
-                  type="text"
-                  placeholder={lang === 'de'
-                    ? (siteSettings.heroSearchPlaceholderDe || 'Nach Profil, Abmessungen oder Material suchen...')
-                    : (siteSettings.heroSearchPlaceholder || 'Search by ID, dimensions, or material...')}
-                  value={filters.q}
-                  onChange={(e) => {
-                    setFilters((f) => ({ ...f, q: e.target.value }));
-                    if (e.target.value) setShowFullCatalog(true);
-                  }}
-                  className="w-full rounded-2xl bg-[#131d2b]/90 border border-white/20 hover:border-cyan-400/50 text-white placeholder-slate-400 pl-4 pr-12 py-3.5 text-xs sm:text-sm shadow-xl backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-cyan-400/40 transition-all"
-                />
-                <div className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center pointer-events-none">
-                  <Search className="h-4 w-4" />
+              <div ref={searchContainerRef} className="relative max-w-md w-full">
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    placeholder={lang === 'de'
+                      ? (siteSettings.heroSearchPlaceholderDe || 'Nach Profil, Maßen (z.B. 20, 40) suchen...')
+                      : (siteSettings.heroSearchPlaceholder || 'Search by profile, dimensions (e.g. 20, 40)...')}
+                    value={filters.q}
+                    onFocus={() => { if (filters.q.trim()) setIsSearchOpen(true); }}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFilters((f) => ({ ...f, q: val }));
+                      if (val.trim()) {
+                        setIsSearchOpen(true);
+                        setShowFullCatalog(true);
+                      } else {
+                        setIsSearchOpen(false);
+                      }
+                    }}
+                    className="w-full rounded-2xl bg-[#131d2b]/95 border border-white/20 hover:border-cyan-400/50 focus:border-cyan-400 text-white placeholder-slate-400 pl-4 pr-24 py-3.5 text-xs sm:text-sm shadow-2xl backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-cyan-400/40 transition-all"
+                  />
+
+                  {/* Inline feedback counter & clear button */}
+                  <div className="absolute right-2.5 flex items-center gap-1.5">
+                    {filters.q.trim() && (
+                      <>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black tracking-wider transition-all animate-fadeIn ${
+                          searchMatchCount > 0 
+                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.3)]' 
+                            : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                        }`}>
+                          {isLoading 
+                            ? (lang === 'de' ? 'Lädt...' : 'Loading...') 
+                            : lang === 'de' 
+                              ? `${searchMatchCount} ${searchMatchCount === 1 ? 'Treffer' : 'Treffer'}` 
+                              : `${searchMatchCount} ${searchMatchCount === 1 ? 'match' : 'matches'}`
+                          }
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFilters((f) => ({ ...f, q: '' }));
+                            setIsSearchOpen(false);
+                          }}
+                          className="h-6 w-6 rounded-full bg-slate-700/60 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer text-xs"
+                          title={lang === 'de' ? 'Suche löschen' : 'Clear search'}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </>
+                    )}
+                    <div className="h-8 w-8 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center pointer-events-none">
+                      <Search className="h-4 w-4" />
+                    </div>
+                  </div>
                 </div>
+
+                {/* Interactive Pop-up / Dropdown with Instant Feedback */}
+                {isSearchOpen && filters.q.trim() && (
+                  <div className="absolute left-0 right-0 top-full mt-2.5 z-50 rounded-2xl bg-[#0d1624]/95 backdrop-blur-2xl border border-cyan-500/40 shadow-[0_20px_60px_rgba(0,0,0,0.85)] p-3.5 sm:p-4 text-white animate-fadeIn space-y-3">
+                    {/* Top Success Banner */}
+                    <div className="flex items-center justify-between pb-2.5 border-b border-slate-700/60">
+                      <div className="flex items-center gap-2">
+                        {searchMatchCount > 0 ? (
+                          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.3)]">
+                            <CheckCircle2 className="h-4 w-4" />
+                          </span>
+                        ) : (
+                          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/40">
+                            <Search className="h-4 w-4" />
+                          </span>
+                        )}
+                        <div>
+                          <p className="text-xs sm:text-sm font-black text-white flex items-center gap-1.5">
+                            {searchMatchCount > 0 ? (
+                              lang === 'de' 
+                                ? `${searchMatchCount} ${searchMatchCount === 1 ? 'Profil gefunden' : 'Profile gefunden'}!` 
+                                : `${searchMatchCount} ${searchMatchCount === 1 ? 'Profile found' : 'Profiles found'}!`
+                            ) : (
+                              lang === 'de' ? 'Keine Profile gefunden' : 'No profiles found'
+                            )}
+                          </p>
+                          <p className="text-[10px] text-slate-400">
+                            {lang === 'de' ? `Suchbegriff: „${filters.q}“` : `Search term: "${filters.q}"`}
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setIsSearchOpen(false)}
+                        className="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+
+                    {/* Preview List of Found Profiles (up to 3) */}
+                    {searchMatchCount > 0 ? (
+                      <div className="space-y-1.5 max-h-[220px] overflow-y-auto pr-1">
+                        {(searchMatchedProfiles.length > 0 ? searchMatchedProfiles : profiles).slice(0, 3).map((p) => {
+                          const photo = safeUrl(p.photoUrl);
+                          const drawing = safeUrl(p.drawingUrl);
+                          const img = (photo && isImage(photo)) ? photo : (drawing && isImage(drawing)) ? drawing : (photo || drawing);
+                          return (
+                            <div
+                              key={p.id}
+                              onClick={() => {
+                                loadDetail(p.id);
+                                setIsSearchOpen(false);
+                              }}
+                              className="flex items-center justify-between gap-3 p-2 rounded-xl bg-slate-800/60 hover:bg-cyan-950/40 border border-slate-700/50 hover:border-cyan-400/50 transition-all cursor-pointer group"
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <div className="h-9 w-9 shrink-0 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center overflow-hidden p-1">
+                                  {img ? (
+                                    <img src={img} alt={p.name} className="h-full w-full object-contain" />
+                                  ) : (
+                                    <Boxes className="h-4 w-4 text-cyan-400" />
+                                  )}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors truncate">
+                                    {p.name}
+                                  </p>
+                                  <p className="text-[10px] text-slate-400 flex items-center gap-2">
+                                    <span>{p.dimensions || p.name}</span>
+                                    {p.slotSize && <span className="text-amber-400 font-bold">Nut {p.slotSize}</span>}
+                                  </p>
+                                </div>
+                              </div>
+                              <span className="shrink-0 text-[10px] font-bold text-cyan-400 group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5">
+                                {lang === 'de' ? 'Details' : 'Details'} <ChevronRight className="h-3 w-3" />
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="py-2 text-center text-xs text-slate-400 space-y-1">
+                        <p>{lang === 'de' ? 'Versuchen Sie einen gängigen Begriff:' : 'Try searching for common profiles:'}</p>
+                        <div className="flex flex-wrap items-center justify-center gap-1.5 pt-1">
+                          {['20', '40', 'Nut 8', 'Nut 10', 'B40'].map((sug) => (
+                            <button
+                              key={sug}
+                              type="button"
+                              onClick={() => setFilters((f) => ({ ...f, q: sug }))}
+                              className="px-2 py-1 rounded-lg bg-slate-800 text-cyan-300 text-[10px] font-bold hover:bg-slate-700 border border-slate-700 cursor-pointer"
+                            >
+                              {sug}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Call to action button */}
+                    {searchMatchCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsSearchOpen(false);
+                          setShowFullCatalog(true);
+                          const cat = document.getElementById('catalog');
+                          if (cat) cat.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                        className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs shadow-lg shadow-cyan-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <span>{lang === 'de' ? `Alle ${searchMatchCount} Profile im Katalog anzeigen` : `View all ${searchMatchCount} profiles in catalog`}</span>
+                        <ArrowDown className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -807,10 +1021,10 @@ function App() {
 
 
       {/* ── PAGE CONTENT AREA ── */}
-      <div className="max-w-screen-xl mx-auto px-6 lg:px-10 py-8 space-y-8">
+      <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-8 space-y-6 sm:space-y-8">
 
         {/* ── FEATURED ALUMINUM PROFILES (MODERN INDUSTRIAL GRAPHIC TREND) ── */}
-        <div className="bg-white rounded-3xl p-6 lg:p-10 border border-slate-200/90 shadow-xl space-y-6" id="catalog">
+        <div className="bg-white rounded-3xl p-4 sm:p-6 lg:p-10 border border-slate-200/90 shadow-xl space-y-6" id="catalog">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
             <div>
               <span className="text-[11px] font-black uppercase tracking-[0.22em] text-blue-600">
@@ -823,7 +1037,7 @@ function App() {
               </h2>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar pb-1 max-w-full">
               {(['t-slot', 'base', 'angle', 'u-channel', 'all'] as const).map((pill) => {
                 const labels: Record<string, { en: string; de: string }> = {
                   't-slot': { en: 'T-Slot', de: 'T-Nut Profile' },
@@ -836,13 +1050,34 @@ function App() {
                 const active = activePill === pill;
                 return (
                   <button key={pill} type="button" onClick={() => setActivePill(pill)}
-                    className={`rounded-full px-4 py-2 text-xs font-extrabold transition-all border cursor-pointer ${active ? 'bg-[#131c2a] text-cyan-400 border-[#131c2a] shadow-md scale-[1.02]' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-100'}`}>
+                    className={`rounded-full px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-extrabold transition-all border shrink-0 cursor-pointer ${active ? 'bg-[#131c2a] text-cyan-400 border-[#131c2a] shadow-md scale-[1.02]' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-100'}`}>
                     {label}
                   </button>
                 );
               })}
             </div>
           </div>
+
+          {/* Real-time search query feedback banner */}
+          {filters.q.trim() && (
+            <div className="flex items-center justify-between bg-cyan-50/90 border border-cyan-200 rounded-2xl p-3 sm:p-4 text-xs animate-fadeIn">
+              <div className="flex items-center gap-2 text-cyan-950 font-bold">
+                <span className="h-2 w-2 rounded-full bg-cyan-500 animate-pulse shrink-0" />
+                <span>
+                  {lang === 'de' 
+                    ? `Suchergebnisse für „${filters.q}“: ${searchMatchCount} ${searchMatchCount === 1 ? 'Profil' : 'Profile'} gefunden` 
+                    : `Search results for "${filters.q}": ${searchMatchCount} ${searchMatchCount === 1 ? 'profile' : 'profiles'} found`}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFilters((f) => ({ ...f, q: '' }))}
+                className="text-cyan-700 hover:text-cyan-900 font-bold underline cursor-pointer shrink-0 ml-2"
+              >
+                {lang === 'de' ? 'Filter zurücksetzen' : 'Reset filter'}
+              </button>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {(() => {
