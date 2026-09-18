@@ -25,6 +25,7 @@ import {
   User,
   Phone,
   Mail,
+  MapPin,
   Sparkles,
   ExternalLink,
   HelpCircle,
@@ -86,6 +87,7 @@ export default function CatalogPage() {
   const [applications, setApplications] = useState<RefOption[]>([]);
   const [crossSections, setCrossSections] = useState<RefOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
 
   // Language & Manufacturer Modal State
   const { lang, setLang } = useLanguage();
@@ -181,15 +183,22 @@ export default function CatalogPage() {
     async function loadData() {
       setIsLoading(true);
       try {
-        const [profRes, overviewRes] = await Promise.all([
+        const [profRes, overviewRes, settingsRes] = await Promise.all([
           fetch(`${API_BASE}/public/profiles?lang=${lang}`),
           fetch(`${API_BASE}/public/overview?lang=${lang}`),
+          fetch(`${API_BASE}/public/site-settings`),
         ]);
         if (profRes.ok) setProfiles(await profRes.json());
         if (overviewRes.ok) {
           const overviewData = await overviewRes.json();
           if (overviewData.applications) setApplications(overviewData.applications);
           if (overviewData.crossSections) setCrossSections(overviewData.crossSections);
+        }
+        if (settingsRes.ok) {
+          const settingsData = await settingsRes.json();
+          if (settingsData && typeof settingsData === 'object') {
+            setSiteSettings(settingsData);
+          }
         }
       } catch (err) {
         toast.error(parseApiError(err));
@@ -1031,9 +1040,31 @@ export default function CatalogPage() {
               <h4 className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
                 {lang === 'de' ? 'Kontakt & Support' : 'Contact & Support'}
               </h4>
-              <div className="space-y-2 text-slate-300 font-medium">
-                <p className="flex items-center gap-2"><Mail className="h-4 w-4 text-cyan-400" /> contact@aluprofile.biz</p>
-                <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-cyan-400" /> +1 (555) 000-0000</p>
+              <div className="space-y-2.5 text-slate-300 font-medium text-xs">
+                <a
+                  href={`mailto:${siteSettings.contactEmail || siteSettings.imprintEmail || 'support@aluprofile.biz'}`}
+                  className="flex items-center gap-2 hover:text-cyan-400 transition-colors"
+                >
+                  <Mail className="h-4 w-4 text-cyan-400 shrink-0" />
+                  <span>{siteSettings.contactEmail || siteSettings.imprintEmail || 'support@aluprofile.biz'}</span>
+                </a>
+                {(siteSettings.contactPhone || siteSettings.imprintPhone) ? (
+                  <a
+                    href={`tel:${siteSettings.contactPhone || siteSettings.imprintPhone}`}
+                    className="flex items-center gap-2 hover:text-cyan-400 transition-colors"
+                  >
+                    <Phone className="h-4 w-4 text-cyan-400 shrink-0" />
+                    <span>{siteSettings.contactPhone || siteSettings.imprintPhone}</span>
+                  </a>
+                ) : null}
+                <div className="flex items-start gap-2 text-slate-300">
+                  <MapPin className="h-4 w-4 text-cyan-400 shrink-0 mt-0.5" />
+                  <span className="leading-snug">
+                    {siteSettings.imprintAddress
+                      ? siteSettings.imprintAddress.replace(/\n/g, ', ')
+                      : 'Vorgartenstrasse 120a/Top28, A-1020 Wien'}
+                  </span>
+                </div>
               </div>
               <div className="pt-2">
                 <Link

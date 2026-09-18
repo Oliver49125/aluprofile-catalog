@@ -21,6 +21,7 @@ import {
   ExternalLink,
   Phone,
   Mail,
+  MapPin,
   Globe,
   Home,
   Menu,
@@ -1921,9 +1922,31 @@ function App() {
               <h4 className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
                 {lang === 'de' ? 'Kontakt & Support' : 'Contact & Support'}
               </h4>
-              <div className="space-y-2 text-slate-300 font-medium">
-                <p className="flex items-center gap-2"><Mail className="h-4 w-4 text-cyan-400" /> contact@aluprofile.biz</p>
-                <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-cyan-400" /> +1 (555) 000-0000</p>
+              <div className="space-y-2.5 text-slate-300 font-medium text-xs">
+                <a
+                  href={`mailto:${siteSettings.contactEmail || siteSettings.imprintEmail || 'support@aluprofile.biz'}`}
+                  className="flex items-center gap-2 hover:text-cyan-400 transition-colors"
+                >
+                  <Mail className="h-4 w-4 text-cyan-400 shrink-0" />
+                  <span>{siteSettings.contactEmail || siteSettings.imprintEmail || 'support@aluprofile.biz'}</span>
+                </a>
+                {(siteSettings.contactPhone || siteSettings.imprintPhone) ? (
+                  <a
+                    href={`tel:${siteSettings.contactPhone || siteSettings.imprintPhone}`}
+                    className="flex items-center gap-2 hover:text-cyan-400 transition-colors"
+                  >
+                    <Phone className="h-4 w-4 text-cyan-400 shrink-0" />
+                    <span>{siteSettings.contactPhone || siteSettings.imprintPhone}</span>
+                  </a>
+                ) : null}
+                <div className="flex items-start gap-2 text-slate-300">
+                  <MapPin className="h-4 w-4 text-cyan-400 shrink-0 mt-0.5" />
+                  <span className="leading-snug">
+                    {siteSettings.imprintAddress
+                      ? siteSettings.imprintAddress.replace(/\n/g, ', ')
+                      : 'Vorgartenstrasse 120a/Top28, A-1020 Wien'}
+                  </span>
+                </div>
               </div>
               <div className="pt-2">
                 <Link
