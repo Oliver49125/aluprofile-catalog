@@ -57,6 +57,19 @@ export type VisitorRecord = {
   status: 'Active' | 'Completed';
 };
 
+// Formats a date using the user's browser local timezone (YYYY-MM-DD HH:mm:ss)
+function formatLocalTimestamp(d: Date | string): string {
+  const date = d instanceof Date ? d : new Date(d);
+  if (isNaN(date.getTime())) return '';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
+function toLocalDateStr(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 // Generates dynamic real-time visitor records across Today, Last 7 Days, and Last 30 Days as immediate local fallback
 function getDynamicVisitorRecords(): VisitorRecord[] {
   const now = new Date();
@@ -65,7 +78,7 @@ function getDynamicVisitorRecords(): VisitorRecord[] {
   const daysAgo = (days: number, hrs: number = 0) => new Date(now.getTime() - (days * 24 + hrs) * 3600 * 1000);
 
   const formatTs = (d: Date) => {
-    return d.toISOString().replace('T', ' ').slice(0, 19);
+    return formatLocalTimestamp(d);
   };
 
   return [
@@ -440,9 +453,15 @@ export const AnalyticsPanel: React.FC<Props> = ({
   const [countryFilter, setCountryFilter] = useState('ALL');
   const [timeRange, setTimeRange] = useState<'TODAY' | '7DAYS' | '30DAYS' | 'CUSTOM'>('TODAY');
 
-  // Custom date range state
-  const todayStr = new Date().toISOString().slice(0, 10);
-  const sevenDaysAgoStr = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  // User's browser local timezone offset (e.g. UTC+2)
+  const tzOffsetMinutes = -new Date().getTimezoneOffset();
+  const tzOffsetHours = tzOffsetMinutes / 60;
+  const tzSign = tzOffsetHours >= 0 ? '+' : '';
+  const tzLabel = `UTC${tzSign}${tzOffsetHours}`;
+
+  // Custom date range state using local browser date
+  const todayStr = toLocalDateStr(new Date());
+  const sevenDaysAgoStr = toLocalDateStr(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
   const [customStartDate, setCustomStartDate] = useState(sevenDaysAgoStr);
   const [customEndDate, setCustomEndDate] = useState(todayStr);
   const [appliedStartDate, setAppliedStartDate] = useState(sevenDaysAgoStr);
@@ -489,7 +508,7 @@ export const AnalyticsPanel: React.FC<Props> = ({
               profileSearched: log.profileSearched,
               durationSeconds: log.durationSeconds || 45,
               dateObj,
-              timestamp: dateObj.toISOString().replace('T', ' ').slice(0, 19),
+              timestamp: formatLocalTimestamp(dateObj),
               status: log.status || 'Completed',
             };
           });
@@ -1011,7 +1030,14 @@ export const AnalyticsPanel: React.FC<Props> = ({
                     <th className="py-3 px-4">{lang === 'de' ? 'Gerät & Browser' : 'Device & Browser'}</th>
                     <th className="py-3 px-4">{lang === 'de' ? 'Besuchte Seite / Suche' : 'Visited Page / Search'}</th>
                     <th className="py-3 px-4">{lang === 'de' ? 'Dauer' : 'Duration'}</th>
-                    <th className="py-3 px-4">{lang === 'de' ? 'Zeitstempel' : 'Timestamp'}</th>
+                    <th className="py-3 px-4">
+                      <div className="flex items-center gap-1.5">
+                        <span>{lang === 'de' ? 'Zeitstempel' : 'Timestamp'}</span>
+                        <span className="rounded bg-slate-200/80 text-[10px] font-bold text-slate-600 px-1.5 py-0.5 normal-case" title={`Browser Timezone: ${tzLabel}`}>
+                          {tzLabel}
+                        </span>
+                      </div>
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -1072,8 +1098,9 @@ export const AnalyticsPanel: React.FC<Props> = ({
                             <Clock className="h-3 w-3 text-slate-400" /> {v.durationSeconds}s
                           </span>
                         </td>
-                        <td className="py-3.5 px-4 font-mono text-[11px] text-slate-500">
-                          {v.timestamp}
+                        <td className="py-3.5 px-4 font-mono text-[11px] text-slate-600" title={`Local: ${v.timestamp} | UTC: ${v.dateObj ? v.dateObj.toISOString() : ''}`}>
+                          <div className="font-semibold text-slate-700">{v.timestamp}</div>
+                          <div className="text-[10px] text-slate-400 font-sans tracking-tight">({tzLabel})</div>
                         </td>
                       </tr>
                     ))
