@@ -483,7 +483,7 @@ function AdminPage() {
     aboutSubtitleDe: 'AluProfile.biz verbindet Maschinenbauingenieure, Konstrukteure und Einkäufer direkt mit verifizierten Aluminiumprofil-Herstellern weltweit.',
     imprintOwner: 'Oliver Kascha',
     imprintCompanyName: 'Aluprofile.biz',
-    imprintAddress: 'Vorgartenstrasse 120a/Top28\nA-1020 Wien, Österreich',
+    imprintAddress: 'Vorgartenstrasse 120a/Top28\nA-1020 Wien',
     imprintEmail: 'support@aluprofile.biz',
     imprintPhone: '',
     imprintVatId: '',
@@ -1949,7 +1949,7 @@ function AdminPage() {
                                   rows={2}
                                   value={siteSettingsForm.imprintAddress || ''}
                                   onChange={e => setSiteSettingsForm(f => ({ ...f, imprintAddress: e.target.value }))}
-                                  placeholder="Vorgartenstrasse 120a/Top28&#10;A-1020 Wien, Österreich"
+                                  placeholder="Vorgartenstrasse 120a/Top28&#10;A-1020 Wien"
                                 />
                               </label>
                               <div className="space-y-3">

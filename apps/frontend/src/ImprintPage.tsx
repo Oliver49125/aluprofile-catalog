@@ -31,7 +31,7 @@ export default function ImprintPage() {
 
   const ownerName = siteSettings.imprintOwner || 'Oliver Kascha';
   const companyName = siteSettings.imprintCompanyName || 'Aluprofile.biz';
-  const address = siteSettings.imprintAddress || 'Vorgartenstrasse 120a/Top28\nA-1020 Wien\nÖsterreich';
+  const address = siteSettings.imprintAddress || 'Vorgartenstrasse 120a/Top28\nA-1020 Wien';
   const email = siteSettings.imprintEmail || 'support@aluprofile.biz';
   const phone = siteSettings.imprintPhone || '';
   const vatId = siteSettings.imprintVatId || '';
