@@ -4,6 +4,16 @@ Allow: /
 Disallow: /api/
 Disallow: /admin
 
+# Google Ads Bot Specific Rules (AdWords Landing Page Crawlers)
+User-agent: AdsBot-Google
+Allow: /
+
+User-agent: AdsBot-Google-Mobile
+Allow: /
+
+User-agent: Mediapartners-Google
+Allow: /
+
 # Googlebot & Bingbot Specific Rules
 User-agent: Googlebot
 Allow: /
