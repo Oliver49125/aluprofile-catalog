@@ -245,9 +245,42 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
           >
             {lang === 'de' ? 'Über uns' : 'About'}
           </button>
+          {/* Language Segmented Switcher in Mobile Drawer */}
+          <div className="pt-2 border-t border-slate-100">
+            <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
+              <button
+                type="button"
+                onClick={() => onLangChange('en')}
+                className={`py-2 px-3 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                  lang === 'en'
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                🇬🇧 English (EN)
+              </button>
+              <button
+                type="button"
+                onClick={() => onLangChange('de')}
+                className={`py-2 px-3 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                  lang === 'de'
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                🇩🇪 Deutsch (DE)
+              </button>
+            </div>
+          </div>
+
           <div className="flex flex-col gap-2 pt-2 border-t border-slate-100">
+            <a href="/customer?mode=sign-up" className="w-full">
+              <button className="w-full py-2.5 px-4 rounded-xl bg-[#131c2a] hover:bg-slate-900 text-white text-xs font-extrabold shadow-sm transition-all border border-slate-700/50 flex items-center justify-center gap-2 cursor-pointer">
+                <span>{lang === 'de' ? 'Als Hersteller eintragen' : 'Register as Manufacturer'}</span>
+              </button>
+            </a>
             <a href="/customer" className="w-full">
-              <Button className="w-full h-10 rounded-xl bg-slate-900 text-white font-medium text-xs">
+              <Button className="w-full h-10 rounded-xl bg-[#1e2a3b] hover:bg-slate-800 text-white font-bold text-xs">
                 {lang === 'de' ? 'Kundenportal' : 'Customer Portal'}
               </Button>
             </a>

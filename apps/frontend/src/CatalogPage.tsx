@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useLanguage } from './LanguageContext';
@@ -19,6 +19,8 @@ import {
   ImageIcon,
   Building2,
   Globe,
+  Home,
+  Menu,
   Ruler,
   User,
   Phone,
@@ -88,6 +90,18 @@ export default function CatalogPage() {
   // Language & Manufacturer Modal State
   const { lang, setLang } = useLanguage();
   const [isCatalogDropdownOpen, setIsCatalogDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const mobileNavRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (mobileNavRef.current && !mobileNavRef.current.contains(event.target as Node)) {
+        setIsMobileMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const [showManufacturerModal, setShowManufacturerModal] = useState(false);
   const [manufacturerForm, setManufacturerForm] = useState({
@@ -253,106 +267,250 @@ export default function CatalogPage() {
     <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#f0f2f5] font-sans text-slate-800">
       
       {/* Top Header Navigation (100% IDENTICAL MATCH TO LANDING PAGE) */}
-      <header className="w-full bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-3.5 sm:px-6 lg:px-10 py-2.5 sm:py-3 flex items-center justify-between shadow-sm sticky top-0 z-50">
-        {/* Brand Logo */}
-        <Link to="/" className="flex items-center gap-2 cursor-pointer hover:opacity-90 transition-opacity shrink-0">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-slate-800 to-slate-600 text-white shadow shadow-slate-900/20">
-            <Boxes className="h-4 w-4" />
-          </div>
-          <span className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
-            Alu<span className="bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-400 bg-clip-text text-transparent font-black">ProfileBiz</span>
-          </span>
-        </Link>
+      <header ref={mobileNavRef} className="w-full bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-50 transition-all">
+        <div className="w-full px-3.5 sm:px-6 lg:px-10 py-2.5 sm:py-3 flex items-center justify-between shadow-sm">
+          {/* Brand Logo */}
+          <Link to="/" className="flex items-center gap-2 cursor-pointer hover:opacity-90 transition-opacity shrink-0">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-slate-800 to-slate-600 text-white shadow shadow-slate-900/20">
+              <Boxes className="h-4 w-4" />
+            </div>
+            <span className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+              Alu<span className="bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-400 bg-clip-text text-transparent font-black">ProfileBiz</span>
+            </span>
+          </Link>
 
-        {/* Nav links */}
-        <nav className="hidden md:flex items-center gap-7 text-[13px] font-bold text-slate-600">
-          <Link to="/" className="hover:text-blue-600 transition-colors">{lang === 'de' ? 'Startseite' : 'Home'}</Link>
+          {/* Nav links */}
+          <nav className="hidden md:flex items-center gap-7 text-[13px] font-bold text-slate-600">
+            <Link to="/" className="hover:text-blue-600 transition-colors">{lang === 'de' ? 'Startseite' : 'Home'}</Link>
 
-          {/* Catalog Dropdown Menu */}
-          <div
-            className="relative"
-            onMouseEnter={() => setIsCatalogDropdownOpen(true)}
-            onMouseLeave={() => setIsCatalogDropdownOpen(false)}
-          >
+            {/* Catalog Dropdown Menu */}
+            <div
+              className="relative"
+              onMouseEnter={() => setIsCatalogDropdownOpen(true)}
+              onMouseLeave={() => setIsCatalogDropdownOpen(false)}
+            >
+              <button
+                type="button"
+                onClick={() => setIsCatalogDropdownOpen((prev) => !prev)}
+                className="flex items-center gap-1.5 text-blue-600 font-extrabold border-b-2 border-blue-600 pb-0.5 transition-colors cursor-pointer focus:outline-none"
+              >
+                <span>{lang === 'de' ? 'Suchportal' : 'Search Portal'}</span>
+                <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isCatalogDropdownOpen ? 'rotate-180 text-blue-600' : 'text-blue-600'}`} />
+              </button>
+
+              {isCatalogDropdownOpen && (
+                <div className="absolute left-0 top-full pt-1.5 z-50 w-64 animate-fadeIn">
+                  <div className="rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-xl p-2 shadow-xl shadow-slate-900/10 ring-1 ring-black/5 space-y-1">
+                    <Link
+                      to="/catalog"
+                      onClick={() => setIsCatalogDropdownOpen(false)}
+                      className="flex items-start gap-3 rounded-xl p-2.5 bg-blue-50/60 hover:bg-blue-50 transition-colors group"
+                    >
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white transition-colors">
+                        <Boxes className="h-4.5 w-4.5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-blue-600 transition-colors">
+                          {lang === 'de' ? 'Profilsuche' : 'Profile Search'}
+                        </p>
+                        <p className="text-[11px] text-slate-500 font-medium leading-snug">
+                          {lang === 'de' ? 'Alle Standard- & Sonderprofile' : 'All standard & custom profiles'}
+                        </p>
+                      </div>
+                    </Link>
+
+                    <Link
+                      to="/search"
+                      onClick={() => setIsCatalogDropdownOpen(false)}
+                      className="flex items-start gap-3 rounded-xl p-2.5 hover:bg-slate-50 transition-colors group"
+                    >
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-50 text-cyan-600 group-hover:bg-cyan-600 group-hover:text-white transition-colors">
+                        <Search className="h-4.5 w-4.5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-900 group-hover:text-cyan-600 transition-colors">
+                          {lang === 'de' ? 'Erweiterte Profilsuche' : 'Advance Profile Search'}
+                        </p>
+                        <p className="text-[11px] text-slate-500 font-medium leading-snug">
+                          {lang === 'de' ? 'Spezifische Filter & CAD-Suche' : 'Detailed filters & CAD search'}
+                        </p>
+                      </div>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <Link to="/#about" className="hover:text-blue-600 transition-colors">{lang === 'de' ? 'Über uns' : 'About'}</Link>
+          </nav>
+
+          {/* Action Buttons & Mobile Hamburger Toggle */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+            <Link to="/customer?mode=sign-up" className="hidden md:inline-flex">
+              <button
+                className="rounded-full bg-[#131c2a] hover:bg-slate-900 text-white text-[12px] font-extrabold px-3.5 py-2 shadow-sm transition-all border border-slate-700/50 flex items-center gap-1.5 cursor-pointer shrink-0"
+              >
+                <span>{lang === 'de' ? 'Als Hersteller eintragen' : 'Register as Manufacturer'}</span>
+              </button>
+            </Link>
+
+            <Link to="/customer">
+              <Button className="rounded-xl bg-[#1e2a3b] hover:bg-slate-800 text-white text-[11px] sm:text-xs font-bold px-2.5 sm:px-4 py-1.5 sm:py-2 shadow-sm transition-all cursor-pointer">
+                {lang === 'de' ? 'Kundenportal' : 'Customer Portal'}
+              </Button>
+            </Link>
+
+            <label className="inline-flex items-center gap-1 text-xs font-bold text-slate-700 cursor-pointer bg-slate-100/80 hover:bg-slate-200/80 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl transition-all border border-slate-200">
+              <Globe className="h-3.5 w-3.5 text-slate-500" />
+              <select value={lang} onChange={(e) => setLang(e.target.value as any)} className="bg-transparent border-0 font-bold focus:outline-none cursor-pointer text-xs">
+                <option value="en">EN</option>
+                <option value="de">DE</option>
+              </select>
+            </label>
+
+            {/* Mobile Hamburger Toggle Button */}
             <button
               type="button"
-              onClick={() => setIsCatalogDropdownOpen((prev) => !prev)}
-              className="flex items-center gap-1.5 text-blue-600 font-extrabold border-b-2 border-blue-600 pb-0.5 transition-colors cursor-pointer focus:outline-none"
+              onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+              className="md:hidden flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 transition-all border border-slate-200 cursor-pointer focus:outline-none ml-1"
+              aria-label="Toggle Mobile Menu"
             >
-              <span>{lang === 'de' ? 'Suchportal' : 'Search Portal'}</span>
-              <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isCatalogDropdownOpen ? 'rotate-180 text-blue-600' : 'text-blue-600'}`} />
+              {isMobileMenuOpen ? <X className="h-4.5 w-4.5 text-slate-900" /> : <Menu className="h-4.5 w-4.5 text-slate-900" />}
             </button>
-
-            {isCatalogDropdownOpen && (
-              <div className="absolute left-0 top-full pt-1.5 z-50 w-64 animate-fadeIn">
-                <div className="rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-xl p-2 shadow-xl shadow-slate-900/10 ring-1 ring-black/5 space-y-1">
-                  <Link
-                    to="/catalog"
-                    onClick={() => setIsCatalogDropdownOpen(false)}
-                    className="flex items-start gap-3 rounded-xl p-2.5 bg-blue-50/60 hover:bg-blue-50 transition-colors group"
-                  >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white transition-colors">
-                      <Boxes className="h-4.5 w-4.5" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-blue-600 transition-colors">
-                        {lang === 'de' ? 'Profilsuche' : 'Profile Search'}
-                      </p>
-                      <p className="text-[11px] text-slate-500 font-medium leading-snug">
-                        {lang === 'de' ? 'Alle Standard- & Sonderprofile' : 'All standard & custom profiles'}
-                      </p>
-                    </div>
-                  </Link>
-
-                  <Link
-                    to="/search"
-                    onClick={() => setIsCatalogDropdownOpen(false)}
-                    className="flex items-start gap-3 rounded-xl p-2.5 hover:bg-slate-50 transition-colors group"
-                  >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-50 text-cyan-600 group-hover:bg-cyan-600 group-hover:text-white transition-colors">
-                      <Search className="h-4.5 w-4.5" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-slate-900 group-hover:text-cyan-600 transition-colors">
-                        {lang === 'de' ? 'Erweiterte Profilsuche' : 'Advance Profile Search'}
-                      </p>
-                      <p className="text-[11px] text-slate-500 font-medium leading-snug">
-                        {lang === 'de' ? 'Spezifische Filter & CAD-Suche' : 'Detailed filters & CAD search'}
-                      </p>
-                    </div>
-                  </Link>
-                </div>
-              </div>
-            )}
           </div>
-
-          <Link to="/#about" className="hover:text-blue-600 transition-colors">{lang === 'de' ? 'Über uns' : 'About'}</Link>
-        </nav>
-
-        {/* Action Buttons */}
-        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-          <Link to="/customer?mode=sign-up" className="hidden md:inline-flex">
-            <button
-              className="rounded-full bg-[#131c2a] hover:bg-slate-900 text-white text-[12px] font-extrabold px-3.5 py-2 shadow-sm transition-all border border-slate-700/50 flex items-center gap-1.5 cursor-pointer shrink-0"
-            >
-              <span>{lang === 'de' ? 'Als Hersteller eintragen' : 'Register as Manufacturer'}</span>
-            </button>
-          </Link>
-
-          <Link to="/customer">
-            <Button className="rounded-xl bg-[#1e2a3b] hover:bg-slate-800 text-white text-[11px] sm:text-xs font-bold px-2.5 sm:px-4 py-1.5 sm:py-2 shadow-sm transition-all cursor-pointer">
-              {lang === 'de' ? 'Kundenportal' : 'Customer Portal'}
-            </Button>
-          </Link>
-
-          <label className="inline-flex items-center gap-1 text-xs font-bold text-slate-700 cursor-pointer bg-slate-100/80 hover:bg-slate-200/80 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl transition-all border border-slate-200">
-            <Globe className="h-3.5 w-3.5 text-slate-500" />
-            <select value={lang} onChange={(e) => setLang(e.target.value as any)} className="bg-transparent border-0 font-bold focus:outline-none cursor-pointer text-xs">
-              <option value="en">EN</option>
-              <option value="de">DE</option>
-            </select>
-          </label>
         </div>
+
+        {/* ── RESPONSIVE MOBILE NAVIGATION DRAWER (ACCESSIBLE & TOUCH-OPTIMIZED) ── */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden w-full bg-white/98 backdrop-blur-2xl border-t border-slate-200/90 shadow-2xl animate-fadeIn transition-all px-4 py-4 space-y-4 max-h-[calc(100vh-65px)] overflow-y-auto">
+            {/* Quick Navigation Links */}
+            <div className="space-y-1">
+              <Link
+                to="/"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-sm text-slate-800 hover:bg-slate-100 hover:text-blue-600 transition-colors"
+              >
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                  <Home className="h-4 w-4" />
+                </div>
+                <span>{lang === 'de' ? 'Startseite' : 'Home'}</span>
+              </Link>
+
+              {/* Suchportal Header & Sub-links */}
+              <div className="pt-2 pb-1">
+                <p className="px-3 text-[11px] font-black uppercase tracking-wider text-slate-400">
+                  {lang === 'de' ? 'Suchportal' : 'Search Portal'}
+                </p>
+              </div>
+
+              <Link
+                to="/catalog"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-between px-3 py-2.5 rounded-xl font-bold text-sm text-blue-600 bg-blue-50/60 transition-colors group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white transition-colors">
+                    <Boxes className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-blue-600">{lang === 'de' ? 'Profilsuche' : 'Profile Search'}</p>
+                    <p className="text-[11px] text-slate-500 font-normal">{lang === 'de' ? 'Alle Standard- & Sonderprofile' : 'All standard & custom profiles'}</p>
+                  </div>
+                </div>
+                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-200 text-blue-800">
+                  {profiles.length || 32}+
+                </span>
+              </Link>
+
+              <Link
+                to="/search"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-between px-3 py-2.5 rounded-xl font-bold text-sm text-slate-800 hover:bg-slate-100 hover:text-cyan-600 transition-colors group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-50 text-cyan-600 group-hover:bg-cyan-600 group-hover:text-white transition-colors">
+                    <Search className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-slate-900">{lang === 'de' ? 'Erweiterte Profilsuche' : 'Advance Profile Search'}</p>
+                    <p className="text-[11px] text-slate-500 font-normal">{lang === 'de' ? 'Spezifische Filter & CAD-Suche' : 'Detailed filters & CAD search'}</p>
+                  </div>
+                </div>
+                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700">
+                  CAD
+                </span>
+              </Link>
+
+              <Link
+                to="/#about"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-sm text-slate-800 hover:bg-slate-100 hover:text-blue-600 transition-colors"
+              >
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+                  <HelpCircle className="h-4 w-4" />
+                </div>
+                <span>{lang === 'de' ? 'Über uns' : 'About'}</span>
+              </Link>
+            </div>
+
+            {/* Language Segmented Picker */}
+            <div className="pt-2 border-t border-slate-100">
+              <p className="px-3 pb-1.5 text-[11px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <Globe className="h-3.5 w-3.5" />
+                <span>{lang === 'de' ? 'Sprache / Language' : 'Language / Sprache'}</span>
+              </p>
+              <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setLang('en')}
+                  className={`py-2 px-3 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                    lang === 'en'
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  🇬🇧 English (EN)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLang('de')}
+                  className={`py-2 px-3 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                    lang === 'de'
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  🇩🇪 Deutsch (DE)
+                </button>
+              </div>
+            </div>
+
+            {/* Action Buttons in Mobile Drawer */}
+            <div className="pt-2 border-t border-slate-100 space-y-2">
+              <Link
+                to="/customer?mode=sign-up"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="w-full block"
+              >
+                <button className="w-full py-2.5 px-4 rounded-xl bg-[#131c2a] hover:bg-slate-900 text-white text-xs font-extrabold shadow-sm transition-all border border-slate-700/50 flex items-center justify-center gap-2 cursor-pointer">
+                  <Building2 className="h-4 w-4 text-cyan-400" />
+                  <span>{lang === 'de' ? 'Als Hersteller eintragen' : 'Register as Manufacturer'}</span>
+                </button>
+              </Link>
+
+              <Link
+                to="/customer"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="w-full block"
+              >
+                <Button className="w-full py-2.5 rounded-xl bg-[#1e2a3b] hover:bg-slate-800 text-white text-xs font-bold shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2">
+                  <User className="h-4 w-4 text-sky-400" />
+                  <span>{lang === 'de' ? 'Kundenportal' : 'Customer Portal'}</span>
+                </Button>
+              </Link>
+            </div>
+          </div>
+        )}
       </header>
 
 
