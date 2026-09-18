@@ -575,6 +575,7 @@ function AdminPage() {
   const [crossSectionFilter, setCrossSectionFilter] = useState('');
   const [crossSectionSort, setCrossSectionSort] = useState<string>('name-asc');
   const [profileFilter, setProfileFilter] = useState('');
+  const [profileSupplierFilter, setProfileSupplierFilter] = useState<string>('all');
   const [profileSort, setProfileSort] = useState<string>('name-asc');
   const [roleFilter, setRoleFilter] = useState('');
   const [roleSort, setRoleSort] = useState<'user-asc' | 'role-asc'>('user-asc');
@@ -1054,7 +1055,7 @@ function AdminPage() {
 
   useEffect(() => setApplicationPage(1), [applicationFilter, applicationSort, applications.length]);
   useEffect(() => setCrossSectionPage(1), [crossSectionFilter, crossSectionSort, crossSections.length]);
-  useEffect(() => setProfilePage(1), [profileFilter, profileSort, adminProfiles.length]);
+  useEffect(() => setProfilePage(1), [profileFilter, profileSupplierFilter, profileSort, adminProfiles.length]);
   useEffect(() => setRolePage(1), [roleFilter, roleSort, userList.length]);
 
   const filteredApplications = useMemo(() => {
@@ -1101,14 +1102,24 @@ function AdminPage() {
   const filteredProfiles = useMemo(() => {
     const query = normalizeForSearch(profileFilter);
     return [...adminProfiles]
-      .filter((item) => !query || [item.name, item.nameDe, item.dimensions, item.material, item.materialDe, item.status, item.supplier?.name].some((value) => normalizeForSearch(value).includes(query)))
+      .filter((item) => {
+        const matchesQuery =
+          !query ||
+          [item.name, item.nameDe, item.dimensions, item.material, item.materialDe, item.status, item.supplier?.name].some(
+            (value) => normalizeForSearch(value).includes(query)
+          );
+        const matchesSupplier =
+          profileSupplierFilter === 'all' ||
+          (profileSupplierFilter === 'none' ? !item.supplier : String(item.supplier?.id) === profileSupplierFilter);
+        return matchesQuery && matchesSupplier;
+      })
       .sort((a, b) => {
         if (profileSort === 'name-desc') return compareText(b.name, a.name);
 
         if (profileSort === 'status-asc') return compareText(a.status, b.status);
         return compareText(a.name, b.name);
       });
-  }, [adminProfiles, profileFilter, profileSort]);
+  }, [adminProfiles, profileFilter, profileSort, profileSupplierFilter]);
 
   const filteredRoles = useMemo(() => {
     const query = normalizeForSearch(roleFilter);
@@ -2791,6 +2802,33 @@ function AdminPage() {
                                 </select>
                               </label>
                             </div>
+
+                            {/* Supplier Selector */}
+                            <div className="rounded-xl border border-blue-200 bg-blue-50/40 p-3.5">
+                              <label className="block text-xs font-bold text-blue-900">
+                                <span className="flex items-center gap-2 mb-1.5">
+                                  <Building2 className="h-4 w-4 text-blue-600 shrink-0" />
+                                  <span>{t.supplier} / {lang === 'de' ? 'Anbietendes Unternehmen' : 'Offering Company'}</span>
+                                </span>
+                                <select
+                                  className="mt-1 block w-full rounded-xl border border-blue-300 bg-white px-3 py-2.5 text-xs font-bold text-slate-900 shadow-sm focus:ring-2 focus:ring-blue-500/30 focus:outline-none"
+                                  value={profileForm.supplierId}
+                                  onChange={(e) => setProfileForm((f) => ({ ...f, supplierId: e.target.value }))}
+                                >
+                                  <option value="">-- {t.selectSupplier} --</option>
+                                  {suppliers.map((supplier) => (
+                                    <option key={supplier.id} value={supplier.id}>
+                                      {supplier.name} {supplier.contactPerson ? `— (${supplier.contactPerson})` : ''}
+                                    </option>
+                                  ))}
+                                </select>
+                                <p className="mt-1.5 text-[11px] text-blue-700/80 font-medium">
+                                  {lang === 'de'
+                                    ? 'Wählen Sie den Hersteller oder Lieferanten aus, der dieses Profil im Katalog anbietet.'
+                                    : 'Select the manufacturer or supplier providing this profile in the catalog.'}
+                                </p>
+                              </label>
+                            </div>
                           </div>
 
                           {/* Sub-section 2: Categories & Classifications */}
@@ -2983,13 +3021,24 @@ function AdminPage() {
                       )}
 
                       {/* Search & Export Toolbar */}
-                      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_auto_auto]">
+                      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_200px_180px_auto_auto]">
                         <Input
                           placeholder={t.filterProfiles || 'Search by profile name, dimension, material...'}
                           value={profileFilter}
                           onChange={(e) => setProfileFilter(e.target.value)}
                           className="rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:ring-2 focus:ring-blue-500/20"
                         />
+                        <select
+                          value={profileSupplierFilter}
+                          onChange={(e) => setProfileSupplierFilter(e.target.value)}
+                          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                        >
+                          <option value="all">{lang === 'de' ? 'Alle Lieferanten' : 'All Suppliers'}</option>
+                          <option value="none">{lang === 'de' ? 'Ohne Lieferant' : 'No Supplier Assigned'}</option>
+                          {suppliers.map((s) => (
+                            <option key={s.id} value={s.id}>{s.name}</option>
+                          ))}
+                        </select>
                         <select
                           value={profileSort}
                           onChange={(e) => setProfileSort(e.target.value as 'name-asc' | 'name-desc' | 'status-asc')}

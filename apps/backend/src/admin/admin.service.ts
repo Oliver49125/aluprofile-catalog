@@ -34,7 +34,7 @@ export type ProfileInput = {
 
   applicationIds?: number[];
   crossSectionIds?: number[];
-  supplierId?: number;
+  supplierId?: number | null;
   price?: number;
   currencyId?: number;
 };
@@ -300,6 +300,7 @@ export class AdminService {
         status: input.status ?? Status.AVAILABLE,
         price: input.price,
         currencyId: input.currencyId || null,
+        supplierId: input.supplierId ? Number(input.supplierId) : null,
         slotSize: input.slotSize,
         momentOfInertiaIx: input.momentOfInertiaIx,
         momentOfInertiaIy: input.momentOfInertiaIy,
@@ -356,6 +357,7 @@ export class AdminService {
         status: input.status,
         price: input.price,
         currencyId: input.currencyId || null,
+        supplierId: input.supplierId !== undefined ? (input.supplierId ? Number(input.supplierId) : null) : undefined,
         slotSize: input.slotSize,
         momentOfInertiaIx: input.momentOfInertiaIx,
         momentOfInertiaIy: input.momentOfInertiaIy,
