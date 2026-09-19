@@ -69,7 +69,7 @@ function parseProfileBody(
     currencyId: body.currencyId ? Number(body.currencyId) : undefined,
     applicationIds: toNumberArray(body.applicationIds),
     crossSectionIds: toNumberArray(body.crossSectionIds),
-    supplierId: body.supplierId ? Number(body.supplierId) : undefined,
+    supplierId: body.supplierId !== undefined ? (body.supplierId ? Number(body.supplierId) : null) : undefined,
   };
 }
 
