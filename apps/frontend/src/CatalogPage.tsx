@@ -34,6 +34,8 @@ import { Button } from './components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { Input } from './components/ui/input';
 import { parseApiError } from './utils/apiError';
+import ProfileMediaViewer from './components/ProfileMediaViewer';
+import { isPdf } from './components/MediaLightboxModal';
 
 type RefOption = { id: number; name: string; profilesCount?: number };
 type SortKey = 'newest' | 'oldest' | 'nameAsc' | 'nameDesc' | 'priceAsc' | 'priceDesc' | 'status';
@@ -74,7 +76,7 @@ const PAGE_SIZE = 10;
 
 function isImage(url?: string) {
   if (!url) return false;
-  return /\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(url);
+  return /\.(png|jpe?g|webp|gif|svg|bmp|avif)(\?.*)?$/i.test(url);
 }
 
 function safeUrl(url?: string) {
@@ -163,7 +165,6 @@ export default function CatalogPage() {
   // Selected Detail Modal
   const [detail, setDetail] = useState<Profile | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [modalMediaTab, setModalMediaTab] = useState<'drawing' | 'photo'>('drawing');
 
   // Inquiry Modal State
   const [showInquiryModal, setShowInquiryModal] = useState<Profile | null>(null);
@@ -215,7 +216,6 @@ export default function CatalogPage() {
       const res = await fetch(`${API_BASE}/public/profiles/${id}?lang=${lang}`);
       if (res.ok) {
         setDetail(await res.json());
-        setModalMediaTab('drawing');
         setShowDetailModal(true);
       }
     } catch (err) {
@@ -736,12 +736,22 @@ export default function CatalogPage() {
                     {pagedProfiles.map((p) => {
                       const drawing = safeUrl(p.drawingUrl);
                       const photo = safeUrl(p.photoUrl);
-                      const bestImg = (photo && isImage(photo)) ? photo : (drawing && isImage(drawing)) ? drawing : (photo || drawing);
+                      const bestImg = (photo && isImage(photo)) ? photo : (drawing && isImage(drawing)) ? drawing : null;
+                      const hasPdf = isPdf(photo) || isPdf(drawing);
                       return (
                         <tr key={p.id} onClick={() => openDetail(p.id)} className="hover:bg-slate-50/80 cursor-pointer transition-colors">
                           <td className="px-5 py-4">
                             <div className="h-16 w-16 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center">
-                              {bestImg ? <img src={bestImg} alt={p.name} className="w-full h-full object-contain" /> : <Boxes className="h-6 w-6 text-slate-400" />}
+                              {bestImg ? (
+                                <img src={bestImg} alt={p.name} className="w-full h-full object-contain" />
+                              ) : hasPdf ? (
+                                <div className="flex flex-col items-center justify-center text-rose-600 p-1">
+                                  <FileText className="h-6 w-6" />
+                                  <span className="text-[8px] font-black uppercase tracking-wider">PDF CAD</span>
+                                </div>
+                              ) : (
+                                <Boxes className="h-6 w-6 text-slate-400" />
+                              )}
                             </div>
                           </td>
                           <td className="px-5 py-4">
@@ -797,7 +807,8 @@ export default function CatalogPage() {
                 {pagedProfiles.map((p) => {
                   const photo = safeUrl(p.photoUrl);
                   const drawing = safeUrl(p.drawingUrl);
-                  const bestImg = (photo && isImage(photo)) ? photo : (drawing && isImage(drawing)) ? drawing : (photo || drawing);
+                  const bestImg = (photo && isImage(photo)) ? photo : (drawing && isImage(drawing)) ? drawing : null;
+                  const hasPdf = isPdf(photo) || isPdf(drawing);
                   return (
                     <div
                       key={p.id}
@@ -821,9 +832,14 @@ export default function CatalogPage() {
                             </div>
                           </div>
                           
-                          <div className="h-16 w-16 rounded-xl border border-slate-200/80 bg-slate-50 flex items-center justify-center overflow-hidden shrink-0 group-hover:bg-blue-50/40 transition-colors">
+                          <div className="h-16 w-16 rounded-xl border border-slate-200/80 bg-slate-50 flex items-center justify-center overflow-hidden shrink-0 group-hover:bg-blue-50/40 transition-colors p-1">
                             {bestImg ? (
-                              <img src={bestImg} alt={p.name} className="w-full h-full object-contain p-1 group-hover:scale-110 transition-transform duration-300" />
+                              <img src={bestImg} alt={p.name} className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300" />
+                            ) : hasPdf ? (
+                              <div className="flex flex-col items-center justify-center text-rose-600">
+                                <FileText className="h-5 w-5" />
+                                <span className="text-[8px] font-black uppercase">PDF</span>
+                              </div>
                             ) : (
                               <Boxes className="h-6 w-6 text-slate-400 group-hover:text-blue-500 transition-colors" />
                             )}
@@ -1172,77 +1188,13 @@ export default function CatalogPage() {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 {/* LEFT BOX (7 cols): CAD Drawing & Engineering Cross-Section View */}
                 <div className="lg:col-span-7 space-y-4">
-                  <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 flex flex-col justify-between items-center min-h-[420px] relative overflow-hidden">
-                    {/* Media Tabs Header */}
-                    <div className="w-full flex items-center justify-between border-b border-slate-100 pb-3 mb-2">
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setModalMediaTab('drawing')}
-                          className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                            modalMediaTab === 'drawing'
-                              ? 'bg-blue-50 text-blue-700 border border-blue-200 font-black'
-                              : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
-                          }`}
-                        >
-                          <Boxes className="h-3.5 w-3.5" />
-                          <span>CAD Cross-Section</span>
-                        </button>
-                        {detail.photoUrl && (
-                          <button
-                            type="button"
-                            onClick={() => setModalMediaTab('photo')}
-                            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                              modalMediaTab === 'photo'
-                                ? 'bg-blue-50 text-blue-700 border border-blue-200 font-black'
-                                : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
-                            }`}
-                          >
-                            <ImageIcon className="h-3.5 w-3.5" />
-                            <span>Product Photo</span>
-                          </button>
-                        )}
-                      </div>
-                      {detail.dimensions && (
-                        <span className="text-[11px] font-black text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-md border border-slate-200/80">
-                          {detail.dimensions}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Media Preview canvas */}
-                    <div className="w-full flex-1 flex items-center justify-center py-6 px-4">
-                      {modalMediaTab === 'drawing' ? (
-                        detail.drawingUrl ? (
-                          <img
-                            src={safeUrl(detail.drawingUrl)}
-                            alt={`${detail.name} CAD Schematic`}
-                            className="max-h-[300px] w-auto object-contain transition-transform duration-300 hover:scale-105"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = '/hero-target-profile.png';
-                            }}
-                          />
-                        ) : (
-                          <div className="flex flex-col items-center justify-center text-slate-300 gap-2 py-10">
-                            <Boxes className="h-16 w-16" />
-                            <span className="text-xs text-slate-400">No CAD drawing file uploaded</span>
-                          </div>
-                        )
-                      ) : detail.photoUrl ? (
-                        <img
-                          src={safeUrl(detail.photoUrl)}
-                          alt={`${detail.name} Product Photo`}
-                          className="max-h-[300px] w-auto object-contain rounded-xl shadow-sm transition-transform duration-300 hover:scale-105"
-                        />
-                      ) : null}
-                    </div>
-
-                    {/* Bottom Subtitle */}
-                    <div className="pt-3 text-center border-t border-slate-100 w-full flex items-center justify-between text-[11px] text-slate-400 font-bold uppercase tracking-wider">
-                      <span>CROSS-SECTION VIEW (Unit: mm)</span>
-                      <span>Scale 1:1</span>
-                    </div>
-                  </div>
+                  <ProfileMediaViewer
+                    name={detail.name}
+                    drawingUrl={detail.drawingUrl}
+                    photoUrl={detail.photoUrl}
+                    dimensions={detail.dimensions}
+                    lang={lang}
+                  />
 
                   {/* Supplier Card (if present) */}
                   {detail.supplier && (
