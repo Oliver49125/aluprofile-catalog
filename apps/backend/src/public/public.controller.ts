@@ -54,7 +54,10 @@ export class PublicController {
     @Param('id', ParseIntPipe) id: number,
     @Query('lang') lang?: string,
   ) {
-    const profile = await this.publicService.getProfileById(id, normalizeLang(lang));
+    const profile = await this.publicService.getProfileById(
+      id,
+      normalizeLang(lang),
+    );
     if (!profile) {
       throw new NotFoundException('Profile not found');
     }
@@ -68,7 +71,8 @@ export class PublicController {
 
   @Post('inquiries')
   async createInquiry(
-    @Body() body: {
+    @Body()
+    body: {
       profileId?: number;
       firstName: string;
       lastName: string;
@@ -77,7 +81,7 @@ export class PublicController {
       phone?: string;
       message: string;
       requestPurchase?: boolean;
-    }
+    },
   ) {
     return this.publicService.createInquiry({
       ...body,
@@ -87,14 +91,15 @@ export class PublicController {
 
   @Post('manufacturers')
   async registerManufacturer(
-    @Body() body: {
+    @Body()
+    body: {
       companyName: string;
       contactPerson: string;
       email: string;
       phone?: string;
       website?: string;
       message?: string;
-    }
+    },
   ) {
     return this.publicService.registerManufacturer(body);
   }
@@ -102,7 +107,8 @@ export class PublicController {
   @Post('visits')
   async incrementVisit(
     @Req() req: any,
-    @Body() body?: {
+    @Body()
+    body?: {
       visitedPage?: string;
       profileSearched?: string;
       device?: string;
@@ -116,7 +122,7 @@ export class PublicController {
       city?: string;
       timezone?: string;
       ipAddress?: string;
-    }
+    },
   ) {
     const rawIpHeader =
       req?.headers?.['x-forwarded-for'] ||
@@ -124,11 +130,12 @@ export class PublicController {
       req?.headers?.['cf-connecting-ip'] ||
       req?.socket?.remoteAddress;
 
-    const rawIp = typeof rawIpHeader === 'string'
-      ? rawIpHeader.split(',')[0].trim()
-      : Array.isArray(rawIpHeader)
-      ? rawIpHeader[0]
-      : undefined;
+    const rawIp =
+      typeof rawIpHeader === 'string'
+        ? rawIpHeader.split(',')[0].trim()
+        : Array.isArray(rawIpHeader)
+          ? rawIpHeader[0]
+          : undefined;
 
     const cfCountry = req?.headers?.['cf-ipcountry'] as string;
     const vercelCountry = req?.headers?.['x-vercel-ip-country'] as string;
@@ -138,7 +145,8 @@ export class PublicController {
       ...body,
       ipAddress: body?.ipAddress || rawIp,
       country: body?.country || vercelCountry || cfCountry,
-      city: body?.city || (vercelCity ? decodeURIComponent(vercelCity) : undefined),
+      city:
+        body?.city || (vercelCity ? decodeURIComponent(vercelCity) : undefined),
     });
   }
 

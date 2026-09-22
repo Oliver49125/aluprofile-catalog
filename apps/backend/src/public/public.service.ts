@@ -50,14 +50,26 @@ type ProfileFilters = {
 export class PublicService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private localizeText(lang: Lang, primary?: string | null, de?: string | null) {
+  private localizeText(
+    lang: Lang,
+    primary?: string | null,
+    de?: string | null,
+  ) {
     if (lang === 'de') {
       return de?.trim() ? de : primary;
     }
     return primary;
   }
 
-  private localizeOption(lang: Lang, item: { id: number; name: string; nameDe?: string | null; _count?: { profiles: number } }) {
+  private localizeOption(
+    lang: Lang,
+    item: {
+      id: number;
+      name: string;
+      nameDe?: string | null;
+      _count?: { profiles: number };
+    },
+  ) {
     return {
       id: item.id,
       name: this.localizeText(lang, item.name, item.nameDe),
@@ -69,13 +81,21 @@ export class PublicService {
     return {
       ...item,
       name: this.localizeText(lang, item.name, item.nameDe),
-      description: this.localizeText(lang, item.description, item.descriptionDe),
+      description: this.localizeText(
+        lang,
+        item.description,
+        item.descriptionDe,
+      ),
       usage: this.localizeText(lang, item.usage, item.usageDe),
       material: this.localizeText(lang, item.material, item.materialDe),
       supplier: item.supplier
         ? {
             ...item.supplier,
-            name: this.localizeText(lang, item.supplier.name, item.supplier.nameDe),
+            name: this.localizeText(
+              lang,
+              item.supplier.name,
+              item.supplier.nameDe,
+            ),
           }
         : item.supplier,
       applications: (item.applications ?? []).map((app: any) => ({
@@ -91,9 +111,15 @@ export class PublicService {
 
   async getOverview(lang: Lang) {
     const publicProfilesWhere = {
-      status: { not: Status.NOT_AVAILABLE }
+      status: { not: Status.NOT_AVAILABLE },
     };
-    const [applications, crossSections, newestProfiles, totalProfiles, visitsMetric] = await Promise.all([
+    const [
+      applications,
+      crossSections,
+      newestProfiles,
+      totalProfiles,
+      visitsMetric,
+    ] = await Promise.all([
       this.prisma.application.findMany({
         orderBy: { name: 'asc' },
         include: {
@@ -122,7 +148,12 @@ export class PublicService {
         where: publicProfilesWhere,
         take: 8,
         orderBy: { createdAt: 'desc' },
-        include: { supplier: true, applications: true, crossSections: true, currency: true },
+        include: {
+          supplier: true,
+          applications: true,
+          crossSections: true,
+          currency: true,
+        },
       }),
       this.prisma.profile.count({ where: publicProfilesWhere }),
       this.prisma.siteMetric.findUnique({ where: { key: 'visits' } }),
@@ -131,14 +162,18 @@ export class PublicService {
     return {
       totals: { profiles: totalProfiles, visits: visitsMetric?.value || 0 },
       applications: applications.map((item) => this.localizeOption(lang, item)),
-      crossSections: crossSections.map((item) => this.localizeOption(lang, item)),
-      newestProfiles: newestProfiles.map((item) => this.localizeProfile(lang, item)),
+      crossSections: crossSections.map((item) =>
+        this.localizeOption(lang, item),
+      ),
+      newestProfiles: newestProfiles.map((item) =>
+        this.localizeProfile(lang, item),
+      ),
     };
   }
 
   async getProfiles(filters: ProfileFilters, lang: Lang) {
     const where: any = {
-      status: { not: Status.NOT_AVAILABLE }
+      status: { not: Status.NOT_AVAILABLE },
     };
     const and: any[] = [];
 
@@ -176,7 +211,9 @@ export class PublicService {
       });
     }
     if (filters.dimensions) {
-      and.push({ dimensions: { contains: filters.dimensions, mode: 'insensitive' } });
+      and.push({
+        dimensions: { contains: filters.dimensions, mode: 'insensitive' },
+      });
     }
     if (and.length > 0) {
       where.AND = and;
@@ -237,9 +274,9 @@ export class PublicService {
         profile: {
           include: {
             supplier: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
     // 2. Send the email using Resend
@@ -247,9 +284,10 @@ export class PublicService {
       try {
         const resend = new Resend(process.env.RESEND_API_KEY);
 
-        const profileName = inquiry.profile?.name || `Profile #${data.profileId}`;
+        const profileName =
+          inquiry.profile?.name || `Profile #${data.profileId}`;
         const supplierEmail = inquiry.profile?.supplier?.email;
-        
+
         // Ensure info@aluprofile.biz is always notified, plus the customer and supplier
         const toEmails = ['info@aluprofile.biz', data.email];
         if (supplierEmail && supplierEmail.trim() !== '') {
@@ -272,7 +310,9 @@ ${data.message}
 
         // The default testing domain from Resend is onboarding@resend.dev
         // In production, you would configure a custom domain on Resend and set RESEND_FROM_EMAIL
-        const fromEmail = process.env.RESEND_FROM_EMAIL || 'Aluprofile Catalog <onboarding@resend.dev>';
+        const fromEmail =
+          process.env.RESEND_FROM_EMAIL ||
+          'Aluprofile Catalog <onboarding@resend.dev>';
 
         const response = await resend.emails.send({
           from: fromEmail,
@@ -283,15 +323,23 @@ ${data.message}
         });
 
         if (response.error) {
-          console.error('Failed to send inquiry email via Resend:', response.error);
+          console.error(
+            'Failed to send inquiry email via Resend:',
+            response.error,
+          );
         } else {
-          console.log(`Inquiry email sent successfully to ${toEmails.join(', ')}`, response.data);
+          console.log(
+            `Inquiry email sent successfully to ${toEmails.join(', ')}`,
+            response.data,
+          );
         }
       } catch (error) {
         console.error('Unexpected error while sending inquiry email:', error);
       }
     } else {
-      console.warn('Email was not sent because RESEND_API_KEY is missing in environment variables.');
+      console.warn(
+        'Email was not sent because RESEND_API_KEY is missing in environment variables.',
+      );
     }
 
     return inquiry;
@@ -321,7 +369,9 @@ ${data.message}
       try {
         const resend = new Resend(process.env.RESEND_API_KEY);
         await resend.emails.send({
-          from: process.env.RESEND_FROM_EMAIL || 'Aluprofile Catalog <onboarding@resend.dev>',
+          from:
+            process.env.RESEND_FROM_EMAIL ||
+            'Aluprofile Catalog <onboarding@resend.dev>',
           to: ['info@aluprofile.biz', data.email],
           subject: `New Manufacturer Registration: ${data.companyName}`,
           text: `A new manufacturer has registered:\n\nCompany: ${data.companyName}\nContact: ${data.contactPerson}\nEmail: ${data.email}\nPhone: ${data.phone || '-'}\nWebsite: ${data.website || '-'}\nMessage: ${data.message || '-'}`,
@@ -386,7 +436,8 @@ ${data.message}
           const geo = geoip.lookup(cleanIp);
           if (geo) {
             if (!resolvedCountry || resolvedCountry.length === 2) {
-              resolvedCountry = COUNTRY_NAMES[geo.country.toUpperCase()] || geo.country;
+              resolvedCountry =
+                COUNTRY_NAMES[geo.country.toUpperCase()] || geo.country;
             }
             if (!resolvedCity && geo.city) {
               resolvedCity = geo.city;
@@ -432,7 +483,11 @@ ${data.message}
         } else if (tz.includes('warsaw')) {
           resolvedCountry = 'Poland';
           resolvedCity = resolvedCity || 'Warsaw';
-        } else if (tz.includes('new_york') || tz.includes('los_angeles') || tz.includes('chicago')) {
+        } else if (
+          tz.includes('new_york') ||
+          tz.includes('los_angeles') ||
+          tz.includes('chicago')
+        ) {
           resolvedCountry = 'United States';
         }
       }
@@ -442,7 +497,12 @@ ${data.message}
         resolvedCountry = 'Germany';
       }
       if (!resolvedCity) {
-        resolvedCity = resolvedCountry === 'Germany' ? 'Berlin' : resolvedCountry === 'Austria' ? 'Vienna' : 'Main';
+        resolvedCity =
+          resolvedCountry === 'Germany'
+            ? 'Berlin'
+            : resolvedCountry === 'Austria'
+              ? 'Vienna'
+              : 'Main';
       }
 
       // Anonymize IP address for GDPR compliance
@@ -450,8 +510,8 @@ ${data.message}
       const maskedIp = displayIp.includes('.')
         ? displayIp.split('.').slice(0, 2).join('.') + '.xxx.xxx'
         : displayIp.includes(':')
-        ? displayIp.split(':').slice(0, 3).join(':') + ':xxxx:xxxx'
-        : '85.214.xxx.xxx';
+          ? displayIp.split(':').slice(0, 3).join(':') + ':xxxx:xxxx'
+          : '85.214.xxx.xxx';
 
       // 3. Create real VisitorLog entry in database
       const log = await this.prisma.visitorLog.create({
@@ -467,7 +527,8 @@ ${data.message}
           os: data?.os || 'Windows',
           visitedPage: data?.visitedPage || '/',
           profileSearched: data?.profileSearched,
-          durationSeconds: data?.durationSeconds || Math.floor(Math.random() * 35) + 25,
+          durationSeconds:
+            data?.durationSeconds || Math.floor(Math.random() * 35) + 25,
           status: 'Completed',
         },
       });
@@ -565,4 +626,3 @@ ${data.message}
     }
   }
 }
-

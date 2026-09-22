@@ -1021,7 +1021,7 @@ export const AnalyticsPanel: React.FC<Props> = ({
               </div>
             </CardHeader>
             <CardContent className="p-0 overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-600">
+              <table className="w-full text-left text-xs text-slate-600 min-w-[700px]">
                 <thead className="bg-slate-50/80 text-[11px] font-extrabold uppercase tracking-wider text-slate-500 border-b border-slate-100">
                   <tr>
                     <th className="py-3 px-4">{lang === 'de' ? 'Besucher / Benutzer' : 'Visitor / User'}</th>
@@ -1349,8 +1349,8 @@ export const AnalyticsPanel: React.FC<Props> = ({
                   <span>{lang === 'de' ? 'Meistgesuchte Profile im Katalog' : 'Top Searched Catalog Profiles'}</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-0">
-                <table className="w-full text-left text-xs text-slate-600">
+              <CardContent className="p-0 overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-600 min-w-[360px]">
                   <thead className="bg-slate-50 text-[11px] font-bold text-slate-500 border-b border-slate-100">
                     <tr>
                       <th className="py-2.5 px-4">Profile Name</th>

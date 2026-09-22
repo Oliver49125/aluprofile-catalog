@@ -26,7 +26,9 @@ import { CustomerService } from './customer.service';
 
 function toNumberArray(input: unknown): number[] {
   if (Array.isArray(input)) {
-    return input.map((item) => Number(item)).filter((item) => !Number.isNaN(item));
+    return input
+      .map((item) => Number(item))
+      .filter((item) => !Number.isNaN(item));
   }
   if (typeof input === 'string' && input.trim()) {
     return input
@@ -78,9 +80,10 @@ export class CustomerController {
     return this.customerService.getReferenceData();
   }
 
-
   @Get('supplier')
-  getSupplierProfile(@Req() req: Request & { customerAuth?: CustomerAuthContext }) {
+  getSupplierProfile(
+    @Req() req: Request & { customerAuth?: CustomerAuthContext },
+  ) {
     return this.customerService.getSupplierProfile(req.customerAuth!.userId);
   }
 
@@ -125,7 +128,9 @@ export class CustomerController {
   }
 
   @Post('profiles/hide-all')
-  hideAllProfiles(@Req() req: Request & { customerAuth?: CustomerAuthContext }) {
+  hideAllProfiles(
+    @Req() req: Request & { customerAuth?: CustomerAuthContext },
+  ) {
     return this.customerService.hideAllProfiles(req.customerAuth!.userId);
   }
 
@@ -153,18 +158,17 @@ export class CustomerController {
           'application/msword', // .doc
           'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
           'application/vnd.ms-excel', // .xls
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' // .xlsx
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
         ];
-        const allowed = file.mimetype.startsWith('image/') || allowedMimeTypes.includes(file.mimetype);
+        const allowed =
+          file.mimetype.startsWith('image/') ||
+          allowedMimeTypes.includes(file.mimetype);
         callback(null, allowed);
       },
       limits: { fileSize: 12 * 1024 * 1024 },
     }),
   )
-  uploadFile(
-    @UploadedFile() file: any,
-    @Req() req: Request,
-  ) {
+  uploadFile(@UploadedFile() file: any, @Req() req: Request) {
     if (!file?.filename) {
       throw new BadRequestException('No valid file uploaded');
     }

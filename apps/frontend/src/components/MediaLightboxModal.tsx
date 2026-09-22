@@ -62,6 +62,9 @@ export default function MediaLightboxModal({
     return 'drawing';
   });
 
+  // Image zoom state
+  const [zoom, setZoom] = useState(1);
+
   // Reset active tab when modal opens or initialTab changes
   useEffect(() => {
     if (isOpen) {
@@ -72,9 +75,6 @@ export default function MediaLightboxModal({
       setZoom(1);
     }
   }, [isOpen, initialTab, hasDrawing, hasPhoto]);
-
-  // Image zoom state
-  const [zoom, setZoom] = useState(1);
 
   // Keyboard navigation (Esc to close, Arrow keys to toggle)
   useEffect(() => {

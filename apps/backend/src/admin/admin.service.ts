@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
 import { AppPermission, AppRole, Status } from '@prisma/client';
@@ -62,14 +67,16 @@ export class AdminService {
 
   async listUsers(query?: string) {
     return this.prisma.user.findMany({
-      where: query ? {
-        OR: [
-          { email: { contains: query, mode: 'insensitive' } },
-          { firstName: { contains: query, mode: 'insensitive' } },
-          { lastName: { contains: query, mode: 'insensitive' } },
-          { username: { contains: query, mode: 'insensitive' } },
-        ],
-      } : undefined,
+      where: query
+        ? {
+            OR: [
+              { email: { contains: query, mode: 'insensitive' } },
+              { firstName: { contains: query, mode: 'insensitive' } },
+              { lastName: { contains: query, mode: 'insensitive' } },
+              { username: { contains: query, mode: 'insensitive' } },
+            ],
+          }
+        : undefined,
       orderBy: [{ role: 'asc' }, { id: 'desc' }],
       select: {
         id: true,
@@ -80,7 +87,7 @@ export class AdminService {
         role: true,
         permissions: true,
         createdAt: true,
-      }
+      },
     });
   }
 
@@ -95,7 +102,7 @@ export class AdminService {
   }) {
     const email = input.email?.trim();
     if (!email) throw new BadRequestException('email is required');
-    
+
     const password = input.password?.trim() || 'Welcome123!';
     const passwordHash = await bcrypt.hash(password, 10);
 
@@ -110,25 +117,38 @@ export class AdminService {
         permissions: input.permissions || [AppPermission.VIEW_ADMIN],
       },
       select: {
-        id: true, email: true, firstName: true, lastName: true, role: true, permissions: true, createdAt: true, username: true
-      }
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        permissions: true,
+        createdAt: true,
+        username: true,
+      },
     });
   }
 
-  async updateUser(id: number, input: {
-    email?: string;
-    password?: string;
-    firstName?: string;
-    lastName?: string;
-    username?: string;
-    role?: AppRole;
-    permissions?: AppPermission[];
-  }) {
+  async updateUser(
+    id: number,
+    input: {
+      email?: string;
+      password?: string;
+      firstName?: string;
+      lastName?: string;
+      username?: string;
+      role?: AppRole;
+      permissions?: AppPermission[];
+    },
+  ) {
     const data: any = {};
     if (input.email !== undefined) data.email = input.email.trim();
-    if (input.firstName !== undefined) data.firstName = input.firstName.trim() || null;
-    if (input.lastName !== undefined) data.lastName = input.lastName.trim() || null;
-    if (input.username !== undefined) data.username = input.username.trim() || null;
+    if (input.firstName !== undefined)
+      data.firstName = input.firstName.trim() || null;
+    if (input.lastName !== undefined)
+      data.lastName = input.lastName.trim() || null;
+    if (input.username !== undefined)
+      data.username = input.username.trim() || null;
     if (input.role) data.role = input.role;
     if (input.permissions) data.permissions = input.permissions;
 
@@ -140,8 +160,15 @@ export class AdminService {
       where: { id },
       data,
       select: {
-        id: true, email: true, firstName: true, lastName: true, role: true, permissions: true, createdAt: true, username: true
-      }
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        permissions: true,
+        createdAt: true,
+        username: true,
+      },
     });
   }
 
@@ -149,8 +176,6 @@ export class AdminService {
     const deleted = await this.prisma.user.delete({ where: { id } });
     return { ok: true, deleted: { id: deleted.id, email: deleted.email } };
   }
-
-
 
   listSuppliers() {
     return this.prisma.supplier.findMany({
@@ -172,16 +197,19 @@ export class AdminService {
     return this.prisma.supplier.create({ data: input });
   }
 
-  updateSupplier(id: number, input: {
-    name?: string;
-    nameDe?: string;
-    address?: string;
-    contactPerson?: string;
-    email?: string;
-    phone?: string;
-    website?: string;
-    uid?: string;
-  }) {
+  updateSupplier(
+    id: number,
+    input: {
+      name?: string;
+      nameDe?: string;
+      address?: string;
+      contactPerson?: string;
+      email?: string;
+      phone?: string;
+      website?: string;
+      uid?: string;
+    },
+  ) {
     return this.prisma.supplier.update({ where: { id }, data: input });
   }
 
@@ -195,7 +223,8 @@ export class AdminService {
   }
 
   createCurrency(input: { code: string; symbol: string }) {
-    if (!input.code || !input.symbol) throw new BadRequestException('code and symbol are required');
+    if (!input.code || !input.symbol)
+      throw new BadRequestException('code and symbol are required');
     return this.prisma.currency.create({ data: input });
   }
 
@@ -256,22 +285,36 @@ export class AdminService {
       },
     });
 
-    const userIds = [...new Set(profiles.filter(p => p.ownerUserId).map(p => p.ownerUserId as number))];
+    const userIds = [
+      ...new Set(
+        profiles
+          .filter((p) => p.ownerUserId)
+          .map((p) => p.ownerUserId as number),
+      ),
+    ];
     const userMap = new Map<number, string>();
     if (userIds.length > 0) {
       try {
-        const users = await this.prisma.user.findMany({ where: { id: { in: userIds } } });
-        users.forEach(u => {
-          userMap.set(u.id, `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email);
+        const users = await this.prisma.user.findMany({
+          where: { id: { in: userIds } },
+        });
+        users.forEach((u) => {
+          userMap.set(
+            u.id,
+            `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email,
+          );
         });
       } catch (error) {
         console.error('Failed to fetch users for admin profiles:', error);
       }
     }
 
-    profiles.forEach(p => {
+    profiles.forEach((p) => {
       if (p.ownerUserId && userMap.has(p.ownerUserId)) {
-        p.supplier = { id: 0, name: userMap.get(p.ownerUserId) || 'Customer' } as any;
+        p.supplier = {
+          id: 0,
+          name: userMap.get(p.ownerUserId) || 'Customer',
+        } as any;
       }
     });
     return profiles;
@@ -357,7 +400,12 @@ export class AdminService {
         status: input.status,
         price: input.price,
         currencyId: input.currencyId || null,
-        supplierId: input.supplierId !== undefined ? (input.supplierId ? Number(input.supplierId) : null) : undefined,
+        supplierId:
+          input.supplierId !== undefined
+            ? input.supplierId
+              ? Number(input.supplierId)
+              : null
+            : undefined,
         slotSize: input.slotSize,
         momentOfInertiaIx: input.momentOfInertiaIx,
         momentOfInertiaIy: input.momentOfInertiaIy,
@@ -396,9 +444,14 @@ export class AdminService {
 
   async seedDemoData() {
     const seedSupplier = async (data: any) => {
-      const existing = await this.prisma.supplier.findFirst({ where: { name: data.name } });
+      const existing = await this.prisma.supplier.findFirst({
+        where: { name: data.name },
+      });
       if (existing) {
-        return this.prisma.supplier.update({ where: { id: existing.id }, data });
+        return this.prisma.supplier.update({
+          where: { id: existing.id },
+          data,
+        });
       }
       return this.prisma.supplier.create({ data });
     };
@@ -461,7 +514,10 @@ export class AdminService {
       this.prisma.crossSection.upsert({
         where: { name: 'Trennwandsystem 9.5x26x5.8' },
         update: { nameDe: 'Trennwandsystem 9.5x26x5.8' },
-        create: { name: 'Trennwandsystem 9.5x26x5.8', nameDe: 'Trennwandsystem 9.5x26x5.8' },
+        create: {
+          name: 'Trennwandsystem 9.5x26x5.8',
+          nameDe: 'Trennwandsystem 9.5x26x5.8',
+        },
       }),
     ]);
 
@@ -478,9 +534,12 @@ export class AdminService {
         material: 'Al Mg Si 0.5',
         materialDe: 'Al Mg Si 0,5',
         lengthMm: 6000,
-        drawingUrl: 'https://dummyimage.com/640x360/e9f2f2/19474f.png&text=B40+Drawing',
-        photoUrl: 'https://dummyimage.com/640x360/dbe7ea/19474f.png&text=B40+Usage+Photo',
-        logoUrl: 'https://dummyimage.com/220x220/f0f5f5/19474f.png&text=Aluzone',
+        drawingUrl:
+          'https://dummyimage.com/640x360/e9f2f2/19474f.png&text=B40+Drawing',
+        photoUrl:
+          'https://dummyimage.com/640x360/dbe7ea/19474f.png&text=B40+Usage+Photo',
+        logoUrl:
+          'https://dummyimage.com/220x220/f0f5f5/19474f.png&text=Aluzone',
         status: Status.AVAILABLE,
         supplierId: suppliers[0].id,
         applicationIds: [applications[0].id],
@@ -489,8 +548,10 @@ export class AdminService {
       {
         name: 'X-Profil Transport',
         nameDe: 'X-Profil Transport',
-        description: 'Rigid profile for flightcase and transport constructions.',
-        descriptionDe: 'Starres Profil fur Flightcase- und Transportkonstruktionen.',
+        description:
+          'Rigid profile for flightcase and transport constructions.',
+        descriptionDe:
+          'Starres Profil fur Flightcase- und Transportkonstruktionen.',
         usage: 'X-Profil Transportkiste',
         usageDe: 'X-Profil Transportkiste',
         dimensions: '40x40mm',
@@ -498,9 +559,12 @@ export class AdminService {
         material: 'Aluminium',
         materialDe: 'Aluminium',
         lengthMm: 5800,
-        drawingUrl: 'https://dummyimage.com/640x360/e6edf0/1e3a47.png&text=X-Profil+Drawing',
-        photoUrl: 'https://dummyimage.com/640x360/d9e5eb/1e3a47.png&text=Flightcase+Usage',
-        logoUrl: 'https://dummyimage.com/220x220/f2f6f8/1e3a47.png&text=Tepro+Tec',
+        drawingUrl:
+          'https://dummyimage.com/640x360/e6edf0/1e3a47.png&text=X-Profil+Drawing',
+        photoUrl:
+          'https://dummyimage.com/640x360/d9e5eb/1e3a47.png&text=Flightcase+Usage',
+        logoUrl:
+          'https://dummyimage.com/220x220/f2f6f8/1e3a47.png&text=Tepro+Tec',
         status: Status.IN_DEVELOPMENT,
         supplierId: suppliers[1].id,
         applicationIds: [applications[2].id],
@@ -518,9 +582,12 @@ export class AdminService {
         material: 'Aluminium',
         materialDe: 'Aluminium',
         lengthMm: 4000,
-        drawingUrl: 'https://dummyimage.com/640x360/e9eeea/2a5a3f.png&text=Trennwand+Drawing',
-        photoUrl: 'https://dummyimage.com/640x360/dfe9e2/2a5a3f.png&text=Partition+Usage',
-        logoUrl: 'https://dummyimage.com/220x220/f1f6f3/2a5a3f.png&text=DasaTech',
+        drawingUrl:
+          'https://dummyimage.com/640x360/e9eeea/2a5a3f.png&text=Trennwand+Drawing',
+        photoUrl:
+          'https://dummyimage.com/640x360/dfe9e2/2a5a3f.png&text=Partition+Usage',
+        logoUrl:
+          'https://dummyimage.com/220x220/f1f6f3/2a5a3f.png&text=DasaTech',
         status: Status.AVAILABLE,
         supplierId: suppliers[2].id,
         applicationIds: [applications[1].id],
@@ -614,7 +681,9 @@ export class AdminService {
     return Object.fromEntries(rows.map((r) => [r.key, r.value]));
   }
 
-  async updateSiteSettings(data: Record<string, string>): Promise<Record<string, string>> {
+  async updateSiteSettings(
+    data: Record<string, string>,
+  ): Promise<Record<string, string>> {
     await Promise.all(
       Object.entries(data).map(([key, value]) =>
         this.prisma.siteSettings.upsert({

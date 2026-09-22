@@ -22,13 +22,13 @@ import type { Request } from 'express';
 import { AdminGuard } from '../auth/admin.guard';
 import { AdminService, ProfileInput } from './admin.service';
 import { AppPermission, AppRole, Status } from '@prisma/client';
-import {
-  RequirePermissions,
-} from '../auth/authz.decorators';
+import { RequirePermissions } from '../auth/authz.decorators';
 
 function toNumberArray(input: unknown): number[] {
   if (Array.isArray(input)) {
-    return input.map((item) => Number(item)).filter((item) => !Number.isNaN(item));
+    return input
+      .map((item) => Number(item))
+      .filter((item) => !Number.isNaN(item));
   }
   if (typeof input === 'string' && input.trim()) {
     return input
@@ -46,9 +46,7 @@ function parseLocalizedNumber(value: unknown): number | undefined {
   return isNaN(num) ? undefined : num;
 }
 
-function parseProfileBody(
-  body: Record<string, unknown>,
-): ProfileInput {
+function parseProfileBody(body: Record<string, unknown>): ProfileInput {
   return {
     name: body.name ? String(body.name) : undefined,
     nameDe: body.nameDe ? String(body.nameDe) : undefined,
@@ -69,7 +67,12 @@ function parseProfileBody(
     currencyId: body.currencyId ? Number(body.currencyId) : undefined,
     applicationIds: toNumberArray(body.applicationIds),
     crossSectionIds: toNumberArray(body.crossSectionIds),
-    supplierId: body.supplierId !== undefined ? (body.supplierId ? Number(body.supplierId) : null) : undefined,
+    supplierId:
+      body.supplierId !== undefined
+        ? body.supplierId
+          ? Number(body.supplierId)
+          : null
+        : undefined,
   };
 }
 
@@ -83,8 +86,6 @@ export class AdminController {
   getReferenceData() {
     return this.adminService.getReferenceData();
   }
-
-
 
   @Get('users')
   @RequirePermissions(AppPermission.USERS_MANAGE)
@@ -133,7 +134,6 @@ export class AdminController {
     return this.adminService.deleteUser(userId);
   }
 
-
   @Get('suppliers')
   @RequirePermissions(AppPermission.SUPPLIERS_MANAGE)
   listSuppliers() {
@@ -142,7 +142,19 @@ export class AdminController {
 
   @Post('suppliers')
   @RequirePermissions(AppPermission.SUPPLIERS_MANAGE)
-  createSupplier(@Body() body: { name: string; nameDe?: string; address?: string; contactPerson?: string; email?: string; phone?: string; website?: string; uid?: string; }) {
+  createSupplier(
+    @Body()
+    body: {
+      name: string;
+      nameDe?: string;
+      address?: string;
+      contactPerson?: string;
+      email?: string;
+      phone?: string;
+      website?: string;
+      uid?: string;
+    },
+  ) {
     return this.adminService.createSupplier({
       name: body.name,
       nameDe: body.nameDe,
@@ -159,7 +171,17 @@ export class AdminController {
   @RequirePermissions(AppPermission.SUPPLIERS_MANAGE)
   updateSupplier(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: { name: string; nameDe?: string; address?: string; contactPerson?: string; email?: string; phone?: string; website?: string; uid?: string; },
+    @Body()
+    body: {
+      name: string;
+      nameDe?: string;
+      address?: string;
+      contactPerson?: string;
+      email?: string;
+      phone?: string;
+      website?: string;
+      uid?: string;
+    },
   ) {
     return this.adminService.updateSupplier(id, {
       name: body.name,
@@ -197,7 +219,7 @@ export class AdminController {
   @RequirePermissions(AppPermission.CATEGORIES_MANAGE)
   updateCurrency(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: { code: string; symbol: string }
+    @Body() body: { code: string; symbol: string },
   ) {
     return this.adminService.updateCurrency(id, body);
   }
@@ -276,8 +298,6 @@ export class AdminController {
     return this.adminService.deleteCrossSection(id);
   }
 
-
-
   @Get('profiles')
   @RequirePermissions(AppPermission.PROFILES_MANAGE)
   listProfiles() {
@@ -322,9 +342,11 @@ export class AdminController {
           'application/msword', // .doc
           'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
           'application/vnd.ms-excel', // .xls
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' // .xlsx
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
         ];
-        const allowed = file.mimetype.startsWith('image/') || allowedMimeTypes.includes(file.mimetype);
+        const allowed =
+          file.mimetype.startsWith('image/') ||
+          allowedMimeTypes.includes(file.mimetype);
         callback(null, allowed);
       },
       limits: {

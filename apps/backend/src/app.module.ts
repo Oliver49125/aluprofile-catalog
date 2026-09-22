@@ -8,7 +8,13 @@ import { AdminModule } from './admin/admin.module';
 import { CustomerModule } from './customer/customer.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, PublicModule, AdminModule, CustomerModule],
+  imports: [
+    PrismaModule,
+    AuthModule,
+    PublicModule,
+    AdminModule,
+    CustomerModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

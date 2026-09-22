@@ -12,6 +12,7 @@ import { updatePageSeo } from './utils/seo';
 
 import {
   ArrowDown,
+  ArrowUpDown,
   Boxes,
   Building2,
   CheckCircle2,
@@ -49,7 +50,7 @@ import './App.css';
 
 type RefOption = { id: number; name: string; profilesCount?: number };
 
-type SortKey = 'newest' | 'nameAsc' | 'nameDesc' | 'status';
+type SortKey = 'priceAsc' | 'priceDesc' | 'newest' | 'oldest' | 'nameAsc' | 'nameDesc' | 'weightAsc' | 'weightDesc' | 'status';
 type Lang = 'en' | 'de';
 
 type Profile = {
@@ -140,10 +141,13 @@ const TXT = {
     linkedCategories: 'Linked Categories',
     catalogLabel: 'Catalog System',
     sortBy: 'Sort by',
-    newest: 'Newest',
-    nameAsc: 'Name A-Z',
-    nameDesc: 'Name Z-A',
-
+    priceAsc: 'Cheapest Price',
+    priceDesc: 'Highest Price',
+    newest: 'Newest First',
+    oldest: 'Oldest First',
+    nameAsc: 'Name (A–Z)',
+    nameDesc: 'Name (Z–A)',
+    weightAsc: 'Weight (Low to High)',
     statusSort: 'Status',
     clearFilters: 'Clear Filters',
     activeFilters: 'Active Filters',
@@ -233,10 +237,13 @@ const TXT = {
     linkedCategories: 'Verknupfte Kategorien',
     catalogLabel: 'Katalogsystem',
     sortBy: 'Sortieren nach',
-    newest: 'Neueste',
-    nameAsc: 'Name A-Z',
-    nameDesc: 'Name Z-A',
-
+    priceAsc: 'Günstigster Preis',
+    priceDesc: 'Höchster Preis',
+    newest: 'Neueste zuerst',
+    oldest: 'Älteste zuerst',
+    nameAsc: 'Name (A–Z)',
+    nameDesc: 'Name (Z–A)',
+    weightAsc: 'Gewicht (Leichteste zuerst)',
     statusSort: 'Status',
     clearFilters: 'Filter zurucksetzen',
     activeFilters: 'Aktive Filter',
@@ -373,6 +380,7 @@ function App() {
   const [page, setPage] = useState(1);
   const [activePill, setActivePill] = useState<'all' | 't-slot' | 'base' | 'angle' | 'u-channel'>('t-slot');
   const [showFullCatalog, setShowFullCatalog] = useState(false);
+  const [showAllSearchResults, setShowAllSearchResults] = useState(false);
   const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
   const [isCatalogDropdownOpen, setIsCatalogDropdownOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -524,9 +532,33 @@ function App() {
   const sortedProfiles = useMemo(() => {
     const next = [...profiles];
     next.sort((left, right) => {
+      if (sortBy === 'priceAsc') {
+        const pA = left.price != null && left.price > 0 ? left.price : Infinity;
+        const pB = right.price != null && right.price > 0 ? right.price : Infinity;
+        if (pA !== pB) return pA - pB;
+        return left.name.localeCompare(right.name);
+      }
+      if (sortBy === 'priceDesc') {
+        const pA = left.price != null && left.price > 0 ? left.price : -Infinity;
+        const pB = right.price != null && right.price > 0 ? right.price : -Infinity;
+        if (pA !== pB) return pB - pA;
+        return left.name.localeCompare(right.name);
+      }
+      if (sortBy === 'weightAsc') {
+        const wA = left.weightPerMeter != null && left.weightPerMeter > 0 ? left.weightPerMeter : Infinity;
+        const wB = right.weightPerMeter != null && right.weightPerMeter > 0 ? right.weightPerMeter : Infinity;
+        if (wA !== wB) return wA - wB;
+        return left.name.localeCompare(right.name);
+      }
+      if (sortBy === 'weightDesc') {
+        const wA = left.weightPerMeter != null && left.weightPerMeter > 0 ? left.weightPerMeter : -Infinity;
+        const wB = right.weightPerMeter != null && right.weightPerMeter > 0 ? right.weightPerMeter : -Infinity;
+        if (wA !== wB) return wB - wA;
+        return left.name.localeCompare(right.name);
+      }
       if (sortBy === 'nameAsc') return left.name.localeCompare(right.name);
       if (sortBy === 'nameDesc') return right.name.localeCompare(left.name);
-
+      if (sortBy === 'oldest') return left.id - right.id;
       if (sortBy === 'status') return (left.status || '').localeCompare(right.status || '');
       return right.id - left.id;
     });
@@ -1215,30 +1247,53 @@ function App() {
               </h2>
             </div>
 
-            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar pb-1 max-w-full">
-              {(['t-slot', 'base', 'angle', 'u-channel', 'all'] as const).map((pill) => {
-                const labels: Record<string, { en: string; de: string }> = {
-                  't-slot': { en: 'T-Slot', de: 'T-Nut Profile' },
-                  'base': { en: 'Base Profiles', de: 'Basisprofile' },
-                  'angle': { en: 'Angles', de: 'Winkelprofile' },
-                  'u-channel': { en: 'U-Channels', de: 'U-Profile' },
-                  'all': { en: 'All Profiles', de: 'Alle Profile' },
-                };
-                const label = labels[pill]?.[lang] ?? pill;
-                const active = activePill === pill;
-                return (
-                  <button key={pill} type="button" onClick={() => setActivePill(pill)}
-                    className={`rounded-full px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-extrabold transition-all border shrink-0 cursor-pointer ${active ? 'bg-[#131c2a] text-cyan-400 border-[#131c2a] shadow-md scale-[1.02]' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-100'}`}>
-                    {label}
-                  </button>
-                );
-              })}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar pb-1 max-w-full">
+                {(['t-slot', 'base', 'angle', 'u-channel', 'all'] as const).map((pill) => {
+                  const labels: Record<string, { en: string; de: string }> = {
+                    't-slot': { en: 'T-Slot', de: 'T-Nut Profile' },
+                    'base': { en: 'Base Profiles', de: 'Basisprofile' },
+                    'angle': { en: 'Angles', de: 'Winkelprofile' },
+                    'u-channel': { en: 'U-Channels', de: 'U-Profile' },
+                    'all': { en: 'All Profiles', de: 'Alle Profile' },
+                  };
+                  const label = labels[pill]?.[lang] ?? pill;
+                  const active = activePill === pill;
+                  return (
+                    <button key={pill} type="button" onClick={() => setActivePill(pill)}
+                      className={`rounded-full px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-extrabold transition-all border shrink-0 cursor-pointer ${active ? 'bg-[#131c2a] text-cyan-400 border-[#131c2a] shadow-md scale-[1.02]' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-100'}`}>
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Mobile-Responsive Sort Dropdown in Section Header */}
+              <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+                <label className="inline-flex items-center gap-2 rounded-full border border-slate-200/90 bg-slate-50/90 px-3 py-1.5 text-xs font-extrabold text-slate-700 shadow-sm hover:border-slate-300 transition-all cursor-pointer">
+                  <ArrowUpDown className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+                  <span className="text-slate-500 hidden xs:inline">{t.sortBy}:</span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as SortKey)}
+                    className="border-0 bg-transparent font-extrabold text-slate-900 focus:outline-none cursor-pointer text-xs"
+                  >
+                    <option value="priceAsc">{lang === 'de' ? 'Günstigster Preis' : 'Cheapest Price'}</option>
+                    <option value="priceDesc">{lang === 'de' ? 'Höchster Preis' : 'Highest Price'}</option>
+                    <option value="newest">{lang === 'de' ? 'Neueste zuerst' : 'Newest First'}</option>
+                    <option value="oldest">{lang === 'de' ? 'Älteste zuerst' : 'Oldest First'}</option>
+                    <option value="nameAsc">{lang === 'de' ? 'Name (A–Z)' : 'Name (A–Z)'}</option>
+                    <option value="nameDesc">{lang === 'de' ? 'Name (Z–A)' : 'Name (Z–A)'}</option>
+                    <option value="weightAsc">{lang === 'de' ? 'Gewicht (Leichteste)' : 'Weight (Low to High)'}</option>
+                  </select>
+                </label>
+              </div>
             </div>
           </div>
 
-          {/* Real-time search query feedback banner */}
+          {/* Real-time search query feedback banner with Mobile-Friendly Sort */}
           {filters.q.trim() && (
-            <div className="flex items-center justify-between bg-cyan-50/90 border border-cyan-200 rounded-2xl p-3 sm:p-4 text-xs animate-fadeIn">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-cyan-50/90 border border-cyan-200 rounded-2xl p-3 sm:p-4 text-xs animate-fadeIn">
               <div className="flex items-center gap-2 text-cyan-950 font-bold">
                 <span className="h-2 w-2 rounded-full bg-cyan-500 animate-pulse shrink-0" />
                 <span>
@@ -1247,19 +1302,38 @@ function App() {
                     : `Search results for "${filters.q}": ${searchMatchCount} ${searchMatchCount === 1 ? 'profile' : 'profiles'} found`}
                 </span>
               </div>
-              <button
-                type="button"
-                onClick={() => setFilters((f) => ({ ...f, q: '' }))}
-                className="text-cyan-700 hover:text-cyan-900 font-bold underline cursor-pointer shrink-0 ml-2"
-              >
-                {lang === 'de' ? 'Filter zurücksetzen' : 'Reset filter'}
-              </button>
+              <div className="flex flex-wrap items-center gap-3 justify-between sm:justify-end">
+                <label className="inline-flex items-center gap-1.5 text-xs font-bold text-cyan-950 bg-white border border-cyan-300 rounded-xl px-2.5 py-1 shadow-sm">
+                  <ArrowUpDown className="h-3.5 w-3.5 text-cyan-700 shrink-0" />
+                  <span>{t.sortBy}:</span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as SortKey)}
+                    className="border-0 bg-transparent text-xs font-black text-cyan-950 focus:outline-none cursor-pointer p-0"
+                  >
+                    <option value="priceAsc">{lang === 'de' ? 'Günstigster Preis' : 'Cheapest Price'}</option>
+                    <option value="priceDesc">{lang === 'de' ? 'Höchster Preis' : 'Highest Price'}</option>
+                    <option value="newest">{lang === 'de' ? 'Neueste zuerst' : 'Newest First'}</option>
+                    <option value="oldest">{lang === 'de' ? 'Älteste zuerst' : 'Oldest First'}</option>
+                    <option value="nameAsc">{lang === 'de' ? 'Name (A–Z)' : 'Name (A–Z)'}</option>
+                    <option value="nameDesc">{lang === 'de' ? 'Name (Z–A)' : 'Name (Z–A)'}</option>
+                    <option value="weightAsc">{lang === 'de' ? 'Gewicht (Leichteste)' : 'Weight (Low to High)'}</option>
+                  </select>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setFilters((f) => ({ ...f, q: '' }))}
+                  className="text-cyan-700 hover:text-cyan-900 font-bold underline cursor-pointer shrink-0"
+                >
+                  {lang === 'de' ? 'Filter zurücksetzen' : 'Reset filter'}
+                </button>
+              </div>
             </div>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {(() => {
-              const filteredList = profiles.filter((p) => {
+              const filteredList = sortedProfiles.filter((p) => {
                 if (activePill === 'all') return true;
                 const nameLower = (p.name || '').toLowerCase();
                 const descLower = (p.description || '').toLowerCase();
@@ -1280,13 +1354,16 @@ function App() {
                 return true;
               });
 
-              // Always ensure exactly 8 profiles are displayed for a complete 4x2 grid
-              let displayList = [...filteredList];
-              if (displayList.length < 8 && profiles.length > 0) {
-                const remaining = profiles.filter(p => !displayList.some(item => item.id === p.id));
-                displayList = [...displayList, ...remaining];
+              // When searching, show all matched profiles (or up to 8 if not searching / unless expanded)
+              const isSearching = !!filters.q.trim();
+              let displayList = isSearching
+                ? (showAllSearchResults ? filteredList : filteredList.slice(0, 8))
+                : filteredList.slice(0, 8);
+
+              if (!isSearching && displayList.length < 8 && sortedProfiles.length > 0) {
+                const remaining = sortedProfiles.filter(p => !displayList.some(item => item.id === p.id));
+                displayList = [...displayList, ...remaining].slice(0, 8);
               }
-              displayList = displayList.slice(0, 8);
 
               if (isLoading) {
                 return Array.from({ length: 8 }).map((_, i) => (
@@ -1340,6 +1417,21 @@ function App() {
               });
             })()}
           </div>
+
+          {/* Show All / Show Less button when search matches > 8 */}
+          {filters.q.trim() && searchMatchCount > 8 && (
+            <div className="pt-2 flex justify-center">
+              <button
+                type="button"
+                onClick={() => setShowAllSearchResults((prev) => !prev)}
+                className="rounded-full bg-cyan-50 hover:bg-cyan-100 text-cyan-900 border border-cyan-300 font-extrabold text-xs sm:text-sm px-6 py-2.5 shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+              >
+                {showAllSearchResults
+                  ? (lang === 'de' ? 'Weniger anzeigen (8)' : 'Show less (8)')
+                  : (lang === 'de' ? `Alle ${searchMatchCount} Treffer anzeigen` : `Show all ${searchMatchCount} matches`)}
+              </button>
+            </div>
+          )}
 
           {/* Explore Full Catalog Button */}
           <div className="pt-3 flex justify-center">
@@ -1523,10 +1615,14 @@ function App() {
                   <div className="flex flex-wrap items-center gap-2">
                     <label className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700">
                       <span>{t.sortBy}</span>
-                      <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortKey)} className="border-0 bg-transparent p-0 text-xs focus:outline-none">
+                      <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortKey)} className="border-0 bg-transparent p-0 text-xs focus:outline-none cursor-pointer">
+                        <option value="priceAsc">{lang === 'de' ? 'Günstigster Preis' : 'Cheapest Price'}</option>
+                        <option value="priceDesc">{lang === 'de' ? 'Höchster Preis' : 'Highest Price'}</option>
                         <option value="newest">{t.newest}</option>
+                        <option value="oldest">{lang === 'de' ? 'Älteste zuerst' : 'Oldest First'}</option>
                         <option value="nameAsc">{t.nameAsc}</option>
                         <option value="nameDesc">{t.nameDesc}</option>
+                        <option value="weightAsc">{lang === 'de' ? 'Gewicht (Aufsteigend)' : 'Weight (Low to High)'}</option>
                         <option value="status">{t.statusSort}</option>
                       </select>
                     </label>

@@ -15,15 +15,20 @@ export class AuthService {
   constructor(private readonly prisma: PrismaService) {}
 
   private get jwtSecret() {
-    return process.env.JWT_SECRET || 'fallback-secret-for-dev-only-change-in-prod';
+    return (
+      process.env.JWT_SECRET || 'fallback-secret-for-dev-only-change-in-prod'
+    );
   }
 
   async verify(token: string): Promise<AuthContext> {
     if (!token) throw new UnauthorizedException('Missing bearer token');
 
     try {
-      const decoded = jwt.verify(token, this.jwtSecret) as { userId: number; role: AppRole };
-      
+      const decoded = jwt.verify(token, this.jwtSecret) as {
+        userId: number;
+        role: AppRole;
+      };
+
       const user = await this.prisma.user.findUnique({
         where: { id: decoded.userId },
         select: { id: true, role: true, permissions: true },

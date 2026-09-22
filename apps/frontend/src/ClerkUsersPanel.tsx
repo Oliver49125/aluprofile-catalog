@@ -388,10 +388,15 @@ export default function ClerkUsersPanel({ canManageUsers, lang }: Props) {
           </div>
         )}
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm">
-          <h4 className="font-extrabold text-[#0284c7] text-xs uppercase tracking-wider border-b border-slate-200 pb-2 flex items-center gap-2">
-            <Search className="h-4 w-4 text-[#0284c7]" /> {t.directory}
-          </h4>
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 space-y-4 shadow-sm min-w-0">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+            <h4 className="font-extrabold text-[#0284c7] text-xs uppercase tracking-wider flex items-center gap-2">
+              <Search className="h-4 w-4 text-[#0284c7]" /> {t.directory}
+            </h4>
+            <span className="text-[11px] font-medium text-slate-400 sm:hidden">
+              ← {lang === 'de' ? 'Horizontal wischen' : 'Swipe horizontally'} →
+            </span>
+          </div>
           <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_auto_auto_auto]">
             <Input
               placeholder={t.search}
@@ -411,23 +416,23 @@ export default function ClerkUsersPanel({ canManageUsers, lang }: Props) {
             <Button variant="outline" onClick={() => exportUsers('pdf')} className="border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs rounded-xl">{t.exportPdf}</Button>
             <Button variant="secondary" onClick={() => { setForm({ userId: '', email: '', password: '', firstName: '', lastName: '', role: 'USER' }); loadUsers().catch((err) => showToast(parseApiError(err), 'error')); }} className="bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 font-bold text-xs rounded-xl">{t.searchBtn}</Button>
           </div>
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm mt-4">
-            <table className="w-full text-sm text-left">
+          <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm mt-4">
+            <table className="w-full text-sm text-left min-w-[560px]">
               <thead>
                 <tr className="bg-slate-50/80 text-slate-600 font-extrabold text-xs uppercase tracking-wider border-b border-slate-200">
                   <th className="px-5 py-3.5">{t.nameAsc.replace(' A-Z', '')}</th>
                   <th className="px-5 py-3.5">{t.email}</th>
                   <th className="px-5 py-3.5">{t.userId}</th>
-                  <th className="px-5 py-3.5 text-right">{t.actions}</th>
+                  <th className="px-5 py-3.5 text-right whitespace-nowrap">{t.actions}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {pagedUsers.items.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="px-5 py-4 font-extrabold text-slate-900">{[item.firstName, item.lastName].filter(Boolean).join(' ') || '-'}</td>
-                    <td className="px-5 py-4 font-medium text-slate-600"><span className="inline-flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-rose-500" /> {item.email}</span></td>
-                    <td className="px-5 py-4 text-xs font-mono text-slate-500">{item.id}</td>
-                    <td className="px-5 py-4 text-right">
+                    <td className="px-5 py-4 font-medium text-slate-600"><span className="inline-flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-rose-500 shrink-0" /> {item.email}</span></td>
+                    <td className="px-5 py-4 text-xs font-mono text-slate-500 whitespace-nowrap">{item.id}</td>
+                    <td className="px-5 py-4 text-right whitespace-nowrap">
                       <div className="flex justify-end gap-1.5">
                         <Button size="sm" variant="ghost" onClick={() => editUser(item)} className="text-blue-600 hover:bg-blue-50 text-xs font-bold rounded-xl">{t.edit}</Button>
                         <Button size="sm" variant="destructive" onClick={() => deleteUser(item.id)} className="bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 text-xs font-bold rounded-xl">{t.delete}</Button>

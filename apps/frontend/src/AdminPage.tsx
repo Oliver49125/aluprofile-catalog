@@ -1472,7 +1472,7 @@ function AdminPage() {
                     <div className="mt-2 flex flex-wrap gap-2">{permissions.map((permission) => <span key={permission} className="rounded-full bg-white/10 px-3 py-1">{permission}</span>)}</div>
                   </div>
                 </aside>
-                <div className="space-y-6">
+                <div className="space-y-6 min-w-0">
                   {activeSection === 'overview' && (
                     <Card id="admin-overview" className="material-panel bg-white shadow-sm border border-slate-200">
                       <CardHeader className="border-b border-slate-200/80 bg-slate-50/50">
@@ -2015,7 +2015,7 @@ function AdminPage() {
                     </div>
                   )}
 
-                {activeSection === 'users' && <div id="admin-users"><ClerkUsersPanel canManageUsers={canManageUsers} lang={lang} /></div>}
+                {activeSection === 'users' && <div id="admin-users" className="min-w-0"><ClerkUsersPanel canManageUsers={canManageUsers} lang={lang} /></div>}
 
                 {activeSection === 'roles' && canManageUsers && (
                   <Card id="admin-roles" className="material-panel bg-white shadow-sm border border-slate-200">
@@ -2134,8 +2134,8 @@ function AdminPage() {
                         <Button variant="outline" onClick={() => exportAdminSection('excel', t.appRolePermissions, [t.email, t.role, t.permissions || 'Permissions'], filteredRoles.map((item) => [item.email, item.role, item.permissions.join(', ')]))} className="border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs rounded-xl">{t.exportExcel}</Button>
                         <Button variant="outline" onClick={() => exportAdminSection('pdf', t.appRolePermissions, [t.email, t.role, t.permissions || 'Permissions'], filteredRoles.map((item) => [item.email, item.role, item.permissions.join(', ')]))} className="border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs rounded-xl">{t.exportPdf}</Button>
                       </div>
-                      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                        <table className="w-full text-sm text-left">
+                      <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+                        <table className="w-full text-sm text-left min-w-[620px]">
                           <thead>
                             <tr className="bg-slate-50/80 text-slate-600 font-extrabold text-xs uppercase tracking-wider border-b border-slate-200">
                               <th className="px-5 py-3.5">{t.email}</th>
@@ -2251,8 +2251,8 @@ function AdminPage() {
                             <option value="code-desc">{t.nameDesc}</option>
                           </select>
                         </div>
-                        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                          <table className="w-full text-sm text-left">
+                        <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+                          <table className="w-full text-sm text-left min-w-[380px]">
                             <thead>
                               <tr className="bg-slate-50/80 text-slate-600 font-extrabold text-xs uppercase tracking-wider border-b border-slate-200">
                                 <th className="px-5 py-3.5">{t.currencyCode}</th>
@@ -2314,8 +2314,8 @@ function AdminPage() {
                             className="max-w-xs rounded-xl border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 text-xs focus:ring-2 focus:ring-amber-500/20"
                           />
                         </div>
-                        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                          <table className="w-full text-left text-sm">
+                        <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+                          <table className="w-full text-left text-sm min-w-[580px]">
                             <thead>
                               <tr className="bg-slate-50/80 text-slate-600 font-extrabold text-xs uppercase tracking-wider border-b border-slate-200">
                                 <th className="p-4">{t.name}</th>
@@ -2483,8 +2483,8 @@ function AdminPage() {
                           <Button variant="outline" onClick={() => exportAdminSection('excel', t.application, [t.name, t.profileCount], filteredApplications.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.profilesCount ?? 0]))} className="border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs rounded-xl">{t.exportExcel}</Button>
                           <Button variant="outline" onClick={() => exportAdminSection('pdf', t.application, [t.name, t.profileCount], filteredApplications.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.profilesCount ?? 0]))} className="border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs rounded-xl">{t.exportPdf}</Button>
                         </div>
-                        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                          <table className="w-full text-sm text-left">
+                        <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+                          <table className="w-full text-sm text-left min-w-[420px]">
                             <thead>
                               <tr className="bg-slate-50/80 text-slate-600 font-extrabold text-xs uppercase tracking-wider border-b border-slate-200">
                                 <th className="px-5 py-3.5">{t.name}</th>
@@ -2590,8 +2590,8 @@ function AdminPage() {
                           <Button variant="outline" onClick={() => exportAdminSection('excel', t.crossSection, [t.name, t.profileCount], filteredCrossSections.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.profilesCount ?? 0]))} className="border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs rounded-xl">{t.exportExcel}</Button>
                           <Button variant="outline" onClick={() => exportAdminSection('pdf', t.crossSection, [t.name, t.profileCount], filteredCrossSections.map((item) => [item.nameDe ? item.name + ' / ' + item.nameDe : item.name, item.profilesCount ?? 0]))} className="border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs rounded-xl">{t.exportPdf}</Button>
                         </div>
-                        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                          <table className="w-full text-sm text-left">
+                        <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+                          <table className="w-full text-sm text-left min-w-[420px]">
                             <thead>
                               <tr className="bg-slate-50/80 text-slate-600 font-extrabold text-xs uppercase tracking-wider border-b border-slate-200">
                                 <th className="px-5 py-3.5">{t.name}</th>
@@ -3065,8 +3065,8 @@ function AdminPage() {
                       </div>
 
                       {/* Profiles Table */}
-                      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                        <table className="w-full text-sm text-left">
+                      <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+                        <table className="w-full text-sm text-left min-w-[720px]">
                           <thead className="bg-slate-50/80 text-slate-600 font-extrabold text-xs uppercase tracking-wider border-b border-slate-200">
                             <tr>
                               <th className="px-5 py-3.5">{t.name}</th>

@@ -25,17 +25,17 @@ export class CustomerService {
     }));
   }
 
-
   async getSupplierProfile(userId: number) {
     let supplier = await this.prisma.supplier.findUnique({
       where: { userId },
     });
     if (!supplier) {
       const user = await this.prisma.user.findUnique({ where: { id: userId } });
-      const name = user && (user.firstName || user.lastName) 
-        ? `${user.firstName || ''} ${user.lastName || ''}`.trim() 
-        : (user?.email || 'Customer');
-      
+      const name =
+        user && (user.firstName || user.lastName)
+          ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
+          : user?.email || 'Customer';
+
       supplier = await this.prisma.supplier.create({
         data: {
           userId,
@@ -76,7 +76,6 @@ export class CustomerService {
       },
     });
   }
-
 
   async createProfile(userId: number, input: ProfileInput) {
     if (!input.name) {
@@ -123,7 +122,11 @@ export class CustomerService {
     });
   }
 
-  async updateProfile(userId: number, id: number, input: Partial<ProfileInput>) {
+  async updateProfile(
+    userId: number,
+    id: number,
+    input: Partial<ProfileInput>,
+  ) {
     const existing = await this.prisma.profile.findFirst({
       where: { id, ownerUserId: userId },
     });
