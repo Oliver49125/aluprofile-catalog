@@ -64,6 +64,35 @@ export class PublicController {
     return profile;
   }
 
+  @Get('detect-language')
+  detectLanguage(
+    @Req() req: any,
+    @Query('timezone') timezone?: string,
+  ) {
+    const rawIpHeader =
+      req?.headers?.['x-forwarded-for'] ||
+      req?.headers?.['x-real-ip'] ||
+      req?.headers?.['cf-connecting-ip'] ||
+      req?.socket?.remoteAddress;
+
+    const rawIp =
+      typeof rawIpHeader === 'string'
+        ? rawIpHeader.split(',')[0].trim()
+        : Array.isArray(rawIpHeader)
+          ? rawIpHeader[0]
+          : undefined;
+
+    const cfCountry = req?.headers?.['cf-ipcountry'] as string;
+    const vercelCountry = req?.headers?.['x-vercel-ip-country'] as string;
+
+    return this.publicService.detectLanguage({
+      clientIp: rawIp,
+      cfCountry,
+      vercelCountry,
+      timezone,
+    });
+  }
+
   @Get('site-settings')
   getSiteSettings() {
     return this.publicService.getSiteSettings();

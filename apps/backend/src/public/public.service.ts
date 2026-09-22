@@ -625,4 +625,66 @@ ${data.message}
       return {};
     }
   }
+
+  detectLanguage(params?: {
+    clientIp?: string;
+    cfCountry?: string;
+    vercelCountry?: string;
+    timezone?: string;
+  }): {
+    lang: Lang;
+    country?: string;
+    countryName?: string;
+    isGermanSpeaking: boolean;
+  } {
+    let countryCode = params?.cfCountry || params?.vercelCountry;
+
+    if (!countryCode && params?.clientIp) {
+      const cleanIp = params.clientIp.replace(/^.*:/, '').trim();
+      const isPrivateOrLocal =
+        cleanIp === '127.0.0.1' ||
+        cleanIp === '::1' ||
+        cleanIp.startsWith('10.') ||
+        cleanIp.startsWith('192.168.') ||
+        cleanIp.startsWith('172.16.') ||
+        cleanIp.startsWith('172.17.') ||
+        cleanIp.startsWith('172.18.') ||
+        cleanIp.startsWith('172.19.') ||
+        cleanIp.startsWith('172.2') ||
+        cleanIp.startsWith('172.3') ||
+        cleanIp === 'localhost';
+
+      if (!isPrivateOrLocal) {
+        try {
+          const geo = geoip.lookup(cleanIp);
+          if (geo?.country) {
+            countryCode = geo.country;
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+
+    if (!countryCode && params?.timezone) {
+      const tz = params.timezone.toLowerCase();
+      if (tz.includes('vienna') || tz.includes('austria')) countryCode = 'AT';
+      else if (tz.includes('berlin') || tz.includes('busingen') || tz.includes('germany')) countryCode = 'DE';
+      else if (tz.includes('zurich') || tz.includes('switzerland')) countryCode = 'CH';
+      else if (tz.includes('vaduz') || tz.includes('liechtenstein')) countryCode = 'LI';
+      else if (tz.includes('luxembourg')) countryCode = 'LU';
+    }
+
+    const code = countryCode?.toUpperCase() || '';
+    const GERMAN_COUNTRIES = ['AT', 'DE', 'CH', 'LI', 'LU'];
+    const isGermanSpeaking = GERMAN_COUNTRIES.includes(code);
+    const countryName = code ? COUNTRY_NAMES[code] || code : undefined;
+
+    return {
+      lang: isGermanSpeaking ? 'de' : 'en',
+      country: code || undefined,
+      countryName,
+      isGermanSpeaking,
+    };
+  }
 }
