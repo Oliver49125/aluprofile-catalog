@@ -374,7 +374,7 @@ export default function SearchPortalPage() {
               className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all hover:bg-slate-800/50 hover:text-white text-slate-400"
             >
               <FolderKanban className="h-4 w-4" />
-              <span>{lang === 'de' ? 'Kundenportal' : 'Customer Portal'}</span>
+              <span>Login</span>
             </Link>
           </div>
 

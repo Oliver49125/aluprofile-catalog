@@ -365,7 +365,7 @@ export default function CatalogPage() {
 
             <Link to="/customer" className="hidden sm:inline-flex">
               <Button className="rounded-xl bg-[#1e2a3b] hover:bg-slate-800 text-white text-[11px] sm:text-xs font-bold px-2.5 sm:px-4 py-1.5 sm:py-2 shadow-sm transition-all cursor-pointer">
-                {lang === 'de' ? 'Kundenportal' : 'Customer Portal'}
+                Login
               </Button>
             </Link>
 
@@ -522,7 +522,7 @@ export default function CatalogPage() {
               >
                 <Button className="w-full py-2.5 rounded-xl bg-[#1e2a3b] hover:bg-slate-800 text-white text-xs font-bold shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2">
                   <User className="h-4 w-4 text-sky-400" />
-                  <span>{lang === 'de' ? 'Kundenportal' : 'Customer Portal'}</span>
+                  <span>Login</span>
                 </Button>
               </Link>
             </div>

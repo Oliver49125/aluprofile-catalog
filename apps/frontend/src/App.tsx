@@ -753,7 +753,7 @@ function App() {
 
             <Link to="/customer" className="hidden sm:inline-flex">
               <Button className="rounded-xl bg-[#1e2a3b] hover:bg-slate-800 text-white text-[11px] sm:text-xs font-bold px-2.5 sm:px-4 py-1.5 sm:py-2 shadow-sm transition-all cursor-pointer">
-                {lang === 'de' ? 'Kundenportal' : 'Customer Portal'}
+                Login
               </Button>
             </Link>
 
@@ -923,7 +923,7 @@ function App() {
               >
                 <Button className="w-full py-2.5 rounded-xl bg-[#1e2a3b] hover:bg-slate-800 text-white text-xs font-bold shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2">
                   <User className="h-4 w-4 text-sky-400" />
-                  <span>{lang === 'de' ? 'Kundenportal' : 'Customer Portal'}</span>
+                  <span>Login</span>
                 </Button>
               </Link>
 
@@ -947,7 +947,7 @@ function App() {
 
       {/* ── FULL-WIDTH HERO BANNER (ULTRA MODERN INDUSTRIAL GLASSMORPHISM) ── */}
       <section
-        className="w-full max-w-full text-white relative overflow-hidden bg-gradient-to-br from-[#0b1320] via-[#152238] to-[#0f172a] py-8 sm:py-10 lg:py-14 border-b border-slate-800"
+        className="w-full max-w-full text-white relative overflow-hidden bg-gradient-to-br from-[#0b1320] via-[#152238] to-[#0f172a] pt-5 pb-8 sm:pt-6 sm:pb-10 lg:pt-8 lg:pb-12 border-b border-slate-800"
       >
         {/* Glowing Background Light Orbs */}
         <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
@@ -957,8 +957,8 @@ function App() {
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-10 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
 
-            {/* Left: Headline + subtitle + modern search bar */}
-            <div className="lg:col-span-5 flex flex-col justify-center space-y-6">
+            {/* Left: Headline + search bar (placed prominently above) + subtitle */}
+            <div className="lg:col-span-5 flex flex-col justify-center space-y-4">
               <div className="inline-flex items-center gap-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 px-3.5 py-1 text-[11px] font-black uppercase tracking-[0.25em] text-cyan-400 shadow-sm w-max">
                 <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
                 {lang === 'de' ? 'Präzisions-Profil-Plattform' : 'Precision Extrusion Platform'}
@@ -970,13 +970,8 @@ function App() {
                   : (siteSettings.heroTitle || 'Industrial Aluminum Extrusions, Found Instantly.')}
               </h1>
 
-              <p className="text-slate-300 text-xs sm:text-sm leading-relaxed font-medium max-w-lg">
-                {lang === 'de' 
-                  ? (siteSettings.heroSubtitleDe || 'Detaillierte Spezifikationen, technische Daten und sofortige CAD-Downloads für Standard- und Sonderprofile.') 
-                  : (siteSettings.heroSubtitle || 'Search and access detailed specifications, technical data, and instant downloads for standard and custom aluminum profiles.')}
-              </p>
-
-              <div ref={searchContainerRef} className="relative max-w-md w-full">
+              {/* Placed more above: Search Bar right after main headline */}
+              <div ref={searchContainerRef} className="relative max-w-md w-full pt-1">
                 <div className="relative flex items-center">
                   <input
                     type="text"
@@ -1151,6 +1146,12 @@ function App() {
                   </div>
                 )}
               </div>
+
+              <p className="text-slate-300 text-xs sm:text-sm leading-relaxed font-medium max-w-lg">
+                {lang === 'de' 
+                  ? (siteSettings.heroSubtitleDe || 'Detaillierte Spezifikationen, technische Daten und sofortige CAD-Downloads für Standard- und Sonderprofile.') 
+                  : (siteSettings.heroSubtitle || 'Search and access detailed specifications, technical data, and instant downloads for standard and custom aluminum profiles.')}
+              </p>
             </div>
 
             {/* Right: Modern Glassmorphic Container with 3D Render + Stat Cards */}
