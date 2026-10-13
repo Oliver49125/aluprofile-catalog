@@ -3,7 +3,7 @@ export function getApiBase(): string {
     return (import.meta.env.VITE_API_BASE as string).replace(/\/+$/, '');
   }
   if (typeof window !== 'undefined' && window.location.hostname.includes('aluprofile.biz')) {
-    return 'https://api.aluprofile.biz/api';
+    return 'https://api.aluprofile.biz/';
   }
   return 'http://localhost:3000/api';
 }
